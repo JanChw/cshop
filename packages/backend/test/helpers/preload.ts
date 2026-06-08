@@ -1,0 +1,37 @@
+// Test lifecycle preload (runs after env.ts). By the time this module is
+// evaluated, env vars are already set so db/index.ts opens the in-memory
+// database. We apply migrations once and register a beforeEach hook that
+// wipes data between tests.
+//
+// The hook MUST be registered in a preload (not a shared helper imported
+// by tests): bun:test only attaches lifecycle hooks to the module they
+// are declared in.
+
+import { beforeEach } from 'bun:test'
+import { migrate } from 'drizzle-orm/bun-sqlite/migrator'
+import { db } from '../../src/db'
+import {
+  orderItems, cartItems, designs, uploads, sessions,
+  orders, productVariants, products, categories,
+  stickers, backups, users, activityEvents, userOnline, settings,
+  staff
+} from '../../src/db/schema'
+import { resetQueue } from '../../src/utils/eventQueue'
+import { reseedRbac } from './rbacSeed'
+
+migrate(db, { migrationsFolder: './drizzle' })
+reseedRbac()
+
+const TABLES = [
+  staff, sessions,
+  orderItems, cartItems, designs, uploads,
+  orders, productVariants, products, categories,
+  stickers, backups, activityEvents, userOnline, settings, users
+]
+
+beforeEach(() => {
+  resetQueue()
+  for (const t of TABLES) {
+    db.delete(t).run()
+  }
+})

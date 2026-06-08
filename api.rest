@@ -1,0 +1,653 @@
+### ============================
+### 变量
+### ============================
+
+@baseUrl = http://localhost:3000/api/v1
+@token = Bearer {{accessToken}}
+@adminToken = Bearer {{adminAccessToken}}
+
+### ============================
+### 健康
+### ============================
+
+GET {{baseUrl}}/health
+# 健康检查
+
+### ============================
+### 认证
+### ============================
+
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+# 用户注册，返回 accessToken + refreshToken + 用户信息
+{
+  "email": "user@example.com",
+  "password": "password123",
+  "name": "张三"
+}
+
+### 登录
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+# 用户登录，返回令牌 + 员工上下文（isStaff/roleId/permissions）
+{
+  "email": "user@example.com",
+  "password": "password123"
+}
+
+### 刷新令牌
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+# 交换 refreshToken 获取新的 accessToken + refreshToken（轮转）
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+### 登出当前会话
+POST {{baseUrl}}/auth/logout
+Content-Type: application/json
+Authorization: {{token}}
+# 撤销指定 refreshToken 对应的会话
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+### 登出所有会话
+POST {{baseUrl}}/auth/logout-all
+Authorization: {{token}}
+# 撤销当前用户的所有活跃会话
+
+### 获取当前用户信息
+GET {{baseUrl}}/auth/me
+Authorization: {{token}}
+# 返回用户资料 + 员工上下文（isStaff/roleId/roleName/permissions）
+
+### 修改密码
+POST {{baseUrl}}/auth/change-password
+Content-Type: application/json
+Authorization: {{token}}
+# 修改密码后撤销其他会话；X-Current-Refresh-Token 可保留当前会话
+{
+  "oldPassword": "password123",
+  "newPassword": "newpassword456"
+}
+
+### 更新当前用户资料
+PATCH {{baseUrl}}/auth/me
+Content-Type: application/json
+Authorization: {{token}}
+# 至少传 name 或 email 其中一个
+{
+  "name": "新名字"
+}
+
+### 注销当前用户
+DELETE {{baseUrl}}/auth/me
+Authorization: {{token}}
+# 有订单则软禁用，无订单则硬删除
+
+### 获取会话列表
+GET {{baseUrl}}/auth/sessions
+Authorization: {{token}}
+# 返回当前用户所有会话记录
+
+### 撤销指定会话
+DELETE {{baseUrl}}/auth/sessions/1
+Authorization: {{token}}
+# 按 session id 撤销
+
+### 忘记密码
+POST {{baseUrl}}/auth/forgot-password
+Content-Type: application/json
+# 限速 5次/分钟；始终返回成功（防止邮箱枚举）
+{
+  "email": "user@example.com"
+}
+
+### ============================
+### 商品（公开）
+### ============================
+
+GET {{baseUrl}}/products?page=1&limit=20&categoryId=1&q=T恤
+# 获取上架商品列表（分页+分类+搜索），authOptional
+
+### 获取商品详情
+GET {{baseUrl}}/products/1
+# 返回商品+规格列表，仅上架商品可见；authOptional
+
+### ============================
+### 设计
+### ============================
+
+GET {{baseUrl}}/designs
+Authorization: {{token}}
+# 获取当前用户设计列表
+
+### 创建设计
+POST {{baseUrl}}/designs
+Content-Type: application/json
+Authorization: {{token}}
+{
+  "productId": 1,
+  "variantId": null,
+  "name": "我的设计",
+  "canvasData": "{}",
+  "previewImage": null
+}
+
+### 获取设计详情
+GET {{baseUrl}}/designs/1
+Authorization: {{token}}
+
+### 更新设计
+PUT {{baseUrl}}/designs/1
+Content-Type: application/json
+Authorization: {{token}}
+{
+  "productId": 1,
+  "variantId": null,
+  "name": "更新设计",
+  "canvasData": "{}",
+  "previewImage": null
+}
+
+### 删除设计
+DELETE {{baseUrl}}/designs/1
+Authorization: {{token}}
+
+### ============================
+### 上传
+### ============================
+
+GET {{baseUrl}}/uploads/thumb-abc123.webp
+# 公开访问上传文件，不可变缓存
+
+### 上传图片
+POST {{baseUrl}}/uploads
+Authorization: {{token}}
+# formData: file（jpg/png/webp），自动生成 thumb/small/medium/large 4个WebP变体
+
+### 获取当前用户上传记录
+GET {{baseUrl}}/uploads?page=1&limit=20
+Authorization: {{token}}
+
+### 删除上传记录
+DELETE {{baseUrl}}/uploads/1
+Authorization: {{token}}
+# 删除记录及4个图片文件
+
+### ============================
+### 购物车
+### ============================
+
+GET {{baseUrl}}/cart
+Authorization: {{token}}
+# 获取购物车列表
+
+### 添加到购物车
+POST {{baseUrl}}/cart
+Content-Type: application/json
+Authorization: {{token}}
+# 校验商品存在且上架，规格存在
+{
+  "productId": 1,
+  "variantId": null,
+  "designId": null,
+  "quantity": 2
+}
+
+### 更新购物车数量
+PUT {{baseUrl}}/cart/1
+Content-Type: application/json
+Authorization: {{token}}
+{
+  "quantity": 3
+}
+
+### 移除购物车商品
+DELETE {{baseUrl}}/cart/1
+Authorization: {{token}}
+
+### ============================
+### 订单（顾客）
+### ============================
+
+GET {{baseUrl}}/orders?page=1&limit=20&status=pending
+Authorization: {{token}}
+# 获取当前用户订单列表（分页+状态筛选）
+
+### 创建订单
+POST {{baseUrl}}/orders
+Content-Type: application/json
+Authorization: {{token}}
+# 从购物车创建，原子扣库存+清购物车
+{
+  "address": "北京市朝阳区xxx"
+}
+
+### 获取订单详情
+GET {{baseUrl}}/orders/1
+Authorization: {{token}}
+# 含订单明细
+
+### 取消订单
+POST {{baseUrl}}/orders/1/cancel
+Authorization: {{token}}
+# 仅 pending 状态可取消，自动回退库存
+
+### ============================
+### 贴纸（公开）
+### ============================
+
+GET {{baseUrl}}/stickers?category=general
+# 获取贴纸列表，可按分类筛选
+
+### 获取贴纸文件
+GET {{baseUrl}}/stickers/sticker-xxx.png
+# 公开，不可变缓存
+
+### ============================
+### 分类（公开）
+### ============================
+
+GET {{baseUrl}}/categories
+# 获取所有分类
+
+### 获取分类详情
+GET {{baseUrl}}/categories/1
+
+### ============================
+### ============================
+### 以下为后台管理接口（需 staff + 权限）
+### ============================
+### ============================
+
+### ============================
+### 管理面板
+### ============================
+
+GET {{baseUrl}}/admin/dashboard
+Authorization: {{adminToken}}
+# 权限: analytics.read
+# 返回商品数、订单数、待处理数、总收入
+
+### ============================
+### 商品管理
+### ============================
+
+GET {{baseUrl}}/admin/products?page=1&limit=20&includeInactive=true
+Authorization: {{adminToken}}
+# 权限: product.read
+# 含下架商品
+
+### 获取商品详情
+GET {{baseUrl}}/admin/products/1
+Authorization: {{adminToken}}
+# 权限: product.read，含规格
+
+### 创建商品
+POST {{baseUrl}}/admin/products
+Content-Type: application/json
+Authorization: {{adminToken}}
+# 权限: product.create
+{
+  "name": "T恤",
+  "description": "纯棉T恤",
+  "basePrice": 99.9,
+  "categoryId": 1,
+  "stock": 100,
+  "isActive": true
+}
+
+### 更新商品
+PUT {{baseUrl}}/admin/products/1
+Content-Type: application/json
+Authorization: {{adminToken}}
+# 权限: product.update
+{
+  "name": "新款T恤",
+  "basePrice": 129.9
+}
+
+### 上传商品主图
+POST {{baseUrl}}/admin/products/1/image
+Authorization: {{adminToken}}
+# 权限: product.update
+# formData: file（jpg/png/webp），走 sharp 生成4变体，写入 uploads 表并更新 products.image
+
+### 下架商品
+DELETE {{baseUrl}}/admin/products/1
+Authorization: {{adminToken}}
+# 权限: product.delete（软删除，设 isActive=false）
+
+### 恢复商品
+POST {{baseUrl}}/admin/products/1/restore
+Authorization: {{adminToken}}
+# 权限: product.update（设 isActive=true）
+
+### 获取商品规格列表
+GET {{baseUrl}}/admin/products/1/variants
+Authorization: {{adminToken}}
+# 权限: product.read
+
+### 创建商品规格
+POST {{baseUrl}}/admin/products/1/variants
+Content-Type: application/json
+Authorization: {{adminToken}}
+# 权限: product.create; material（材质）和 weight（克重）可选
+{
+  "size": "L",
+  "color": "黑色",
+  "material": "纯棉",
+  "weight": 200,
+  "priceAdjustment": 10,
+  "stock": 50
+}
+
+### 更新商品规格
+PUT {{baseUrl}}/admin/products/1/variants/1
+Content-Type: application/json
+Authorization: {{adminToken}}
+# 权限: product.update
+{
+  "size": "XL",
+  "stock": 30
+}
+
+### 删除商品规格
+DELETE {{baseUrl}}/admin/products/1/variants/1
+Authorization: {{adminToken}}
+# 权限: product.delete（有订单/购物车/设计引用时拒绝）
+
+### ============================
+### 订单管理
+### ============================
+
+GET {{baseUrl}}/admin/orders?page=1&limit=20&status=pending
+Authorization: {{adminToken}}
+# 权限: order.read
+
+### 获取订单详情
+GET {{baseUrl}}/admin/orders/1
+Authorization: {{adminToken}}
+# 权限: order.read，含明细 + 用户信息
+
+### 更新订单状态
+PUT {{baseUrl}}/admin/orders/1
+Content-Type: application/json
+Authorization: {{adminToken}}
+# 权限: order.update_status
+# 状态机校验：pending→paid→processing→shipped→completed；任意非终态→cancelled
+# 自动设置 paidAt/shippedAt/completedAt/cancelledAt 时间戳
+# cancelled 时回退库存
+{
+  "status": "shipped",
+  "trackingNo": "SF1234567890"
+}
+
+### ============================
+### 贴纸管理
+### ============================
+
+### 上传贴纸
+POST {{baseUrl}}/admin/stickers
+Authorization: {{adminToken}}
+# 权限: sticker.create
+# formData: file（png/webp）、name、category（默认 general）
+
+### 更新贴纸
+PUT {{baseUrl}}/admin/stickers/1
+Content-Type: application/json
+Authorization: {{adminToken}}
+# 权限: sticker.update，至少传 name 或 category
+{
+  "name": "爱心",
+  "category": "emoji"
+}
+
+### 删除贴纸
+DELETE {{baseUrl}}/admin/stickers/1
+Authorization: {{adminToken}}
+# 权限: sticker.delete，同时删除文件
+
+### ============================
+### 分类管理
+### ============================
+
+### 创建分类
+POST {{baseUrl}}/admin/categories
+Content-Type: application/json
+Authorization: {{adminToken}}
+# 权限: category.create，slug 需唯一
+{
+  "name": "T恤",
+  "slug": "tshirt"
+}
+
+### 更新分类
+PUT {{baseUrl}}/admin/categories/1
+Content-Type: application/json
+Authorization: {{adminToken}}
+# 权限: category.update
+{
+  "name": "短袖T恤",
+  "slug": "short-sleeve-tshirt"
+}
+
+### 删除分类
+DELETE {{baseUrl}}/admin/categories/1
+Authorization: {{adminToken}}
+# 权限: category.delete（有商品引用时拒绝）
+
+### ============================
+### 员工管理
+### ============================
+
+GET {{baseUrl}}/admin/staff?page=1&limit=20
+Authorization: {{adminToken}}
+# 权限: staff.read，关联用户+角色信息
+
+### 创建员工
+POST {{baseUrl}}/admin/staff
+Content-Type: application/json
+Authorization: {{adminToken}}
+# 权限: staff.create，同时创建 user + staff 记录
+{
+  "email": "staff@example.com",
+  "password": "password123",
+  "name": "店员A",
+  "roleId": 2,
+  "employeeNo": "E001",
+  "department": "运营",
+  "position": "客服"
+}
+
+### 更新员工
+PUT {{baseUrl}}/admin/staff/1
+Content-Type: application/json
+Authorization: {{adminToken}}
+# 权限: staff.update，不能停用自己
+{
+  "roleId": 3,
+  "status": "active"
+}
+
+### 删除员工
+DELETE {{baseUrl}}/admin/staff/1
+Authorization: {{adminToken}}
+# 权限: staff.delete，软删除（标记 resigned），不能删自己
+
+### ============================
+### 角色管理
+### ============================
+
+GET {{baseUrl}}/admin/roles
+Authorization: {{adminToken}}
+# 权限: staff.read，含每个角色的权限列表
+
+### 获取所有权限码
+GET {{baseUrl}}/admin/roles/permissions
+Authorization: {{adminToken}}
+# 权限: staff.read，按模块分组
+
+### 创建角色
+POST {{baseUrl}}/admin/roles
+Content-Type: application/json
+Authorization: {{adminToken}}
+# 权限: staff.create，name 只允许小写字母/数字/下划线
+{
+  "name": "content_editor",
+  "displayName": "内容编辑",
+  "description": "管理商品和贴纸内容"
+}
+
+### 删除角色
+DELETE {{baseUrl}}/admin/roles/5
+Authorization: {{adminToken}}
+# 权限: staff.create，系统角色不可删，有员工引用时拒绝
+
+### 更新角色权限
+PUT {{baseUrl}}/admin/roles/5/permissions
+Content-Type: application/json
+Authorization: {{adminToken}}
+# 权限: staff.create，系统角色不可修改，整体替换权限列表
+{
+  "permissionIds": [1, 2, 3, 5, 8]
+}
+
+### ============================
+### 用户管理
+### ============================
+
+GET {{baseUrl}}/admin/users?page=1&limit=20&q=张&role=customer&disabled=false
+Authorization: {{adminToken}}
+# 权限: user.read，支持搜索+角色+禁用状态筛选
+
+### 获取用户详情
+GET {{baseUrl}}/admin/users/1
+Authorization: {{adminToken}}
+# 权限: user.read，含订单数
+
+### 更新用户
+PUT {{baseUrl}}/admin/users/1
+Content-Type: application/json
+Authorization: {{adminToken}}
+# 权限: user.update，不能禁用自己
+{
+  "name": "新名字",
+  "disabled": false
+}
+
+### 删除/禁用用户
+DELETE {{baseUrl}}/admin/users/1
+Authorization: {{adminToken}}
+# 权限: user.disable，有订单则软禁用，无则硬删除，不能删自己
+
+### 重置用户密码
+POST {{baseUrl}}/admin/users/1/reset-password
+Content-Type: application/json
+Authorization: {{adminToken}}
+# 权限: user.disable，重置后撤销该用户所有会话
+{
+  "newPassword": "newpassword456"
+}
+
+### ============================
+### 数据分析
+### ============================
+
+### 在线用户
+GET {{baseUrl}}/admin/analytics/online
+Authorization: {{adminToken}}
+# 权限: analytics.read，5分钟内活跃用户+地理位置
+
+### 活动事件
+GET {{baseUrl}}/admin/analytics/events?page=1&limit=20&type=login&from=2025-01-01&to=2025-12-31&deviceType=mobile&country=CN
+Authorization: {{adminToken}}
+# 权限: analytics.read
+
+### 分析汇总
+GET {{baseUrl}}/admin/analytics/summary?period=7d
+Authorization: {{adminToken}}
+# 权限: analytics.read
+# period: today / 7d / 30d
+# 返回: DAU/PV/热门商品/转化漏斗(view→cart→order)/设备分布/PV趋势
+
+### 地理分布
+GET {{baseUrl}}/admin/analytics/geo?from=2025-01-01&to=2025-12-31
+Authorization: {{adminToken}}
+# 权限: analytics.read，按国家/地区/城市分布
+
+### 审计日志
+GET {{baseUrl}}/admin/analytics/audit?page=1&limit=20&from=2025-01-01&to=2025-12-31
+Authorization: {{adminToken}}
+# 权限: analytics.read，管理员操作记录，含用户名
+
+### 留存率
+GET {{baseUrl}}/admin/analytics/retention?cohortDate=2025-06-01
+Authorization: {{adminToken}}
+# 权限: analytics.read，7天留存分析
+
+### 导出分析数据
+GET {{baseUrl}}/admin/analytics/export?from=2025-01-01&to=2025-12-31&eventType=order_create
+Authorization: {{adminToken}}
+# 权限: analytics.export，返回 CSV 文件下载
+
+### ============================
+### 系统设置
+### ============================
+
+GET {{baseUrl}}/admin/settings
+Authorization: {{adminToken}}
+# 权限: settings.read，返回 key-value 映射
+
+### 更新设置
+PUT {{baseUrl}}/admin/settings
+Content-Type: application/json
+Authorization: {{adminToken}}
+# 权限: settings.update
+{
+  "activity_retention_days": "30"
+}
+
+### ============================
+### 备份管理
+### ============================
+
+### 创建备份
+POST {{baseUrl}}/admin/backup
+Authorization: {{adminToken}}
+# 权限: backup.create，SQLite VACUUM INTO
+
+### 获取备份列表
+GET {{baseUrl}}/admin/backup
+Authorization: {{adminToken}}
+# 权限: backup.create
+
+### 下载备份
+GET {{baseUrl}}/admin/backup/1/download
+Authorization: {{adminToken}}
+# 权限: backup.download，返回 .db 文件
+
+### 从备份恢复
+POST {{baseUrl}}/admin/backup/1/restore?confirm=yes
+Authorization: {{adminToken}}
+# 权限: backup.create，必须带 confirm=yes；先备份当前库再覆盖
+
+### 删除备份
+DELETE {{baseUrl}}/admin/backup/1
+Authorization: {{adminToken}}
+# 权限: backup.delete
+
+### ============================
+### 上传管理
+### ============================
+
+GET {{baseUrl}}/admin/uploads?page=1&limit=20&userId=1
+Authorization: {{adminToken}}
+# 权限: settings.read，所有用户上传记录，可按 userId 筛选
+
+### 删除上传记录
+DELETE {{baseUrl}}/admin/uploads/1
+Authorization: {{adminToken}}
+# 权限: settings.update，删除任意用户上传记录及文件

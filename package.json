@@ -1,0 +1,14 @@
+{
+  "name": "cshop",
+  "private": true,
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "dev": "bun --filter '@cshop/backend' dev",
+    "build": "bun --filter '@cshop/backend' build",
+    "lint": "bun --filter '@cshop/backend' typecheck",
+    "typecheck": "bun --filter '@cshop/backend' typecheck",
+    "test": "bun --filter '@cshop/backend' test",
+    "db:generate": "bun --filter backend db:generate",
+    "db:migrate": "bun --filter backend db:migrate"
+  }
+}

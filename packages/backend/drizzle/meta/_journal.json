@@ -1,0 +1,55 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1780480808278,
+      "tag": "0000_rare_joseph",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1780551861201,
+      "tag": "0001_blue_edwin_jarvis",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1780568521514,
+      "tag": "0002_wonderful_earthquake",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1780571510615,
+      "tag": "0003_flashy_veda",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1780575796239,
+      "tag": "0004_adorable_metal_master",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1780576117548,
+      "tag": "0005_flippant_raza",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1780824560409,
+      "tag": "0006_superb_dark_phoenix",
+      "breakpoints": true
+    }
+  ]
+}

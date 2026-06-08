@@ -1,7 +1,7 @@
 <template>
-  <div class="p-6 flex flex-col gap-4 h-full">
+  <div class="p-6 flex flex-col gap-4 min-h-screen">
     <div class="flex items-center justify-between">
-      <h1 class="text-xl font-semibold text-text-primary">商品管理</h1>
+      <h1 class="text-xl font-bold text-text-primary">商品管理</h1>
       <div class="flex items-center gap-3">
         <button class="h-10 rounded border border-border px-4 text-sm font-medium text-text-primary hover:bg-gray-50 transition-colors">
           导出
@@ -67,24 +67,24 @@
         <div
           v-for="product in paginatedProducts"
           :key="product.id"
-          class="flex items-center px-4 h-12 border-b border-border gap-3"
+          class="flex items-center px-4 h-[52px] border-b border-border gap-3"
         >
-          <span class="w-[50px] text-[13px] text-text-primary">{{ product.id }}</span>
-          <span class="w-[200px] text-[13px] text-text-primary font-medium">{{ product.name }}</span>
-          <span class="w-[80px] text-[13px] text-text-primary">{{ product.category }}</span>
-          <span class="w-[80px] text-[13px] text-text-primary font-medium">{{ product.price }}</span>
-          <span class="w-[70px] text-[13px] text-text-primary">{{ product.stock }}</span>
+          <span class="w-[50px] text-sm text-text-primary">{{ product.id }}</span>
+          <span class="w-[200px] text-sm text-text-primary font-medium">{{ product.name }}</span>
+          <span class="w-[80px] text-sm text-text-primary">{{ product.category }}</span>
+          <span class="w-[80px] text-sm text-text-primary font-medium">{{ product.price }}</span>
+          <span class="w-[70px] text-sm text-text-primary">{{ product.stock }}</span>
           <span class="w-[70px]">
             <span
-              class="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium text-white"
-              :class="product.status === '上架' ? 'bg-[#10B981]' : 'bg-gray-400'"
+              class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium text-white"
+              :class="product.status === '上架' ? 'bg-status-on' : 'bg-gray-400'"
             >
               {{ product.status }}
             </span>
           </span>
           <div class="w-[100px]">
             <button
-              class="text-[13px] text-primary hover:underline"
+              class="text-sm text-primary hover:underline"
               @click="$router.push(`/products/${product.id}/edit`)"
             >
               编辑
@@ -95,7 +95,7 @@
     </div>
 
     <div class="flex items-center justify-between">
-      <span class="text-[13px] text-text-primary">共 {{ filteredProducts.length }} 条，每页 8 条</span>
+      <span class="text-sm text-text-primary">共 {{ filteredProducts.length }} 条，每页 8 条</span>
       <div class="flex items-center gap-1">
         <button
           class="w-8 h-8 rounded border border-border bg-white text-sm flex items-center justify-center hover:bg-gray-50 disabled:opacity-50"

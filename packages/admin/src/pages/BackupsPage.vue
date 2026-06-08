@@ -1,9 +1,9 @@
 <template>
-  <div class="p-6 flex flex-col gap-4 h-full">
+  <div class="p-6 flex flex-col gap-4 min-h-screen">
     <div class="flex items-center justify-between">
-      <h1 class="text-[22px] font-bold text-text-primary">数据备份</h1>
+      <h1 class="text-xl font-bold text-text-primary">数据备份</h1>
       <button
-        class="rounded bg-primary text-white text-[13px] font-medium px-4 py-2.5 flex items-center gap-2 hover:bg-primary/90 transition-colors"
+        class="rounded bg-primary text-white text-sm font-medium px-4 py-2.5 flex items-center gap-2 hover:bg-primary/90 transition-colors"
         @click="createBackup"
       >
         <Database :size="16" />
@@ -17,7 +17,7 @@
     </div>
 
     <div class="flex-1 bg-card border border-border rounded-md flex flex-col">
-      <div class="flex items-center px-4 bg-[#C8DBBC] h-11 shrink-0">
+      <div class="flex items-center px-4 bg-table-header h-11 shrink-0">
         <span class="w-[60px] text-xs font-semibold text-text-muted">ID</span>
         <span class="flex-1 text-xs font-semibold text-text-muted">文件名</span>
         <span class="w-[120px] text-xs font-semibold text-text-muted">文件大小</span>
@@ -31,9 +31,9 @@
           :key="backup.id"
           class="flex items-center px-4 h-[52px] border-b border-border"
         >
-          <span class="w-[60px] text-[13px] text-text-muted font-mono">{{ backup.id }}</span>
-          <span class="flex-1 text-[13px] text-text-primary font-mono">{{ backup.filename }}</span>
-          <span class="w-[120px] text-[13px] text-text-muted">{{ backup.size }}</span>
+          <span class="w-[60px] text-sm text-text-muted font-mono">{{ backup.id }}</span>
+          <span class="flex-1 text-sm text-text-primary font-mono">{{ backup.filename }}</span>
+          <span class="w-[120px] text-sm text-text-muted">{{ backup.size }}</span>
           <span class="w-[160px] text-xs text-text-muted font-mono">{{ backup.createdAt }}</span>
           <div class="w-[160px] flex items-center gap-2">
             <div
@@ -74,7 +74,7 @@
             </div>
           </div>
         </div>
-        <div v-if="backups.length === 0" class="flex items-center justify-center h-20 text-[13px] text-text-muted">
+        <div v-if="backups.length === 0" class="flex items-center justify-center h-20 text-sm text-text-muted">
           暂无备份记录
         </div>
       </div>
@@ -83,7 +83,7 @@
     <Teleport to="body">
       <div
         v-if="tooltip.visible"
-        class="fixed px-2 py-1 text-[11px] text-white bg-gray-800 rounded whitespace-nowrap pointer-events-none z-[9999]"
+        class="fixed px-2 py-1 text-xs text-white bg-gray-800 rounded whitespace-nowrap pointer-events-none z-[9999]"
         :style="{ left: tooltip.x + 'px', top: tooltip.y + 'px', transform: 'translateX(-50%)' }"
       >
         {{ tooltip.text }}
@@ -97,7 +97,7 @@
           class="fixed inset-0 z-50 flex items-center justify-center"
           @click.self="restoreModalVisible = false"
         >
-          <div class="absolute inset-0 bg-black/40" />
+          <div class="absolute inset-0 bg-black/50" />
           <div class="relative bg-white rounded-md w-[400px] border border-border p-7 flex flex-col gap-5">
             <h3 class="text-base font-semibold text-text-primary">确认恢复</h3>
             <p class="text-sm text-text-muted">
@@ -131,7 +131,7 @@
           class="fixed inset-0 z-50 flex items-center justify-center"
           @click.self="deleteModalVisible = false"
         >
-          <div class="absolute inset-0 bg-black/40" />
+          <div class="absolute inset-0 bg-black/50" />
           <div class="relative bg-white rounded-md w-[400px] border border-border p-7 flex flex-col gap-5">
             <h3 class="text-base font-semibold text-text-primary">确认删除</h3>
             <p class="text-sm text-text-muted">

@@ -1,0 +1,7 @@
+{
+  "name": "admin-design",
+  "version": "1.0.0",
+  "category": "Design / Vue",
+  "description": "改进 CShop 后台管理（Vue 3 + Tailwind CSS v4）的页面设计质量。基于 @theme 令牌和 admin.pen 设计稿，修复视觉不一致，统一组件风格。",
+  "compat": ["opencode"]
+}

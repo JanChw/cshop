@@ -1,9 +1,9 @@
 <template>
-  <div class="p-6 flex flex-col gap-4 h-full">
+  <div class="p-6 flex flex-col gap-4 min-h-screen">
     <div class="flex items-center justify-between">
-      <h1 class="text-[22px] font-bold text-text-primary">分类管理</h1>
+      <h1 class="text-xl font-bold text-text-primary">分类管理</h1>
       <button
-        class="rounded bg-primary text-white text-[13px] font-medium px-4 py-2.5 flex items-center gap-2 hover:bg-primary/90 transition-colors"
+        class="rounded bg-primary text-white text-sm font-medium px-4 py-2.5 flex items-center gap-2 hover:bg-primary/90 transition-colors"
         @click="openAdd"
       >
         <Plus :size="16" />
@@ -12,7 +12,7 @@
     </div>
 
     <div class="flex-1 bg-card border border-border rounded-md overflow-hidden flex flex-col">
-      <div class="flex items-center px-4 bg-[#C8DBBC] h-11 shrink-0">
+      <div class="flex items-center px-4 bg-table-header h-11 shrink-0">
         <span class="w-[60px] text-xs font-semibold text-text-muted">ID</span>
         <span class="w-[200px] text-xs font-semibold text-text-muted">分类名称</span>
         <span class="flex-1 text-xs font-semibold text-text-muted">别名 (Slug)</span>
@@ -26,10 +26,10 @@
           :key="cat.id"
           class="flex items-center px-4 h-[52px] border-b border-border"
         >
-          <span class="w-[60px] text-[13px] text-text-muted font-mono">{{ cat.id }}</span>
+          <span class="w-[60px] text-sm text-text-muted font-mono">{{ cat.id }}</span>
           <span class="w-[200px] text-sm text-text-primary font-medium">{{ cat.name }}</span>
-          <span class="flex-1 text-[13px] text-text-muted font-mono">{{ cat.slug }}</span>
-          <span class="w-[100px] text-[13px] text-text-primary">{{ cat.count }}</span>
+          <span class="flex-1 text-sm text-text-muted font-mono">{{ cat.slug }}</span>
+          <span class="w-[100px] text-sm text-text-primary">{{ cat.count }}</span>
           <div class="w-[120px] flex items-center gap-2">
             <button
               class="rounded p-1 text-text-muted hover:bg-gray-100 transition-colors"
@@ -62,7 +62,7 @@
           class="fixed inset-0 z-50 flex items-center justify-center"
           @click.self="deleteModalVisible = false"
         >
-          <div class="absolute inset-0 bg-black/40" />
+          <div class="absolute inset-0 bg-black/50" />
           <div class="relative bg-white rounded-md w-[400px] border border-border p-7 flex flex-col gap-5">
             <h3 class="text-base font-semibold text-text-primary">确认删除</h3>
             <p class="text-sm text-text-muted">

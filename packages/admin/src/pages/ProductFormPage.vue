@@ -1,5 +1,5 @@
 <template>
-  <div class="p-6 flex flex-col gap-6 h-full overflow-auto">
+  <div class="p-6 flex flex-col gap-6">
     <div class="flex items-center justify-between">
       <h1 class="text-xl font-semibold text-text-primary">{{ isEdit ? '编辑商品' : '新增商品' }}</h1>
       <div class="flex items-center gap-3">
@@ -21,7 +21,7 @@
 
         <div class="flex gap-6">
           <div class="flex-1 flex flex-col gap-2">
-            <label class="text-[13px] font-medium text-text-primary">商品名称</label>
+            <label class="text-sm font-medium text-text-primary">商品名称</label>
             <input
               v-model="form.name"
               type="text"
@@ -30,7 +30,7 @@
             />
           </div>
           <div class="flex-1 flex flex-col gap-2">
-            <label class="text-[13px] font-medium text-text-primary">商品分类</label>
+            <label class="text-sm font-medium text-text-primary">商品分类</label>
             <select
               v-model="form.category"
               class="h-10 rounded border border-border px-3 text-sm text-text-primary bg-white outline-none appearance-none cursor-pointer"
@@ -45,7 +45,7 @@
 
         <div class="flex gap-6">
           <div class="flex-1 flex flex-col gap-2">
-            <label class="text-[13px] font-medium text-text-primary">销售价格</label>
+            <label class="text-sm font-medium text-text-primary">销售价格</label>
             <input
               v-model="form.price"
               type="text"
@@ -54,7 +54,7 @@
             />
           </div>
           <div class="flex-1 flex flex-col gap-2">
-            <label class="text-[13px] font-medium text-text-primary">库存数量</label>
+            <label class="text-sm font-medium text-text-primary">库存数量</label>
             <input
               v-model="form.stock"
               type="number"
@@ -63,7 +63,7 @@
             />
           </div>
           <div class="flex-1 flex flex-col gap-2">
-            <label class="text-[13px] font-medium text-text-primary">商品状态</label>
+            <label class="text-sm font-medium text-text-primary">商品状态</label>
             <select
               v-model="form.status"
               class="h-10 rounded border border-border px-3 text-sm text-text-primary bg-white outline-none appearance-none cursor-pointer"
@@ -121,17 +121,17 @@
       <div class="bg-card border border-border rounded-md px-6 py-5 flex flex-col gap-4">
         <div>
           <h2 class="text-base font-semibold text-text-primary">规格管理</h2>
-          <p class="text-[13px] text-text-muted mt-1">添加规格可让商品支持多种组合（如尺码、颜色）</p>
+          <p class="text-sm text-text-muted mt-1">添加规格可让商品支持多种组合（如尺码、颜色）</p>
         </div>
 
         <div class="bg-[#F9FAFB] border border-border rounded px-5 py-4 flex flex-col gap-3">
           <span class="text-sm font-semibold text-text-primary">批量生成规格</span>
           <div class="flex items-center gap-2">
-            <span class="text-[13px] font-medium text-text-primary">尺寸：</span>
+            <span class="text-sm font-medium text-text-primary">尺寸：</span>
             <span
               v-for="size in sizes"
               :key="size"
-              class="h-8 rounded border px-3 text-[13px] font-medium flex items-center cursor-pointer transition-colors"
+              class="h-8 rounded border px-3 text-sm font-medium flex items-center cursor-pointer transition-colors"
               :class="selectedSizes.includes(size)
                 ? 'bg-primary text-white border-primary hover:bg-primary-dark'
                 : 'bg-white text-text-primary border-border hover:bg-gray-200 hover:border-gray-300'"
@@ -141,11 +141,11 @@
             </span>
           </div>
           <div class="flex items-center gap-2">
-            <span class="text-[13px] font-medium text-text-primary">颜色：</span>
+            <span class="text-sm font-medium text-text-primary">颜色：</span>
             <span
               v-for="color in colors"
               :key="color"
-              class="h-8 rounded border px-3 text-[13px] font-medium flex items-center cursor-pointer transition-colors"
+              class="h-8 rounded border px-3 text-sm font-medium flex items-center cursor-pointer transition-colors"
               :class="selectedColors.includes(color)
                 ? 'bg-primary text-white border-primary hover:bg-primary-dark'
                 : 'bg-white text-text-primary border-border hover:bg-gray-200 hover:border-gray-300'"
@@ -164,41 +164,41 @@
 
         <div class="border border-border rounded overflow-hidden">
           <div class="flex items-center px-5 bg-[#F9FAFB] h-12 gap-3">
-            <span class="w-[100px] text-[13px] font-semibold text-text-primary">尺寸</span>
-            <span class="w-[100px] text-[13px] font-semibold text-text-primary">颜色</span>
-            <span class="w-[120px] text-[13px] font-semibold text-text-primary">材质</span>
-            <span class="w-[100px] text-[13px] font-semibold text-text-primary">重量</span>
-            <span class="w-[120px] text-[13px] font-semibold text-text-primary">价格调整</span>
-            <span class="w-[100px] text-[13px] font-semibold text-text-primary">库存</span>
-            <span class="w-[120px] text-[13px] font-semibold text-text-primary">操作</span>
+            <span class="w-[100px] text-sm font-semibold text-text-primary">尺寸</span>
+            <span class="w-[100px] text-sm font-semibold text-text-primary">颜色</span>
+            <span class="w-[120px] text-sm font-semibold text-text-primary">材质</span>
+            <span class="w-[100px] text-sm font-semibold text-text-primary">重量</span>
+            <span class="w-[120px] text-sm font-semibold text-text-primary">价格调整</span>
+            <span class="w-[100px] text-sm font-semibold text-text-primary">库存</span>
+            <span class="w-[120px] text-sm font-semibold text-text-primary">操作</span>
           </div>
           <div
             v-for="(v, i) in variants"
             :key="i"
             class="flex items-center px-5 h-[52px] border-b border-border gap-3"
           >
-            <span class="w-[100px] text-[13px] text-text-primary">{{ v.size }}</span>
-            <span class="w-[100px] text-[13px] text-text-primary">{{ v.color }}</span>
-            <span class="w-[120px] text-[13px] text-text-muted">{{ v.material || '-' }}</span>
-            <span class="w-[100px] text-[13px] text-text-muted">{{ v.weight || '-' }}</span>
-            <span class="w-[120px] text-[13px] text-text-primary">{{ v.priceAdj }}</span>
-            <span class="w-[100px] text-[13px] text-text-primary">{{ v.stock }}</span>
+            <span class="w-[100px] text-sm text-text-primary">{{ v.size }}</span>
+            <span class="w-[100px] text-sm text-text-primary">{{ v.color }}</span>
+            <span class="w-[120px] text-sm text-text-muted">{{ v.material || '-' }}</span>
+            <span class="w-[100px] text-sm text-text-muted">{{ v.weight || '-' }}</span>
+            <span class="w-[120px] text-sm text-text-primary">{{ v.priceAdj }}</span>
+            <span class="w-[100px] text-sm text-text-primary">{{ v.stock }}</span>
             <div class="w-[120px] flex items-center gap-3">
               <button
-                class="text-[13px] text-primary hover:underline"
+                class="text-sm text-primary hover:underline"
                 @click="openEditVariant(i)"
               >
                 编辑
               </button>
               <button
-                class="text-[13px] text-danger hover:underline"
+                class="text-sm text-danger hover:underline"
                 @click="deleteVariant(i)"
               >
                 删除
               </button>
             </div>
           </div>
-          <div v-if="variants.length === 0" class="flex items-center justify-center h-20 text-[13px] text-text-muted">
+          <div v-if="variants.length === 0" class="flex items-center justify-center h-20 text-sm text-text-muted">
             暂无规格，点击下方按钮添加
           </div>
         </div>
@@ -219,7 +219,7 @@
           class="fixed inset-0 z-50 flex items-center justify-center"
           @click.self="variantModalVisible = false"
         >
-          <div class="absolute inset-0 bg-black/40" />
+          <div class="absolute inset-0 bg-black/50" />
           <div class="relative bg-white rounded-md w-[560px] border border-border p-7 flex flex-col gap-5">
             <div class="flex items-center justify-between">
               <h3 class="text-base font-semibold text-text-primary">
@@ -236,7 +236,7 @@
             <div class="flex flex-col gap-4">
               <div class="flex gap-4">
                 <div class="flex-1 flex flex-col gap-1.5">
-                  <label class="text-[13px] font-medium text-text-primary">尺寸</label>
+                  <label class="text-sm font-medium text-text-primary">尺寸</label>
                   <input
                     v-model="variantForm.size"
                     type="text"
@@ -244,7 +244,7 @@
                   />
                 </div>
                 <div class="flex-1 flex flex-col gap-1.5">
-                  <label class="text-[13px] font-medium text-text-primary">颜色</label>
+                  <label class="text-sm font-medium text-text-primary">颜色</label>
                   <input
                     v-model="variantForm.color"
                     type="text"
@@ -254,7 +254,7 @@
               </div>
               <div class="flex gap-4">
                 <div class="flex-1 flex flex-col gap-1.5">
-                  <label class="text-[13px] font-medium text-text-primary">材质</label>
+                  <label class="text-sm font-medium text-text-primary">材质</label>
                   <input
                     v-model="variantForm.material"
                     type="text"
@@ -262,7 +262,7 @@
                   />
                 </div>
                 <div class="flex-1 flex flex-col gap-1.5">
-                  <label class="text-[13px] font-medium text-text-primary">重量</label>
+                  <label class="text-sm font-medium text-text-primary">重量</label>
                   <input
                     v-model="variantForm.weight"
                     type="text"
@@ -272,7 +272,7 @@
               </div>
               <div class="flex gap-4">
                 <div class="flex-1 flex flex-col gap-1.5">
-                  <label class="text-[13px] font-medium text-text-primary">价格调整</label>
+                  <label class="text-sm font-medium text-text-primary">价格调整</label>
                   <input
                     v-model="variantForm.priceAdj"
                     type="text"
@@ -281,7 +281,7 @@
                   />
                 </div>
                 <div class="flex-1 flex flex-col gap-1.5">
-                  <label class="text-[13px] font-medium text-text-primary">库存</label>
+                  <label class="text-sm font-medium text-text-primary">库存</label>
                   <input
                     v-model.number="variantForm.stock"
                     type="number"
@@ -315,7 +315,7 @@
           class="fixed inset-0 z-50 flex items-center justify-center"
           @click.self="deleteModalVisible = false"
         >
-          <div class="absolute inset-0 bg-black/40" />
+          <div class="absolute inset-0 bg-black/50" />
           <div class="relative bg-white rounded-md w-[400px] border border-border p-7 flex flex-col gap-5">
             <h3 class="text-base font-semibold text-text-primary">确认删除</h3>
             <p class="text-sm text-text-muted">

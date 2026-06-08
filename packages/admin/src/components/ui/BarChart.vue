@@ -12,7 +12,7 @@
           backgroundColor: bar.color || 'var(--color-chart-bar)',
         }"
       />
-      <span class="text-[11px] text-text-muted whitespace-nowrap">{{ bar.label }}</span>
+      <span class="text-xs text-text-muted whitespace-nowrap">{{ bar.label }}</span>
     </div>
   </div>
 </template>

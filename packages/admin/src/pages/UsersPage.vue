@@ -1,8 +1,8 @@
 <template>
-  <div class="p-6 flex flex-col gap-4 h-full">
+  <div class="p-6 flex flex-col gap-4 min-h-screen">
     <div>
-      <h1 class="text-[22px] font-bold text-text-primary">用户管理</h1>
-      <p class="text-[13px] text-text-muted">管理所有注册用户</p>
+      <h1 class="text-xl font-bold text-text-primary">用户管理</h1>
+      <p class="text-sm text-text-muted">管理所有注册用户</p>
     </div>
 
     <div class="flex items-center gap-3">
@@ -19,7 +19,7 @@
       <div class="relative">
         <select
           v-model="roleFilter"
-          class="h-9 rounded border border-border px-3 pr-8 text-[13px] text-text-primary bg-white outline-none appearance-none cursor-pointer"
+          class="h-9 rounded border border-border px-3 pr-8 text-sm text-text-primary bg-white outline-none appearance-none cursor-pointer"
         >
           <option value="">全部角色</option>
           <option value="admin">管理员</option>
@@ -31,7 +31,7 @@
       <div class="relative">
         <select
           v-model="statusFilter"
-          class="h-9 rounded border border-border px-3 pr-8 text-[13px] text-text-primary bg-white outline-none appearance-none cursor-pointer"
+          class="h-9 rounded border border-border px-3 pr-8 text-sm text-text-primary bg-white outline-none appearance-none cursor-pointer"
         >
           <option value="">全部状态</option>
           <option value="active">正常</option>
@@ -43,7 +43,7 @@
 
     <div class="flex-1 bg-card border border-border rounded-md overflow-hidden flex flex-col">
       <div class="flex-1 overflow-auto">
-        <div class="flex items-center px-4 bg-[#C8DBBC] h-11 shrink-0 sticky top-0 z-10">
+        <div class="flex items-center px-4 bg-table-header h-11 shrink-0 sticky top-0 z-10">
           <span class="w-[50px] text-xs font-semibold text-text-muted text-center">ID</span>
           <span class="w-[140px] text-xs font-semibold text-text-muted text-center">用户名</span>
           <span class="flex-1 text-xs font-semibold text-text-muted text-center">邮箱</span>
@@ -54,25 +54,25 @@
         <div
           v-for="user in paginatedUsers"
           :key="user.id"
-          class="flex items-center px-4 h-12 border-b border-border"
+          class="flex items-center px-4 h-[52px] border-b border-border"
         >
-          <span class="w-[50px] text-[13px] text-text-primary text-center">{{ user.id }}</span>
-          <span class="w-[140px] text-[13px] text-text-primary font-medium text-center">{{ user.username }}</span>
-          <span class="flex-1 text-[13px] text-text-primary text-center">{{ user.email }}</span>
-          <span class="w-[90px] text-[13px] text-text-primary text-center">{{ user.phone }}</span>
+          <span class="w-[50px] text-sm text-text-primary text-center">{{ user.id }}</span>
+          <span class="w-[140px] text-sm text-text-primary font-medium text-center">{{ user.username }}</span>
+          <span class="flex-1 text-sm text-text-primary text-center">{{ user.email }}</span>
+          <span class="w-[90px] text-sm text-text-primary text-center">{{ user.phone }}</span>
           <span
-            class="w-[80px] text-[13px] font-medium text-center"
+            class="w-[80px] text-sm font-medium text-center"
             :class="user.status === '正常' ? 'text-primary-light' : 'text-danger'"
           >
             {{ user.status }}
           </span>
-          <span class="w-[100px] text-[13px] text-text-primary text-center">{{ user.createdAt }}</span>
+          <span class="w-[100px] text-sm text-text-primary text-center">{{ user.createdAt }}</span>
         </div>
       </div>
     </div>
 
     <div class="flex items-center justify-between">
-      <span class="text-[13px] text-muted-foreground">共 {{ filteredUsers.length }} 条，每页 8 条</span>
+      <span class="text-sm text-muted-foreground">共 {{ filteredUsers.length }} 条，每页 8 条</span>
       <div class="flex items-center gap-1">
         <button
           class="w-8 h-8 rounded border border-border bg-white text-sm flex items-center justify-center hover:bg-gray-50 disabled:opacity-50"
@@ -86,7 +86,7 @@
           :key="page"
           class="w-8 h-8 rounded text-sm flex items-center justify-center transition-colors"
           :class="page === currentPage
-            ? 'bg-text-primary text-white'
+            ? 'bg-primary text-white'
             : 'bg-white border border-border text-text-primary hover:bg-gray-50'"
           @click="currentPage = page"
         >

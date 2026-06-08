@@ -1,8 +1,8 @@
 <template>
-  <div class="p-6 flex flex-col gap-5 h-full">
+  <div class="p-6 pb-12 flex flex-col gap-5 min-h-screen">
     <div class="flex items-center justify-between">
-      <h1 class="text-[22px] font-bold text-text-primary">数据分析</h1>
-      <button class="rounded border border-border px-4 py-2.5 text-[13px] font-medium text-text-primary flex items-center gap-2 hover:bg-gray-50 transition-colors">
+      <h1 class="text-xl font-bold text-text-primary">数据分析</h1>
+      <button class="rounded border border-border px-4 py-2.5 text-sm font-medium text-text-primary flex items-center gap-2 hover:bg-gray-50 transition-colors">
         <Download :size="16" />
         导出报表
       </button>
@@ -12,7 +12,7 @@
       <button
         v-for="tab in tabs"
         :key="tab.key"
-        class="rounded px-3.5 py-1.5 text-[13px] transition-colors"
+        class="rounded px-3.5 py-1.5 text-sm transition-colors"
         :class="activeTab === tab.key
           ? 'bg-primary text-white font-medium'
           : 'text-text-muted hover:bg-gray-100'"
@@ -28,8 +28,8 @@
         :key="metric.label"
         class="bg-card border border-border rounded-md p-5 flex flex-col gap-2"
       >
-        <span class="text-text-muted text-[13px] font-medium">{{ metric.label }}</span>
-        <span class="text-text-primary text-[28px] font-bold">{{ metric.value }}</span>
+        <span class="text-text-muted text-sm font-medium">{{ metric.label }}</span>
+        <span class="text-text-primary text-2xl font-bold">{{ metric.value }}</span>
         <span
           class="text-xs font-medium"
           :class="metric.positive ? 'text-primary-light' : 'text-danger'"
@@ -41,11 +41,11 @@
 
     <div class="flex gap-4 h-[340px]">
       <div class="flex-1 bg-card border border-border rounded-md px-6 py-5 flex flex-col gap-4 min-w-0">
-        <span class="text-[15px] font-semibold text-text-primary">热销商品 TOP5</span>
+        <span class="text-base font-semibold text-text-primary">热销商品 TOP5</span>
         <div class="flex-1 flex flex-col gap-3">
           <div v-for="item in currentTopProducts" :key="item.name" class="flex flex-col gap-1">
             <div class="flex items-center justify-between">
-              <span class="text-[13px] text-text-primary">{{ item.name }}</span>
+              <span class="text-sm text-text-primary">{{ item.name }}</span>
               <span class="text-xs text-text-muted font-mono">{{ item.sales }} 件</span>
             </div>
             <div class="h-1.5 bg-[#C8DBBC] rounded-full overflow-hidden">
@@ -59,7 +59,7 @@
       </div>
 
       <div class="w-[400px] bg-card border border-border rounded-md px-6 py-5 flex flex-col gap-4 shrink-0">
-        <span class="text-[15px] font-semibold text-text-primary">转化漏斗</span>
+        <span class="text-base font-semibold text-text-primary">转化漏斗</span>
         <div class="flex-1 flex flex-col gap-2.5 justify-center">
           <div
             v-for="(step, index) in currentFunnel"
@@ -67,8 +67,8 @@
             class="flex items-center justify-between rounded px-4 py-2.5"
             :style="{ backgroundColor: step.bg, color: step.fg }"
           >
-            <span class="text-[13px] font-medium">{{ step.label }}</span>
-            <span class="text-[13px] font-mono font-semibold">{{ step.value }}</span>
+            <span class="text-sm font-medium">{{ step.label }}</span>
+            <span class="text-sm font-mono font-semibold">{{ step.value }}</span>
           </div>
         </div>
       </div>

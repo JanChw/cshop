@@ -1,11 +1,11 @@
 <template>
-  <div class="flex h-full">
+  <div class="flex min-h-screen">
     <div class="w-[360px] bg-card border-r border-border flex flex-col py-5 px-4 shrink-0">
       <div class="flex items-center justify-between mb-4">
         <span class="text-base font-semibold text-text-primary">角色列表</span>
         <button
           class="rounded bg-primary text-white text-xs font-medium h-8 px-3 flex items-center gap-1 hover:bg-primary/90 transition-colors"
-          @click="modalVisible = true"
+          @click="openAddModal"
         >
           <Plus :size="14" />
           新增角色
@@ -27,21 +27,27 @@
               <span class="text-sm font-semibold text-text-primary">{{ role.name }}</span>
               <span
                 v-if="role.isSystem"
-                class="rounded-full bg-[#EFF6FF] text-primary text-[11px] font-medium px-2 h-5 flex items-center"
+                class="rounded-full bg-[#EFF6FF] text-primary text-xs font-medium px-2 h-5 flex items-center"
               >
                 系统
               </span>
             </div>
             <div class="flex items-center gap-1">
-              <Lock :size="14" class="text-text-muted" />
-              <button
-                v-if="!role.isSystem"
-                class="rounded w-6 h-6 flex items-center justify-center text-gray-400 hover:bg-gray-100 transition-colors"
-                @click.stop="openDeleteModal(role)"
-              >
-                <Trash2 :size="14" />
-              </button>
-              <Lock v-else :size="14" class="text-gray-300" />
+              <Lock v-if="role.identifier === 'super_admin'" :size="14" class="text-gray-300" />
+              <template v-else>
+                <button
+                  class="rounded w-6 h-6 flex items-center justify-center text-gray-400 hover:bg-gray-100 transition-colors"
+                  @click.stop="openEditModal(role)"
+                >
+                  <Pencil :size="14" />
+                </button>
+                <button
+                  class="rounded w-6 h-6 flex items-center justify-center text-gray-400 hover:bg-gray-100 transition-colors"
+                  @click.stop="openDeleteModal(role)"
+                >
+                  <Trash2 :size="14" />
+                </button>
+              </template>
             </div>
           </div>
           <span class="text-xs text-text-muted font-mono">{{ role.identifier }}</span>
@@ -51,10 +57,10 @@
       </div>
     </div>
 
-    <div class="flex-1 flex flex-col p-7 min-w-0">
+    <div class="flex-1 flex flex-col p-7 pb-12 min-w-0">
       <div class="flex flex-col gap-1 mb-5">
         <h2 class="text-xl font-semibold text-text-primary">{{ selectedRole?.name }}</h2>
-        <p class="text-[13px] text-text-muted">
+        <p class="text-sm text-text-muted">
           {{ selectedRole?.description }}  |  {{ selectedRole?.identifier }}
         </p>
       </div>
@@ -76,7 +82,7 @@
                 class="flex items-center gap-2"
               >
                 <div
-                  class="w-[18px] h-[18px] rounded flex items-center justify-center text-[11px] text-white cursor-pointer transition-colors"
+                  class="w-[18px] h-[18px] rounded flex items-center justify-center text-xs text-white cursor-pointer transition-colors"
                   :class="isPermChecked(group.title, perm)
                     ? 'bg-primary'
                     : 'bg-gray-200'"
@@ -84,7 +90,7 @@
                 >
                   <span v-if="isPermChecked(group.title, perm)">✓</span>
                 </div>
-                <span class="text-[13px] text-text-primary">{{ perm }}</span>
+                <span class="text-sm text-text-primary">{{ perm }}</span>
               </div>
             </div>
           </div>
@@ -105,13 +111,13 @@
           class="fixed inset-0 z-50 flex items-center justify-center"
           @click.self="modalVisible = false"
         >
-          <div class="absolute inset-0 bg-black/40" />
+          <div class="absolute inset-0 bg-black/50" />
           <div class="relative bg-white rounded-md w-[480px] border border-border p-7 flex flex-col gap-5">
             <div class="flex items-center justify-between">
-              <h3 class="text-base font-semibold text-text-primary">新增角色</h3>
+              <h3 class="text-base font-semibold text-text-primary">{{ editingRole ? '编辑角色' : '新增角色' }}</h3>
               <button
                 class="w-8 h-8 rounded flex items-center justify-center text-text-primary hover:bg-gray-100 transition-colors"
-                @click="modalVisible = false"
+                @click="closeModal"
               >
                 ×
               </button>
@@ -119,7 +125,7 @@
 
             <div class="flex flex-col gap-4">
               <div class="flex flex-col gap-1.5">
-                <label class="text-[13px] font-medium text-text-primary">角色标识 *</label>
+                <label class="text-sm font-medium text-text-primary">角色标识 *</label>
                 <input
                   v-model="newRole.identifier"
                   type="text"
@@ -127,7 +133,7 @@
                 />
               </div>
               <div class="flex flex-col gap-1.5">
-                <label class="text-[13px] font-medium text-text-primary">显示名称 *</label>
+                <label class="text-sm font-medium text-text-primary">显示名称 *</label>
                 <input
                   v-model="newRole.name"
                   type="text"
@@ -135,7 +141,7 @@
                 />
               </div>
               <div class="flex flex-col gap-1.5">
-                <label class="text-[13px] font-medium text-text-primary">角色描述</label>
+                <label class="text-sm font-medium text-text-primary">角色描述</label>
                 <input
                   v-model="newRole.description"
                   type="text"
@@ -147,15 +153,15 @@
             <div class="flex items-center justify-end gap-3">
               <button
                 class="h-10 rounded border border-border px-4 text-sm font-medium text-text-primary hover:bg-gray-50 transition-colors"
-                @click="modalVisible = false"
+                @click="closeModal"
               >
                 取消
               </button>
               <button
                 class="h-10 rounded bg-primary px-4 text-sm font-medium text-white hover:bg-primary/90 transition-colors"
-                @click="createRole"
+                @click="saveRole"
               >
-                创建角色
+                {{ editingRole ? '保存修改' : '创建角色' }}
               </button>
             </div>
           </div>
@@ -168,7 +174,7 @@
           class="fixed inset-0 z-50 flex items-center justify-center"
           @click.self="deleteModalVisible = false"
         >
-          <div class="absolute inset-0 bg-black/40" />
+          <div class="absolute inset-0 bg-black/50" />
           <div class="relative bg-white rounded-md w-[400px] border border-border p-7 flex flex-col gap-5">
             <h3 class="text-base font-semibold text-text-primary">确认删除</h3>
             <p class="text-sm text-text-muted">
@@ -201,7 +207,7 @@
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
-import { Plus, Lock, Trash2 } from 'lucide-vue-next'
+import { Plus, Lock, Trash2, Pencil } from 'lucide-vue-next'
 
 interface Role {
   id: number
@@ -267,6 +273,28 @@ const modalVisible = ref(false)
 const deleteModalVisible = ref(false)
 const deletingRole = ref<Role | null>(null)
 const newRole = reactive({ identifier: '', name: '', description: '' })
+const editingRole = ref<Role | null>(null)
+
+function openAddModal() {
+  editingRole.value = null
+  newRole.identifier = ''
+  newRole.name = ''
+  newRole.description = ''
+  modalVisible.value = true
+}
+
+function openEditModal(role: Role) {
+  editingRole.value = role
+  newRole.identifier = role.identifier
+  newRole.name = role.name
+  newRole.description = role.description
+  modalVisible.value = true
+}
+
+function closeModal() {
+  modalVisible.value = false
+  editingRole.value = null
+}
 
 function openDeleteModal(role: Role) {
   deletingRole.value = role
@@ -284,22 +312,24 @@ function confirmDelete() {
   deletingRole.value = null
 }
 
-function createRole() {
+function saveRole() {
   if (!newRole.identifier || !newRole.name) return
-  const maxId = Math.max(...roles.value.map((r) => r.id))
-  roles.value.push({
-    id: maxId + 1,
-    name: newRole.name,
-    identifier: newRole.identifier,
-    description: newRole.description,
-    permCount: 0,
-    isSystem: false,
-    permissions: {},
-  })
-  newRole.identifier = ''
-  newRole.name = ''
-  newRole.description = ''
-  modalVisible.value = false
+  if (editingRole.value) {
+    editingRole.value.name = newRole.name
+    editingRole.value.description = newRole.description
+  } else {
+    const maxId = Math.max(...roles.value.map((r) => r.id))
+    roles.value.push({
+      id: maxId + 1,
+      name: newRole.name,
+      identifier: newRole.identifier,
+      description: newRole.description,
+      permCount: 0,
+      isSystem: false,
+      permissions: {},
+    })
+  }
+  closeModal()
 }
 </script>
 

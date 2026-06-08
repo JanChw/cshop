@@ -23,7 +23,7 @@
 
           <div class="px-6 py-6 flex flex-col gap-5">
             <div class="flex flex-col gap-1.5">
-              <label class="text-[13px] font-medium text-text-primary">分类名称</label>
+              <label class="text-sm font-medium text-text-primary">分类名称</label>
               <input
                 v-model="form.name"
                 type="text"
@@ -33,7 +33,7 @@
             </div>
 
             <div class="flex flex-col gap-1.5">
-              <label class="text-[13px] font-medium text-text-primary">别名 (Slug)</label>
+              <label class="text-sm font-medium text-text-primary">别名 (Slug)</label>
               <p class="text-xs text-text-muted">用于 URL 路径，仅支持小写字母、数字和连字符</p>
               <input
                 v-model="form.slug"
@@ -46,13 +46,13 @@
 
           <div class="flex items-center justify-end gap-3 px-6 py-4">
             <button
-              class="rounded px-4 py-2 text-[13px] font-medium text-text-primary border border-border hover:bg-gray-50 transition-colors"
+              class="rounded px-4 py-2 text-sm font-medium text-text-primary border border-border hover:bg-gray-50 transition-colors"
               @click="$emit('close')"
             >
               取消
             </button>
             <button
-              class="rounded px-4 py-2 text-[13px] font-medium text-white bg-primary hover:bg-primary/90 transition-colors flex items-center gap-2"
+              class="rounded px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary/90 transition-colors flex items-center gap-2"
               @click="handleSave"
             >
               <Check :size="16" />

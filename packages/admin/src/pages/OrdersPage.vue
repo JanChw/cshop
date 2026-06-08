@@ -1,8 +1,8 @@
 <template>
-  <div class="p-6 flex flex-col gap-4 h-full">
+  <div class="p-6 flex flex-col gap-4 min-h-screen">
     <div>
-      <h1 class="text-[22px] font-bold text-text-primary">订单管理</h1>
-      <p class="text-[13px] text-text-muted">管理所有客户订单</p>
+      <h1 class="text-xl font-bold text-text-primary">订单管理</h1>
+      <p class="text-sm text-text-muted">管理所有客户订单</p>
     </div>
 
     <div class="flex items-center gap-3">
@@ -20,7 +20,7 @@
         <button
           v-for="tab in statusTabs"
           :key="tab.key"
-          class="rounded px-3 py-1.5 text-[13px] transition-colors"
+          class="rounded px-3 py-1.5 text-sm transition-colors"
           :class="activeStatus === tab.key
             ? 'bg-primary text-white font-medium'
             : 'text-text-muted hover:bg-gray-100'"
@@ -32,7 +32,7 @@
     </div>
 
     <div class="flex-1 bg-card border border-border rounded-md overflow-hidden flex flex-col">
-      <div class="flex items-center px-4 bg-[#C8DBBC] h-11 shrink-0">
+      <div class="flex items-center px-4 bg-table-header h-11 shrink-0">
         <span class="w-[80px] text-xs font-semibold text-text-muted">订单号</span>
         <span class="w-[120px] text-xs font-semibold text-text-muted">客户</span>
         <span class="flex-1 text-xs font-semibold text-text-muted">商品</span>
@@ -46,15 +46,15 @@
         <div
           v-for="order in paginatedOrders"
           :key="order.id"
-          class="flex items-center px-4 h-14 border-b border-border"
+          class="flex items-center px-4 h-[52px] border-b border-border"
         >
-          <span class="w-[80px] text-[13px] text-primary font-mono font-medium">{{ order.orderNo }}</span>
-          <span class="w-[120px] text-[13px] text-text-primary">{{ order.customer }}</span>
-          <span class="flex-1 text-[13px] text-text-muted">{{ order.product }}</span>
+          <span class="w-[80px] text-sm text-primary font-mono font-medium">{{ order.orderNo }}</span>
+          <span class="w-[120px] text-sm text-text-primary">{{ order.customer }}</span>
+          <span class="flex-1 text-sm text-text-muted">{{ order.product }}</span>
           <span class="w-[90px] text-sm text-text-primary font-semibold">{{ order.amount }}</span>
           <span class="w-[90px]">
             <span
-              class="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium text-white"
+              class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium text-white"
               :style="{ backgroundColor: statusColors[order.status] }"
             >
               {{ order.status }}
@@ -71,7 +71,7 @@
     </div>
 
     <div class="flex items-center justify-between">
-      <span class="text-[13px] text-text-muted">显示 {{ startItem }}-{{ endItem }} 条，共 {{ filteredOrders.length }} 条</span>
+      <span class="text-sm text-text-muted">显示 {{ startItem }}-{{ endItem }} 条，共 {{ filteredOrders.length }} 条</span>
       <div class="flex items-center gap-1">
         <button
           class="w-8 h-8 rounded border border-border bg-white text-sm flex items-center justify-center hover:bg-gray-50 disabled:opacity-50"
@@ -85,7 +85,7 @@
           :key="page"
           class="w-8 h-8 rounded text-sm flex items-center justify-center transition-colors"
           :class="page === currentPage
-            ? 'bg-text-primary text-white'
+            ? 'bg-primary text-white'
             : 'bg-white border border-border text-text-primary hover:bg-gray-50'"
           @click="currentPage = page"
         >

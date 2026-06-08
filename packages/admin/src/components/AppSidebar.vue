@@ -1,40 +1,54 @@
 <template>
-  <aside class="w-[260px] bg-sidebar-bg flex flex-col gap-2 h-full py-5 px-3 shrink-0">
-    <div class="flex items-center gap-3 px-3 py-2">
-      <div class="w-8 h-8 rounded bg-primary flex items-center justify-center">
+  <aside
+    class="bg-sidebar-bg flex flex-col h-full py-5 shrink-0 transition-all duration-300 overflow-hidden"
+    :class="collapsed ? 'w-16 px-2' : 'w-44 px-3'"
+  >
+    <div class="flex items-center px-2 py-2" :class="collapsed ? 'justify-center' : 'gap-3'">
+      <div class="w-8 h-8 rounded bg-primary flex items-center justify-center shrink-0">
         <span class="text-white font-bold text-sm">C</span>
       </div>
-      <span class="text-white font-bold text-lg">CShop</span>
+      <span v-show="!collapsed" class="text-white font-bold text-lg whitespace-nowrap">CShop</span>
     </div>
 
-    <div class="h-4" />
+    <div v-show="!collapsed" class="h-4" />
 
-    <nav class="flex flex-col gap-1">
+    <nav class="flex flex-col gap-1 flex-1">
       <RouterLink
         v-for="(item, index) in navItems"
         :key="item.path"
         :to="item.path"
-        draggable="true"
-        class="flex items-center gap-3 rounded px-3 py-2.5 text-sm transition-colors cursor-grab select-none"
+        :draggable="!collapsed"
+        :title="collapsed ? item.label : ''"
+        class="flex items-center gap-3 rounded transition-colors select-none"
         :class="[
+          collapsed
+            ? 'justify-center p-2'
+            : 'px-3 py-2.5 cursor-grab',
           isActive(item.path)
             ? 'bg-primary text-white font-medium'
             : 'text-sidebar-text hover:bg-white/5',
           dragIndex === index ? 'opacity-50' : '',
           dragOverIndex === index ? 'border-t-2 border-primary' : '',
         ]"
-        @dragstart="onDragStart(index)"
-        @dragover.prevent="onDragOver(index)"
-        @dragenter.prevent="onDragEnter(index)"
-        @dragleave="onDragLeave"
-        @drop="onDrop(index)"
-        @dragend="onDragEnd"
+        @dragstart="!collapsed && onDragStart(index)"
+        @dragover.prevent="!collapsed && onDragOver(index)"
+        @dragenter.prevent="!collapsed && onDragEnter(index)"
+        @dragleave="!collapsed && onDragLeave"
+        @drop="!collapsed && onDrop(index)"
+        @dragend="!collapsed && onDragEnd"
       >
-        <GripVertical :size="14" class="shrink-0 opacity-40 cursor-grab" />
-        <component :is="item.icon" :size="20" />
-        <span>{{ item.label }}</span>
+        <GripVertical v-show="!collapsed" :size="14" class="shrink-0 opacity-40" />
+        <component :is="item.icon" :size="20" class="shrink-0" />
+        <span v-show="!collapsed" class="text-sm whitespace-nowrap">{{ item.label }}</span>
       </RouterLink>
     </nav>
+
+    <button
+      class="flex items-center justify-center rounded p-2 text-sidebar-text hover:bg-white/5 transition-colors mt-2"
+      @click="toggleCollapsed"
+    >
+      <ChevronLeft :size="18" class="transition-transform duration-300" :class="collapsed ? 'rotate-180' : ''" />
+    </button>
   </aside>
 </template>
 
@@ -53,6 +67,7 @@ import {
   Database,
   Shield,
   GripVertical,
+  ChevronLeft,
 } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -79,8 +94,10 @@ const defaultNavItems: NavItem[] = [
 const navItems = ref<NavItem[]>([])
 const dragIndex = ref<number | null>(null)
 const dragOverIndex = ref<number | null>(null)
+const collapsed = ref(false)
 
 const STORAGE_KEY = 'cshop-nav-order'
+const COLLAPSED_KEY = 'cshop-sidebar-collapsed'
 
 function loadOrder() {
   try {
@@ -104,8 +121,22 @@ function saveOrder() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(navItems.value.map((item) => item.path)))
 }
 
+function loadCollapsed() {
+  try {
+    collapsed.value = localStorage.getItem(COLLAPSED_KEY) === 'true'
+  } catch {
+    collapsed.value = false
+  }
+}
+
+function toggleCollapsed() {
+  collapsed.value = !collapsed.value
+  localStorage.setItem(COLLAPSED_KEY, String(collapsed.value))
+}
+
 onMounted(() => {
   loadOrder()
+  loadCollapsed()
 })
 
 function onDragStart(index: number) {

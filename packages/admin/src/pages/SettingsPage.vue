@@ -1,13 +1,13 @@
 <template>
-  <div class="p-6 flex flex-col gap-5 h-full">
-    <h1 class="text-[22px] font-bold text-text-primary">系统设置</h1>
+  <div class="p-6 flex flex-col gap-5 min-h-screen">
+    <h1 class="text-xl font-bold text-text-primary">系统设置</h1>
 
     <div class="flex gap-6 flex-1 min-h-0">
-      <div class="w-[200px] flex flex-col gap-1 shrink-0">
+      <div class="w-[110px] flex flex-col gap-1 shrink-0">
         <button
           v-for="tab in tabs"
           :key="tab.key"
-          class="rounded px-4 py-2.5 text-sm text-left transition-colors w-full"
+          class="rounded px-4 py-2.5 text-sm text-center transition-colors w-full"
           :class="activeTab === tab.key
             ? 'bg-primary text-white font-medium'
             : 'text-text-primary hover:bg-gray-100'"
@@ -21,12 +21,12 @@
         <template v-if="activeTab === 'basic'">
           <div>
             <h2 class="text-base font-semibold text-text-primary">基本设置</h2>
-            <p class="text-[13px] text-text-muted mt-1">配置系统的基本参数</p>
+            <p class="text-sm text-text-muted mt-1">配置系统的基本参数</p>
           </div>
 
           <div class="flex flex-col gap-5">
             <div class="flex flex-col gap-1.5">
-              <label class="text-[13px] font-medium text-text-primary">商品数据保留天数</label>
+              <label class="text-sm font-medium text-text-primary">商品数据保留天数</label>
               <p class="text-xs text-text-muted">超过此天数的商品活动数据将被清理</p>
               <div class="flex items-center gap-2">
                 <input
@@ -34,12 +34,12 @@
                   type="number"
                   class="w-[300px] h-9 rounded border border-border px-3 text-sm text-text-primary font-mono outline-none focus:border-primary transition-colors"
                 />
-                <span class="text-[13px] text-text-muted">天</span>
+                <span class="text-sm text-text-muted">天</span>
               </div>
             </div>
 
             <div class="flex flex-col gap-1.5">
-              <label class="text-[13px] font-medium text-text-primary">站点名称</label>
+              <label class="text-sm font-medium text-text-primary">站点名称</label>
               <input
                 v-model="basicForm.siteName"
                 type="text"
@@ -48,7 +48,7 @@
             </div>
 
             <div class="flex flex-col gap-1.5">
-              <label class="text-[13px] font-medium text-text-primary">联系邮箱</label>
+              <label class="text-sm font-medium text-text-primary">联系邮箱</label>
               <input
                 v-model="basicForm.email"
                 type="email"
@@ -58,11 +58,11 @@
           </div>
 
           <div class="flex items-center gap-3">
-            <button class="rounded px-5 py-2.5 text-[13px] font-medium text-white bg-primary flex items-center gap-2 hover:bg-primary/90 transition-colors">
+            <button class="rounded px-5 py-2.5 text-sm font-medium text-white bg-primary flex items-center gap-2 hover:bg-primary/90 transition-colors">
               <Check :size="16" />
               保存设置
             </button>
-            <button class="rounded px-5 py-2.5 text-[13px] font-medium text-text-primary border border-border flex items-center gap-2 hover:bg-gray-50 transition-colors">
+            <button class="rounded px-5 py-2.5 text-sm font-medium text-text-primary border border-border flex items-center gap-2 hover:bg-gray-50 transition-colors">
               <RotateCcw :size="16" />
               重置
             </button>
@@ -72,23 +72,23 @@
         <template v-if="activeTab === 'security'">
           <div>
             <h2 class="text-base font-semibold text-text-primary">安全设置</h2>
-            <p class="text-[13px] text-text-muted mt-1">管理账户安全和登录策略</p>
+            <p class="text-sm text-text-muted mt-1">管理账户安全和登录策略</p>
           </div>
 
           <div class="flex flex-col gap-5">
             <div class="flex items-center justify-between py-3 border-b border-border">
               <div class="flex flex-col gap-0.5">
-                <span class="text-[13px] font-medium text-text-primary">修改密码</span>
+                <span class="text-sm font-medium text-text-primary">修改密码</span>
                 <span class="text-xs text-text-muted">定期修改密码以保障账户安全</span>
               </div>
-              <button class="h-9 rounded border border-border px-4 text-[13px] font-medium text-text-primary hover:bg-gray-50 transition-colors">
+              <button class="h-9 rounded border border-border px-4 text-sm font-medium text-text-primary hover:bg-gray-50 transition-colors">
                 修改
               </button>
             </div>
 
             <div class="flex items-center justify-between py-3 border-b border-border">
               <div class="flex flex-col gap-0.5">
-                <span class="text-[13px] font-medium text-text-primary">登录失败锁定</span>
+                <span class="text-sm font-medium text-text-primary">登录失败锁定</span>
                 <span class="text-xs text-text-muted">连续登录失败 5 次后锁定账户 30 分钟</span>
               </div>
               <div
@@ -105,12 +105,12 @@
 
             <div class="flex items-center justify-between py-3 border-b border-border">
               <div class="flex flex-col gap-0.5">
-                <span class="text-[13px] font-medium text-text-primary">会话超时</span>
+                <span class="text-sm font-medium text-text-primary">会话超时</span>
                 <span class="text-xs text-text-muted">超过指定时间未操作将自动退出登录</span>
               </div>
               <select
                 v-model="securityForm.sessionTimeout"
-                class="h-9 rounded border border-border px-3 text-[13px] text-text-primary bg-white outline-none appearance-none cursor-pointer"
+                class="h-9 rounded border border-border px-3 text-sm text-text-primary bg-white outline-none appearance-none cursor-pointer"
               >
                 <option value="15">15 分钟</option>
                 <option value="30">30 分钟</option>
@@ -121,7 +121,7 @@
 
             <div class="flex items-center justify-between py-3 border-b border-border">
               <div class="flex flex-col gap-0.5">
-                <span class="text-[13px] font-medium text-text-primary">IP 白名单</span>
+                <span class="text-sm font-medium text-text-primary">IP 白名单</span>
                 <span class="text-xs text-text-muted">仅允许指定 IP 地址访问后台</span>
               </div>
               <div
@@ -137,7 +137,7 @@
             </div>
 
             <div class="flex flex-col gap-1.5">
-              <label class="text-[13px] font-medium text-text-primary">密码最小长度</label>
+              <label class="text-sm font-medium text-text-primary">密码最小长度</label>
               <p class="text-xs text-text-muted">新密码必须满足此长度要求</p>
               <div class="flex items-center gap-2">
                 <input
@@ -147,13 +147,13 @@
                   max="32"
                   class="w-[300px] h-9 rounded border border-border px-3 text-sm text-text-primary font-mono outline-none focus:border-primary transition-colors"
                 />
-                <span class="text-[13px] text-text-muted">位</span>
+                <span class="text-sm text-text-muted">位</span>
               </div>
             </div>
           </div>
 
           <div class="flex items-center gap-3">
-            <button class="rounded px-5 py-2.5 text-[13px] font-medium text-white bg-primary flex items-center gap-2 hover:bg-primary/90 transition-colors">
+            <button class="rounded px-5 py-2.5 text-sm font-medium text-white bg-primary flex items-center gap-2 hover:bg-primary/90 transition-colors">
               <Check :size="16" />
               保存设置
             </button>
@@ -163,13 +163,13 @@
         <template v-if="activeTab === 'notification'">
           <div>
             <h2 class="text-base font-semibold text-text-primary">通知设置</h2>
-            <p class="text-[13px] text-text-muted mt-1">管理系统通知和提醒方式</p>
+            <p class="text-sm text-text-muted mt-1">管理系统通知和提醒方式</p>
           </div>
 
           <div class="flex flex-col gap-5">
             <div class="flex items-center justify-between py-3 border-b border-border">
               <div class="flex flex-col gap-0.5">
-                <span class="text-[13px] font-medium text-text-primary">新订单通知</span>
+                <span class="text-sm font-medium text-text-primary">新订单通知</span>
                 <span class="text-xs text-text-muted">有新订单时发送通知提醒</span>
               </div>
               <div
@@ -186,7 +186,7 @@
 
             <div class="flex items-center justify-between py-3 border-b border-border">
               <div class="flex flex-col gap-0.5">
-                <span class="text-[13px] font-medium text-text-primary">库存预警</span>
+                <span class="text-sm font-medium text-text-primary">库存预警</span>
                 <span class="text-xs text-text-muted">商品库存低于阈值时发送预警</span>
               </div>
               <div
@@ -203,7 +203,7 @@
 
             <div class="flex items-center justify-between py-3 border-b border-border">
               <div class="flex flex-col gap-0.5">
-                <span class="text-[13px] font-medium text-text-primary">用户注册通知</span>
+                <span class="text-sm font-medium text-text-primary">用户注册通知</span>
                 <span class="text-xs text-text-muted">有新用户注册时发送通知</span>
               </div>
               <div
@@ -220,7 +220,7 @@
 
             <div class="flex items-center justify-between py-3 border-b border-border">
               <div class="flex flex-col gap-0.5">
-                <span class="text-[13px] font-medium text-text-primary">邮件通知</span>
+                <span class="text-sm font-medium text-text-primary">邮件通知</span>
                 <span class="text-xs text-text-muted">通过邮件发送系统通知</span>
               </div>
               <div
@@ -237,7 +237,7 @@
 
             <div class="flex items-center justify-between py-3 border-b border-border">
               <div class="flex flex-col gap-0.5">
-                <span class="text-[13px] font-medium text-text-primary">短信通知</span>
+                <span class="text-sm font-medium text-text-primary">短信通知</span>
                 <span class="text-xs text-text-muted">通过短信发送重要通知</span>
               </div>
               <div
@@ -253,7 +253,7 @@
             </div>
 
             <div class="flex flex-col gap-1.5">
-              <label class="text-[13px] font-medium text-text-primary">通知接收邮箱</label>
+              <label class="text-sm font-medium text-text-primary">通知接收邮箱</label>
               <input
                 v-model="notifyForm.notifyEmail"
                 type="email"
@@ -264,7 +264,7 @@
           </div>
 
           <div class="flex items-center gap-3">
-            <button class="rounded px-5 py-2.5 text-[13px] font-medium text-white bg-primary flex items-center gap-2 hover:bg-primary/90 transition-colors">
+            <button class="rounded px-5 py-2.5 text-sm font-medium text-white bg-primary flex items-center gap-2 hover:bg-primary/90 transition-colors">
               <Check :size="16" />
               保存设置
             </button>

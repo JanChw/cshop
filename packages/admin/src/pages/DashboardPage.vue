@@ -1,9 +1,9 @@
 <template>
-  <div class="p-6 flex flex-col gap-6 h-full">
+  <div class="p-6 pb-12 flex flex-col gap-6 min-h-screen">
     <div class="flex items-center justify-between">
       <div>
-        <h1 class="text-[22px] font-bold text-text-primary">仪表盘</h1>
-        <p class="text-[13px] text-text-muted">欢迎回来，管理员</p>
+        <h1 class="text-xl font-bold text-text-primary">仪表盘</h1>
+        <p class="text-sm text-text-muted">欢迎回来，管理员</p>
       </div>
     </div>
 
@@ -18,7 +18,7 @@
     <div class="flex gap-4 flex-1 min-h-0">
       <div class="flex-1 bg-card border border-border rounded-md p-5 flex flex-col gap-4 min-w-0">
         <div class="flex items-center justify-between">
-          <span class="text-[15px] font-semibold text-text-primary">销售趋势</span>
+          <span class="text-base font-semibold text-text-primary">销售趋势</span>
           <span class="text-xs text-text-muted">最近7天</span>
         </div>
         <div class="flex-1 min-h-0">
@@ -26,25 +26,27 @@
         </div>
       </div>
 
-      <div class="w-[480px] bg-card border border-border rounded-md p-5 flex flex-col gap-4 shrink-0">
-        <span class="text-[15px] font-semibold text-text-primary">最近订单</span>
+      <div class="w-[480px] bg-card border border-border rounded-md p-5 flex flex-col gap-4 shrink-0 min-h-0">
+        <span class="text-base font-semibold text-text-primary">最近订单</span>
 
-        <div class="flex items-center pb-2 border-b border-border">
-          <span class="flex-1 text-[12px] font-semibold text-text-muted">订单号</span>
-          <span class="flex-1 text-[12px] font-semibold text-text-muted">客户</span>
-          <span class="flex-1 text-[12px] font-semibold text-text-muted">金额</span>
-          <span class="w-[70px] text-[12px] font-semibold text-text-muted">状态</span>
+        <div class="flex items-center pb-2 border-b border-border shrink-0">
+          <span class="flex-1 text-xs font-semibold text-text-muted">订单号</span>
+          <span class="flex-1 text-xs font-semibold text-text-muted">客户</span>
+          <span class="flex-1 text-xs font-semibold text-text-muted">金额</span>
+          <span class="w-[70px] text-xs font-semibold text-text-muted">状态</span>
         </div>
 
-        <div
-          v-for="order in recentOrders"
-          :key="order.id"
-          class="flex items-center py-2.5 border-b border-border"
-        >
-          <span class="flex-1 text-[13px] text-text-primary font-mono">{{ order.id }}</span>
-          <span class="flex-1 text-[13px] text-text-primary">{{ order.customer }}</span>
-          <span class="flex-1 text-[13px] text-text-primary font-medium">{{ order.amount }}</span>
-          <StatusBadge v-bind="order.badge" />
+        <div class="flex-1 min-h-0 overflow-auto">
+          <div
+            v-for="order in recentOrders"
+            :key="order.id"
+            class="flex items-center py-2.5 border-b border-border"
+          >
+            <span class="flex-1 text-sm text-text-primary font-mono">{{ order.id }}</span>
+            <span class="flex-1 text-sm text-text-primary">{{ order.customer }}</span>
+            <span class="flex-1 text-sm text-text-primary font-medium">{{ order.amount }}</span>
+            <StatusBadge v-bind="order.badge" />
+          </div>
         </div>
       </div>
     </div>

@@ -1,6 +1,6 @@
 <template>
   <span
-    class="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium text-white w-[70px] justify-center"
+    class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium text-white w-[70px] justify-center"
     :style="{ backgroundColor: color }"
   >
     {{ label }}

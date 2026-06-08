@@ -1,9 +1,9 @@
 <template>
-  <div class="flex h-screen overflow-hidden bg-background">
-    <AppSidebar />
+  <div class="flex min-h-screen bg-background">
+    <AppSidebar class="sticky top-0 h-screen shrink-0" />
     <div class="flex-1 flex flex-col min-w-0">
-      <AppHeader />
-      <main class="flex-1 overflow-auto">
+      <AppHeader class="sticky top-0 z-10" />
+      <main>
         <slot />
       </main>
     </div>

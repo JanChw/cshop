@@ -84,3 +84,29 @@ export const updateMeSchema = z.object({
 export const forgotPasswordSchema = z.object({
   email: z.string().email('邮箱格式不正确')
 })
+
+export const menuSchema = z.object({
+  parentId: z.number().int().positive().nullable().optional(),
+  name: z.string().min(1, '名称不能为空'),
+  path: z.string().min(1, '路径不能为空'),
+  icon: z.string().optional(),
+  sort: z.number().int().min(0).optional(),
+  isVisible: z.boolean().optional(),
+  type: z.enum(['admin', 'nav']).optional()
+})
+
+export const menuUpdateSchema = z.object({
+  parentId: z.number().int().positive().nullable().optional(),
+  name: z.string().min(1).optional(),
+  path: z.string().min(1).optional(),
+  icon: z.string().nullable().optional(),
+  sort: z.number().int().min(0).optional(),
+  isVisible: z.boolean().optional(),
+  type: z.enum(['admin', 'nav']).optional()
+}).refine(d => Object.keys(d).length > 0, '至少修改一个字段')
+
+export const menuReorderSchema = z.array(z.object({
+  id: z.number().int().positive(),
+  parentId: z.number().int().positive().nullable(),
+  sort: z.number().int().min(0)
+}))

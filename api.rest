@@ -640,6 +640,61 @@ Authorization: {{adminToken}}
 # 权限: backup.delete
 
 ### ============================
+### 菜单管理
+### ============================
+
+GET {{baseUrl}}/admin/menus?type=admin
+Authorization: {{adminToken}}
+# 权限: menu.read，返回树形结构，type 可选 admin(后台)/nav(前台)
+
+### 创建菜单
+POST {{baseUrl}}/admin/menus
+Content-Type: application/json
+Authorization: {{adminToken}}
+# 权限: menu.create
+{
+  "parentId": null,
+  "name": "商品管理",
+  "path": "/products",
+  "icon": "shopping-bag",
+  "sort": 100,
+  "type": "admin"
+}
+
+### 更新菜单
+PUT {{baseUrl}}/admin/menus/1
+Content-Type: application/json
+Authorization: {{adminToken}}
+# 权限: menu.update
+{
+  "name": "商品列表",
+  "sort": 50
+}
+
+### 删除菜单
+DELETE {{baseUrl}}/admin/menus/1
+Authorization: {{adminToken}}
+# 权限: menu.delete，级联删除子菜单
+
+### 批量排序
+PUT {{baseUrl}}/admin/menus/reorder
+Content-Type: application/json
+Authorization: {{adminToken}}
+# 权限: menu.update，拖拽排序后批量更新 parentId + sort
+[
+  {"id": 1, "parentId": null, "sort": 100},
+  {"id": 2, "parentId": 1, "sort": 200},
+  {"id": 3, "parentId": 1, "sort": 300}
+]
+
+### ============================
+### 公开菜单（前台导航）
+### ============================
+
+GET {{baseUrl}}/menus?type=nav
+# 无需登录，返回 isVisible=true 的树形导航菜单
+
+### ============================
 ### 上传管理
 ### ============================
 

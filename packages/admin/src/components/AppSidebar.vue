@@ -44,6 +44,7 @@
     </nav>
 
     <button
+      aria-label="折叠侧边栏"
       class="flex items-center justify-center rounded p-2 text-sidebar-text hover:bg-white/5 transition-colors mt-2"
       @click="toggleCollapsed"
     >
@@ -53,8 +54,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import gsap from 'gsap'
 import {
   LayoutDashboard,
   Package,
@@ -137,6 +139,22 @@ function toggleCollapsed() {
 onMounted(() => {
   loadOrder()
   loadCollapsed()
+
+  const mq = window.matchMedia('(max-width: 1023px)')
+  function handleScreen(e: MediaQueryListEvent | MediaQueryList) {
+    if (e.matches) collapsed.value = true
+  }
+  handleScreen(mq)
+  mq.addEventListener('change', handleScreen)
+})
+
+watch(collapsed, (isCollapsed) => {
+  const labels = document.querySelectorAll('aside nav span.text-sm')
+  if (isCollapsed) {
+    gsap.to(labels, { opacity: 0, duration: 0.15, stagger: 0.02, ease: 'power2.in' })
+  } else {
+    gsap.fromTo(labels, { opacity: 0, x: -6 }, { opacity: 1, x: 0, duration: 0.25, stagger: 0.03, ease: 'power2.out' })
+  }
 })
 
 function onDragStart(index: number) {

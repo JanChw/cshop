@@ -1,5 +1,5 @@
 <template>
-  <header class="h-16 bg-card border-b border-border flex items-center justify-between px-6 shrink-0">
+  <header class="sticky top-0 z-10 h-16 glass border-b border-border flex items-center justify-between px-6 shrink-0">
     <div class="flex items-center gap-2 text-sm">
       <RouterLink to="/" class="text-text-muted">首页</RouterLink>
       <ChevronRight :size="14" class="text-text-muted" />
@@ -7,6 +7,7 @@
     </div>
 
     <div class="flex items-center gap-4">
+      <ThemeSwitcher />
       <button class="text-text-muted hover:text-primary transition-colors">
         <Bell :size="20" />
       </button>
@@ -23,6 +24,7 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { ChevronRight, Bell } from 'lucide-vue-next'
+import ThemeSwitcher from '@/components/ui/ThemeSwitcher.vue'
 
 const route = useRoute()
 

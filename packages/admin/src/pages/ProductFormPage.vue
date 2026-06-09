@@ -1,7 +1,7 @@
 <template>
   <div class="p-6 flex flex-col gap-6">
     <div class="flex items-center justify-between">
-      <h1 class="text-xl font-semibold text-text-primary">{{ isEdit ? '编辑商品' : '新增商品' }}</h1>
+      <h1 class="text-xl font-bold text-text-primary">{{ isEdit ? '编辑商品' : '新增商品' }}</h1>
       <div class="flex items-center gap-3">
         <button
           class="h-10 rounded border border-border px-4 text-sm font-medium text-text-primary hover:bg-gray-50 transition-colors"
@@ -90,7 +90,7 @@
           <div
             v-for="(img, i) in images"
             :key="i"
-            class="w-[160px] h-[160px] rounded border border-dashed border-primary bg-[#F9FAFB] flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-gray-100 transition-colors relative group"
+            class="w-[160px] h-[160px] rounded border border-dashed border-primary bg-background flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-gray-100 transition-colors relative group"
           >
             <img
               v-if="img"
@@ -124,7 +124,7 @@
           <p class="text-sm text-text-muted mt-1">添加规格可让商品支持多种组合（如尺码、颜色）</p>
         </div>
 
-        <div class="bg-[#F9FAFB] border border-border rounded px-5 py-4 flex flex-col gap-3">
+        <div class="bg-background border border-border rounded px-5 py-4 flex flex-col gap-3">
           <span class="text-sm font-semibold text-text-primary">批量生成规格</span>
           <div class="flex items-center gap-2">
             <span class="text-sm font-medium text-text-primary">尺寸：</span>
@@ -163,7 +163,7 @@
         </div>
 
         <div class="border border-border rounded overflow-hidden">
-          <div class="flex items-center px-5 bg-[#F9FAFB] h-12 gap-3">
+          <div class="flex items-center px-5 bg-table-header h-11 gap-3">
             <span class="w-[100px] text-sm font-semibold text-text-primary">尺寸</span>
             <span class="w-[100px] text-sm font-semibold text-text-primary">颜色</span>
             <span class="w-[120px] text-sm font-semibold text-text-primary">材质</span>
@@ -220,7 +220,7 @@
           @click.self="variantModalVisible = false"
         >
           <div class="absolute inset-0 bg-black/50" />
-          <div class="relative bg-white rounded-md w-[560px] border border-border p-7 flex flex-col gap-5">
+          <div class="relative glass rounded-md w-[560px] border border-border p-7 flex flex-col gap-5">
             <div class="flex items-center justify-between">
               <h3 class="text-base font-semibold text-text-primary">
                 {{ editingVariantIndex >= 0 ? '编辑规格' : '新增规格' }}
@@ -316,7 +316,7 @@
           @click.self="deleteModalVisible = false"
         >
           <div class="absolute inset-0 bg-black/50" />
-          <div class="relative bg-white rounded-md w-[400px] border border-border p-7 flex flex-col gap-5">
+          <div class="relative glass rounded-md w-[400px] border border-border p-7 flex flex-col gap-5">
             <h3 class="text-base font-semibold text-text-primary">确认删除</h3>
             <p class="text-sm text-text-muted">
               确定要删除规格
@@ -503,12 +503,18 @@ function batchGenerate() {
 </script>
 
 <style scoped>
-.modal-enter-active,
-.modal-leave-active {
-  transition: opacity 0.2s ease;
+.modal-enter-active {
+  transition: opacity 0.18s ease, transform 0.18s ease;
 }
-.modal-enter-from,
+.modal-leave-active {
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+.modal-enter-from {
+  opacity: 0;
+  transform: scale(0.95) translateY(8px);
+}
 .modal-leave-to {
   opacity: 0;
+  transform: scale(0.98) translateY(-4px);
 }
 </style>

@@ -6,11 +6,12 @@
     </div>
 
     <div class="flex items-center gap-3">
-      <div class="flex items-center gap-2 w-[280px] h-9 rounded border border-border px-3 bg-white">
+      <div class="flex items-center gap-2 w-[280px] h-9 rounded border border-border px-3 bg-white focus-within:border-primary transition-colors">
         <Search :size="16" class="text-text-muted shrink-0" />
         <input
           v-model="searchQuery"
           type="text"
+          aria-label="搜索订单号或客户"
           placeholder="搜索订单号或客户..."
           class="flex-1 bg-transparent text-sm text-text-primary placeholder:text-text-muted outline-none"
         />
@@ -42,7 +43,7 @@
         <span class="w-[60px]"></span>
       </div>
 
-      <div class="flex-1 overflow-auto">
+      <div ref="tableBodyRef" class="flex-1 overflow-auto">
         <div
           v-for="order in paginatedOrders"
           :key="order.id"
@@ -53,16 +54,11 @@
           <span class="flex-1 text-sm text-text-muted">{{ order.product }}</span>
           <span class="w-[90px] text-sm text-text-primary font-semibold">{{ order.amount }}</span>
           <span class="w-[90px]">
-            <span
-              class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium text-white"
-              :style="{ backgroundColor: statusColors[order.status] }"
-            >
-              {{ order.status }}
-            </span>
+            <StatusBadge :label="order.status" :variant="statusVariant(order.status)" />
           </span>
           <span class="w-[100px] text-xs text-text-muted font-mono">{{ order.date }}</span>
           <div class="w-[60px]">
-            <button class="rounded p-1 text-text-muted hover:bg-gray-100 transition-colors">
+            <button aria-label="查看订单详情" class="rounded p-1 text-text-muted hover:bg-gray-100 transition-colors">
               <Eye :size="14" />
             </button>
           </div>
@@ -104,8 +100,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import { Search, Eye, ChevronLeft, ChevronRight } from 'lucide-vue-next'
+import gsap from 'gsap'
+import StatusBadge from '@/components/ui/StatusBadge.vue'
 
 const searchQuery = ref('')
 const activeStatus = ref('all')
@@ -121,13 +119,17 @@ const statusTabs = [
   { key: 'cancelled', label: '已取消' },
 ]
 
-const statusColors: Record<string, string> = {
-  '待处理': '#F59E0B',
-  '已付款': '#4A9FD8',
-  '处理中': '#4A8C5E',
-  '已发货': '#2D5E3A',
-  '已完成': '#28A745',
-  '已取消': '#EF4444',
+const statusVariantMap: Record<string, string> = {
+  '待处理': 'warning',
+  '已付款': 'info',
+  '处理中': 'primary-light',
+  '已发货': 'primary',
+  '已完成': 'success',
+  '已取消': 'danger',
+}
+
+function statusVariant(status: string) {
+  return (statusVariantMap[status] ?? 'inactive') as 'warning' | 'info' | 'primary-light' | 'primary' | 'success' | 'danger' | 'inactive'
 }
 
 const statusKeyMap: Record<string, string> = {
@@ -183,5 +185,16 @@ const endItem = computed(() => Math.min(currentPage.value * 8, filteredOrders.va
 const paginatedOrders = computed(() => {
   const start = (currentPage.value - 1) * 8
   return filteredOrders.value.slice(start, start + 8)
+})
+
+const tableBodyRef = ref<HTMLElement | null>(null)
+
+watch([searchQuery, activeStatus, currentPage], () => {
+  nextTick(() => {
+    const rows = tableBodyRef.value?.querySelectorAll('.border-b')
+    if (rows?.length && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      gsap.from(rows, { opacity: 0, duration: 0.2, stagger: 0.02, ease: 'power2.out' })
+    }
+  })
 })
 </script>

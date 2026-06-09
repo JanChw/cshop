@@ -23,6 +23,7 @@ import staffRoutes from './admin/staff'
 import rolesRoutes from './admin/roles'
 import usersRoutes from './admin/users'
 import uploadsRoutes from './admin/uploads'
+import menusRoutes from './admin/menus'
 import type { AppEnv } from '../types/hono'
 
 const app = new Hono<AppEnv>()
@@ -346,5 +347,6 @@ app.route('/staff', staffRoutes)
 app.route('/roles', rolesRoutes)
 app.route('/users', usersRoutes)
 app.route('/uploads', uploadsRoutes)
+app.route('/menus', menusRoutes)
 
 export default app

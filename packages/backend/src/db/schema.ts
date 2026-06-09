@@ -237,3 +237,18 @@ export const settings = sqliteTable('settings', {
   key: text('key').primaryKey(),
   value: text('value').notNull()
 })
+
+export const menus = sqliteTable('menus', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  parentId: integer('parent_id'),
+  name: text('name').notNull(),
+  path: text('path').notNull(),
+  icon: text('icon'),
+  sort: integer('sort').notNull().default(0),
+  isVisible: integer('is_visible', { mode: 'boolean' }).notNull().default(true),
+  type: text('type', { enum: ['admin', 'nav'] }).notNull().default('admin'),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`)
+}, (t) => ({
+  parentIdx: index('menus_parent_idx').on(t.parentId),
+  sortIdx: index('menus_sort_idx').on(t.sort)
+}))

@@ -27,7 +27,7 @@
               <span class="text-sm font-semibold text-text-primary">{{ role.name }}</span>
               <span
                 v-if="role.isSystem"
-                class="rounded-full bg-[#EFF6FF] text-primary text-xs font-medium px-2 h-5 flex items-center"
+                class="rounded-full bg-info-light text-primary text-xs font-medium px-2 h-5 flex items-center"
               >
                 系统
               </span>
@@ -58,50 +58,54 @@
     </div>
 
     <div class="flex-1 flex flex-col p-7 pb-12 min-w-0">
-      <div class="flex flex-col gap-1 mb-5">
-        <h2 class="text-xl font-semibold text-text-primary">{{ selectedRole?.name }}</h2>
-        <p class="text-sm text-text-muted">
-          {{ selectedRole?.description }}  |  {{ selectedRole?.identifier }}
-        </p>
-      </div>
+      <Transition name="tab-panel" mode="out-in">
+        <div :key="selectedRole?.id ?? 0" class="flex flex-col gap-0 min-w-0 min-h-0 flex-1">
+          <div class="flex flex-col gap-1 mb-5">
+            <h2 class="text-base font-semibold text-text-primary">{{ selectedRole?.name }}</h2>
+            <p class="text-sm text-text-muted">
+              {{ selectedRole?.description }}  |  {{ selectedRole?.identifier }}
+            </p>
+          </div>
 
-      <div class="h-px bg-border mb-5" />
+          <div class="h-px bg-border mb-5" />
 
-      <div class="flex-1 overflow-auto">
-        <div class="flex flex-col gap-4">
-          <div v-for="(row, ri) in permRows" :key="ri" class="flex gap-4">
-            <div
-              v-for="group in row"
-              :key="group.title"
-              class="flex-1 border border-border rounded-md p-4 flex flex-col gap-3"
-            >
-              <span class="text-sm font-semibold text-text-primary">{{ group.title }}</span>
-              <div
-                v-for="perm in group.perms"
-                :key="perm"
-                class="flex items-center gap-2"
-              >
+          <div ref="permContainerRef" class="flex-1 overflow-auto">
+            <div class="flex flex-col gap-4">
+              <div v-for="(row, ri) in permRows" :key="ri" class="flex gap-4">
                 <div
-                  class="w-[18px] h-[18px] rounded flex items-center justify-center text-xs text-white cursor-pointer transition-colors"
-                  :class="isPermChecked(group.title, perm)
-                    ? 'bg-primary'
-                    : 'bg-gray-200'"
-                  @click="togglePerm(group.title, perm)"
+                  v-for="group in row"
+                  :key="group.title"
+                  class="flex-1 border border-border rounded-md p-4 flex flex-col gap-3"
                 >
-                  <span v-if="isPermChecked(group.title, perm)">✓</span>
+                  <span class="text-sm font-semibold text-text-primary">{{ group.title }}</span>
+                  <div
+                    v-for="perm in group.perms"
+                    :key="perm"
+                    class="flex items-center gap-2"
+                  >
+                    <div
+                      class="w-[18px] h-[18px] rounded flex items-center justify-center text-xs text-white cursor-pointer transition-colors"
+                      :class="isPermChecked(group.title, perm)
+                        ? 'bg-primary'
+                        : 'bg-gray-200'"
+                      @click="togglePerm(group.title, perm)"
+                    >
+                      <span v-if="isPermChecked(group.title, perm)">✓</span>
+                    </div>
+                    <span class="text-sm text-text-primary">{{ perm }}</span>
+                  </div>
                 </div>
-                <span class="text-sm text-text-primary">{{ perm }}</span>
               </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      <div class="flex justify-end mt-5 pt-3 border-t border-border">
-        <button class="rounded bg-primary text-white text-sm font-medium h-10 px-5 hover:bg-primary/90 transition-colors">
-          保存
-        </button>
-      </div>
+          <div class="flex justify-end mt-5 pt-3 border-t border-border">
+            <button class="rounded bg-primary text-white text-sm font-medium h-10 px-5 hover:bg-primary/90 transition-colors">
+              保存
+            </button>
+          </div>
+        </div>
+      </Transition>
     </div>
 
     <Teleport to="body">
@@ -112,7 +116,7 @@
           @click.self="modalVisible = false"
         >
           <div class="absolute inset-0 bg-black/50" />
-          <div class="relative bg-white rounded-md w-[480px] border border-border p-7 flex flex-col gap-5">
+          <div class="relative glass rounded-md w-[480px] border border-border p-7 flex flex-col gap-5">
             <div class="flex items-center justify-between">
               <h3 class="text-base font-semibold text-text-primary">{{ editingRole ? '编辑角色' : '新增角色' }}</h3>
               <button
@@ -175,7 +179,7 @@
           @click.self="deleteModalVisible = false"
         >
           <div class="absolute inset-0 bg-black/50" />
-          <div class="relative bg-white rounded-md w-[400px] border border-border p-7 flex flex-col gap-5">
+          <div class="relative glass rounded-md w-[400px] border border-border p-7 flex flex-col gap-5">
             <h3 class="text-base font-semibold text-text-primary">确认删除</h3>
             <p class="text-sm text-text-muted">
               确定要删除角色
@@ -206,8 +210,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, watch, nextTick } from 'vue'
 import { Plus, Lock, Trash2, Pencil } from 'lucide-vue-next'
+import gsap from 'gsap'
 
 interface Role {
   id: number
@@ -227,6 +232,16 @@ const roles = ref<Role[]>([
 ])
 
 const selectedRole = ref<Role>(roles.value[0])
+const permContainerRef = ref<HTMLElement | null>(null)
+
+watch(selectedRole, () => {
+  nextTick(() => {
+    const cards = permContainerRef.value?.querySelectorAll('.border.rounded-md.p-4')
+    if (cards?.length) {
+      gsap.fromTo(cards, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.35, stagger: 0.04, ease: 'power2.out' })
+    }
+  })
+})
 
 const permRows = [
   [
@@ -334,12 +349,30 @@ function saveRole() {
 </script>
 
 <style scoped>
-.modal-enter-active,
-.modal-leave-active {
-  transition: opacity 0.2s ease;
+.modal-enter-active {
+  transition: opacity 0.18s ease, transform 0.18s ease;
 }
-.modal-enter-from,
+.modal-leave-active {
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+.modal-enter-from {
+  opacity: 0;
+  transform: scale(0.95) translateY(8px);
+}
 .modal-leave-to {
   opacity: 0;
+  transform: scale(0.98) translateY(-4px);
+}
+.tab-panel-enter-active,
+.tab-panel-leave-active {
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+.tab-panel-enter-from {
+  opacity: 0;
+  transform: translateY(6px);
+}
+.tab-panel-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
 }
 </style>

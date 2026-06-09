@@ -8,6 +8,7 @@ export type PermissionCode =
   | 'category.create' | 'category.update' | 'category.delete'
   | 'sticker.create' | 'sticker.update' | 'sticker.delete'
   | 'backup.create' | 'backup.download' | 'backup.delete'
+  | 'menu.read' | 'menu.create' | 'menu.update' | 'menu.delete'
 
 export const SYSTEM_ROLE_NAMES = {
   SUPER_ADMIN: 'super_admin',
@@ -49,5 +50,9 @@ export const ALL_PERMISSIONS: Array<{ code: PermissionCode; module: string; desc
   { code: 'sticker.delete', module: 'sticker', description: '删除贴纸' },
   { code: 'backup.create', module: 'backup', description: '创建备份' },
   { code: 'backup.download', module: 'backup', description: '下载备份' },
-  { code: 'backup.delete', module: 'backup', description: '删除备份' }
+  { code: 'backup.delete', module: 'backup', description: '删除备份' },
+  { code: 'menu.read', module: 'menu', description: '查看菜单' },
+  { code: 'menu.create', module: 'menu', description: '创建菜单' },
+  { code: 'menu.update', module: 'menu', description: '更新/排序菜单' },
+  { code: 'menu.delete', module: 'menu', description: '删除菜单' }
 ]

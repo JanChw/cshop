@@ -41,20 +41,20 @@ export function reseedRbac(): void {
     'product.create', 'product.read', 'product.update', 'product.delete',
     'category.create', 'category.update', 'category.delete',
     'sticker.create', 'sticker.update', 'sticker.delete',
-    'analytics.read'
+    'analytics.read', 'menu.read'
   ]
   for (const code of productMgrPerms) {
     const pid = permByCode.get(code)
     if (pid) db.insert(rolePermissions).values({ roleId: roleByName.get('product_mgr')!, permissionId: pid }).run()
   }
 
-  const orderMgrPerms = ['order.read', 'order.update_status', 'user.read', 'analytics.read']
+  const orderMgrPerms = ['order.read', 'order.update_status', 'user.read', 'analytics.read', 'menu.read']
   for (const code of orderMgrPerms) {
     const pid = permByCode.get(code)
     if (pid) db.insert(rolePermissions).values({ roleId: roleByName.get('order_mgr')!, permissionId: pid }).run()
   }
 
-  const viewerPerms = ['analytics.read', 'product.read', 'order.read']
+  const viewerPerms = ['analytics.read', 'product.read', 'order.read', 'menu.read']
   for (const code of viewerPerms) {
     const pid = permByCode.get(code)
     if (pid) db.insert(rolePermissions).values({ roleId: roleByName.get('analytics_viewer')!, permissionId: pid }).run()

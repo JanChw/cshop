@@ -12,6 +12,7 @@ import orderRoutes from './routes/orders'
 import adminRoutes from './routes/admin'
 import { stickerRoutes } from './routes/stickers'
 import { categoryRoutes } from './routes/categories'
+import menuRoutes from './routes/menus'
 
 export function createApp() {
   const app = new Hono()
@@ -30,6 +31,7 @@ export function createApp() {
   app.route('/api/v1/admin', adminRoutes)
   app.route('/api/v1/stickers', stickerRoutes)
   app.route('/api/v1/categories', categoryRoutes)
+  app.route('/api/v1/menus', menuRoutes)
 
   app.get('/api/v1/health', (c) => {
     return c.json({ success: true, data: { status: 'ok' }, error: null })

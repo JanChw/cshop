@@ -8,8 +8,8 @@
       >
         <div class="absolute inset-0 bg-black/50" />
 
-        <div class="relative bg-white rounded-lg w-[480px] shadow-lg flex flex-col">
-          <div class="flex items-center justify-between px-6 py-5 border-b border-transparent">
+        <div class="relative glass rounded-md w-[480px] border border-border flex flex-col">
+          <div class="flex items-center justify-between px-6 py-5 border-b border-border">
             <h2 class="text-base font-semibold text-text-primary">
               {{ category ? '编辑分类' : '新增分类' }}
             </h2>
@@ -44,15 +44,15 @@
             </div>
           </div>
 
-          <div class="flex items-center justify-end gap-3 px-6 py-4">
+          <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-border">
             <button
-              class="rounded px-4 py-2 text-sm font-medium text-text-primary border border-border hover:bg-gray-50 transition-colors"
+              class="h-10 rounded border border-border px-4 text-sm font-medium text-text-primary hover:bg-gray-50 transition-colors"
               @click="$emit('close')"
             >
               取消
             </button>
             <button
-              class="rounded px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary/90 transition-colors flex items-center gap-2"
+              class="h-10 rounded bg-primary px-4 text-sm font-medium text-white hover:bg-primary/90 transition-colors flex items-center gap-2"
               @click="handleSave"
             >
               <Check :size="16" />
@@ -98,12 +98,18 @@ function handleSave() {
 </script>
 
 <style scoped>
-.modal-enter-active,
-.modal-leave-active {
-  transition: opacity 0.2s ease;
+.modal-enter-active {
+  transition: opacity 0.18s ease, transform 0.18s ease;
 }
-.modal-enter-from,
+.modal-leave-active {
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+.modal-enter-from {
+  opacity: 0;
+  transform: scale(0.95) translateY(8px);
+}
 .modal-leave-to {
   opacity: 0;
+  transform: scale(0.98) translateY(-4px);
 }
 </style>

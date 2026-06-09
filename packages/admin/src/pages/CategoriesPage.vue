@@ -3,7 +3,7 @@
     <div class="flex items-center justify-between">
       <h1 class="text-xl font-bold text-text-primary">分类管理</h1>
       <button
-        class="rounded bg-primary text-white text-sm font-medium px-4 py-2.5 flex items-center gap-2 hover:bg-primary/90 transition-colors"
+        class="rounded bg-primary text-white text-sm font-medium h-10 px-4 flex items-center gap-2 hover:bg-primary/90 transition-colors"
         @click="openAdd"
       >
         <Plus :size="16" />
@@ -63,7 +63,7 @@
           @click.self="deleteModalVisible = false"
         >
           <div class="absolute inset-0 bg-black/50" />
-          <div class="relative bg-white rounded-md w-[400px] border border-border p-7 flex flex-col gap-5">
+          <div class="relative glass rounded-md w-[400px] border border-border p-7 flex flex-col gap-5">
             <h3 class="text-base font-semibold text-text-primary">确认删除</h3>
             <p class="text-sm text-text-muted">
               确定要删除分类
@@ -163,12 +163,18 @@ function confirmDelete() {
 </script>
 
 <style scoped>
-.modal-enter-active,
-.modal-leave-active {
-  transition: opacity 0.2s ease;
+.modal-enter-active {
+  transition: opacity 0.18s ease, transform 0.18s ease;
 }
-.modal-enter-from,
+.modal-leave-active {
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+.modal-enter-from {
+  opacity: 0;
+  transform: scale(0.95) translateY(8px);
+}
 .modal-leave-to {
   opacity: 0;
+  transform: scale(0.98) translateY(-4px);
 }
 </style>

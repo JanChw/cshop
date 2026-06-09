@@ -6,11 +6,12 @@
     </div>
 
     <div class="flex items-center gap-3">
-      <div class="flex items-center gap-2 w-[280px] h-9 rounded border border-border px-3 bg-white">
+      <div class="flex items-center gap-2 w-[280px] h-9 rounded border border-border px-3 bg-white focus-within:border-primary transition-colors">
         <Search :size="16" class="text-text-muted shrink-0" />
         <input
           v-model="searchQuery"
           type="text"
+          aria-label="搜索邮箱或姓名"
           placeholder="搜索邮箱或姓名..."
           class="flex-1 bg-transparent text-sm text-text-primary placeholder:text-text-muted outline-none"
         />
@@ -44,7 +45,7 @@
     </div>
 
     <div class="flex-1 bg-card border border-border rounded-md overflow-hidden flex flex-col">
-      <div class="flex-1 overflow-auto">
+      <div ref="tableBodyRef" class="flex-1 overflow-auto">
         <div class="flex items-center px-4 bg-table-header h-11 shrink-0 sticky top-0 z-10">
           <span class="w-[50px] text-xs font-semibold text-text-muted text-center">ID</span>
           <span class="w-[80px] text-xs font-semibold text-text-muted text-center">姓名</span>
@@ -70,16 +71,12 @@
             {{ visiblePhones.has(staff.id) ? staff.phone : '****' }}
           </span>
           <span class="w-[70px] text-center">
-            <span
-              class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium text-white"
-              :class="staff.status === '在职' ? 'bg-primary-light' : 'bg-danger'"
-            >
-              {{ staff.status }}
-            </span>
+            <StatusBadge :label="staff.status" :variant="staff.status === '在职' ? 'active' : 'inactive'" />
           </span>
           <span class="w-[90px] text-xs text-text-muted font-mono text-center">{{ staff.joinDate }}</span>
           <div class="w-[50px] flex justify-center">
             <button
+              aria-label="切换电话号码可见性"
               class="rounded p-1 text-text-muted hover:bg-gray-100 transition-colors"
               @click="togglePhone(staff.id)"
             >
@@ -91,7 +88,7 @@
     </div>
 
     <div class="flex items-center justify-between">
-      <span class="text-sm text-muted-foreground">共 {{ filteredStaff.length }} 条，每页 8 条</span>
+      <span class="text-sm text-text-muted">共 {{ filteredStaff.length }} 条，每页 8 条</span>
       <div class="flex items-center gap-1">
         <button
           class="w-8 h-8 rounded border border-border bg-white text-sm flex items-center justify-center hover:bg-gray-50 disabled:opacity-50"
@@ -124,8 +121,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import { Search, ChevronDown, ChevronLeft, ChevronRight, Eye } from 'lucide-vue-next'
+import gsap from 'gsap'
+import StatusBadge from '@/components/ui/StatusBadge.vue'
 
 const searchQuery = ref('')
 const roleFilter = ref('')
@@ -185,5 +184,16 @@ const totalPages = computed(() => Math.ceil(filteredStaff.value.length / 8) || 1
 const paginatedStaff = computed(() => {
   const start = (currentPage.value - 1) * 8
   return filteredStaff.value.slice(start, start + 8)
+})
+
+const tableBodyRef = ref<HTMLElement | null>(null)
+
+watch([searchQuery, roleFilter, statusFilter, currentPage], () => {
+  nextTick(() => {
+    const rows = tableBodyRef.value?.querySelectorAll('.border-b')
+    if (rows?.length && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      gsap.from(rows, { opacity: 0, duration: 0.2, stagger: 0.02, ease: 'power2.out' })
+    }
+  })
 })
 </script>

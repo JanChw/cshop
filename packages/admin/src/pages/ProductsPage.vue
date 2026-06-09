@@ -16,11 +16,12 @@
     </div>
 
     <div class="flex items-center gap-3">
-      <div class="flex items-center gap-2 w-[320px] h-10 rounded border border-border px-3 bg-white">
+      <div class="flex items-center gap-2 w-[320px] h-10 rounded border border-border px-3 bg-white focus-within:border-primary transition-colors">
         <Search :size="16" class="text-text-muted shrink-0" />
         <input
           v-model="searchQuery"
           type="text"
+          aria-label="搜索商品名称"
           placeholder="搜索商品名称"
           class="flex-1 bg-transparent text-sm text-text-primary placeholder:text-text-muted outline-none"
         />
@@ -53,7 +54,7 @@
     </div>
 
     <div class="flex-1 bg-card border border-border rounded-md overflow-hidden flex flex-col">
-      <div class="flex items-center px-4 bg-[#F9FAFB] h-11 shrink-0 gap-3">
+      <div class="flex items-center px-4 bg-table-header h-11 shrink-0 gap-3">
         <span class="w-[50px] text-xs font-semibold text-text-primary">ID</span>
         <span class="w-[200px] text-xs font-semibold text-text-primary">商品名称</span>
         <span class="w-[80px] text-xs font-semibold text-text-primary">分类</span>
@@ -63,7 +64,7 @@
         <span class="w-[100px] text-xs font-semibold text-text-primary">操作</span>
       </div>
 
-      <div class="flex-1 overflow-auto">
+      <div ref="tableBodyRef" class="flex-1 overflow-auto">
         <div
           v-for="product in paginatedProducts"
           :key="product.id"
@@ -75,12 +76,7 @@
           <span class="w-[80px] text-sm text-text-primary font-medium">{{ product.price }}</span>
           <span class="w-[70px] text-sm text-text-primary">{{ product.stock }}</span>
           <span class="w-[70px]">
-            <span
-              class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium text-white"
-              :class="product.status === '上架' ? 'bg-status-on' : 'bg-gray-400'"
-            >
-              {{ product.status }}
-            </span>
+            <StatusBadge :label="product.status" :variant="product.status === '上架' ? 'active' : 'inactive'" />
           </span>
           <div class="w-[100px]">
             <button
@@ -95,7 +91,7 @@
     </div>
 
     <div class="flex items-center justify-between">
-      <span class="text-sm text-text-primary">共 {{ filteredProducts.length }} 条，每页 8 条</span>
+      <span class="text-sm text-text-muted">共 {{ filteredProducts.length }} 条，每页 8 条</span>
       <div class="flex items-center gap-1">
         <button
           class="w-8 h-8 rounded border border-border bg-white text-sm flex items-center justify-center hover:bg-gray-50 disabled:opacity-50"
@@ -128,8 +124,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import { Search, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-vue-next'
+import gsap from 'gsap'
+import StatusBadge from '@/components/ui/StatusBadge.vue'
 
 const searchQuery = ref('')
 const categoryFilter = ref('')
@@ -175,5 +173,16 @@ const totalPages = computed(() => Math.ceil(filteredProducts.value.length / 8) |
 const paginatedProducts = computed(() => {
   const start = (currentPage.value - 1) * 8
   return filteredProducts.value.slice(start, start + 8)
+})
+
+const tableBodyRef = ref<HTMLElement | null>(null)
+
+watch([searchQuery, categoryFilter, statusFilter, currentPage], () => {
+  nextTick(() => {
+    const rows = tableBodyRef.value?.querySelectorAll('.border-b')
+    if (rows?.length && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      gsap.from(rows, { opacity: 0, duration: 0.2, stagger: 0.02, ease: 'power2.out' })
+    }
+  })
 })
 </script>

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>个人素材库 - ByChooow</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#c2652a",
+                        "on-primary": "#ffffff",
+                        "primary-container": "#ffdbca",
+                        "on-primary-container": "#331200",
+                        "secondary": "#755846",
+                        "on-secondary": "#ffffff",
+                        "secondary-container": "#ffeee4",
+                        "on-secondary-container": "#2b170a",
+                        "tertiary": "#626032",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-container": "#e9e5ab",
+                        "on-tertiary-container": "#1e1c00",
+                        "error": "#ba1a1a",
+                        "on-error": "#ffffff",
+                        "background": "#fffbff",
+                        "on-background": "#201a17",
+                        "surface": "#fffbff",
+                        "on-surface": "#201a17",
+                        "surface-variant": "#f4dfd3",
+                        "on-surface-variant": "#52443c",
+                        "outline": "#85736b",
+                        "outline-variant": "#d7c2b8",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-low": "#fff8f5",
+                        "surface-container": "#fceee8",
+                        "surface-container-high": "#f6e8e2",
+                        "surface-container-highest": "#f1e2db"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "8px",
+                        "lg": "8px",
+                        "xl": "8px",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-lg": "32px",
+                        "gutter": "16px",
+                        "container-margin": "20px",
+                        "stack-md": "16px",
+                        "unit": "4px",
+                        "stack-sm": "8px"
+                    },
+                    "fontFamily": {
+                        "body": ["Manrope", "sans-serif"],
+                        "display": ["Manrope", "sans-serif"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Manrope', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .canvas-grid { background-image: radial-gradient(#d7c2b8 1px, transparent 1px); background-size: 16px 16px; }
+        ::-webkit-scrollbar { display: none; }
+    </style>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface min-h-screen flex flex-col pb-24">
+<!-- Top Navigation Bar -->
+<header class="w-full top-0 sticky z-50 bg-surface/80 backdrop-blur-md border-b border-outline-variant flex justify-between items-center px-container-margin py-stack-sm h-16">
+<div class="flex items-center gap-stack-sm">
+<button class="material-symbols-outlined text-on-surface-variant hover:bg-secondary-container transition-colors p-2 rounded-full active:scale-95 duration-150">arrow_back</button>
+<h1 class="text-xl font-bold text-primary">个人素材库</h1>
+</div>
+<div class="w-10 h-10 rounded-full overflow-hidden border border-outline-variant">
+<img alt="User Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBOxnDs0-rYmql29hHshfkD3oIt4fKN-_B6j-5_xc-xbHNwj9SlP3PTxQecg4PTmcTDqsSPdKB_klkDT9VrmswtIfg6i66BduGVrkVe10eFSvifad6wq35ysPsLLHZKGWhrRw3v75X7Vz8flAz1nlw9osC8fq3Hk4eM5BAflDdvC5uvsOlEDXLUwzXoM6knd2SKtAphF19S_9GlYrYtcTkzMUrLw6eqPuwFcYIOLnOZaFusiw5gLRuQfShMsPewEloxdjvzvIXJIqg"/>
+</div>
+</header>
+<main class="flex-1 px-container-margin space-y-stack-md pt-stack-md">
+<!-- Search Bar -->
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full h-12 pl-12 pr-4 bg-surface-container-lowest border border-outline-variant rounded-lg font-medium text-on-surface placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" placeholder="查找素材名称..." type="text"/>
+</div>
+<!-- Category Tabs -->
+<div class="flex gap-stack-sm overflow-x-auto no-scrollbar py-2">
+<button class="px-6 py-2 rounded-lg bg-primary text-on-primary font-semibold text-sm transition-all active:scale-95 whitespace-nowrap">全部</button>
+<button class="px-6 py-2 rounded-lg bg-surface-container-high text-on-surface-variant font-semibold text-sm hover:bg-surface-container-highest transition-all active:scale-95 whitespace-nowrap">上传</button>
+<button class="px-6 py-2 rounded-lg bg-surface-container-high text-on-surface-variant font-semibold text-sm hover:bg-surface-container-highest transition-all active:scale-95 whitespace-nowrap">收藏</button>
+<button class="px-6 py-2 rounded-lg bg-surface-container-high text-on-surface-variant font-semibold text-sm hover:bg-surface-container-highest transition-all active:scale-95 whitespace-nowrap">草稿</button>
+</div>
+<!-- Assets Grid -->
+<section class="grid grid-cols-2 gap-gutter pb-8">
+<!-- Asset Card 1 -->
+<div class="group relative bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden flex flex-col aspect-[4/5] hover:border-primary transition-all">
+<div class="flex-1 bg-surface-variant/30 overflow-hidden relative canvas-grid">
+<img class="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-300" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDO5kBoOStIIg-c4gmVAyifasihv9La4XNflyjZRYznINoVEPkpJuT97AY0eqCtg11pEQ9x9TeRGsa6wa6rkgshyAoScsFH5KqYrk92mumUjtLgqt5U-xHw0Y0H2Bn64Y5y9BnkWYeO4FRi9Tz4eRQYtt0gqVtNUs9I5MON4w9R6PwSIjlSLkO6kNjo6rsYG1mlkrpdPKv56Cq0Yi8gwo_1Qps1arKeKS_DFpHZInP-dri6qymBMfrje4Fd5DPBmaVjidhPmZCxuIc"/>
+<div class="absolute top-2 right-2 flex gap-1">
+<button class="bg-white/90 backdrop-blur-md p-1.5 rounded-lg shadow-sm text-on-surface-variant hover:text-error active:scale-90 transition-all"><span class="material-symbols-outlined text-base">delete</span></button>
+</div>
+</div>
+<div class="p-3">
+<p class="font-semibold text-sm text-on-surface truncate">未来主义蓝色波形</p>
+<p class="text-[10px] text-outline mt-1 uppercase tracking-wider font-bold">PNG • 2.4 MB</p>
+</div>
+</div>
+<!-- Asset Card 2 -->
+<div class="group relative bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden flex flex-col aspect-[4/5] hover:border-primary transition-all">
+<div class="flex-1 bg-surface-variant/30 overflow-hidden relative canvas-grid">
+<img class="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-300" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDowFrLGLX8Df1z6aWGYKXm88YUy3TbzjNeH1XWdzWs7qKRi_Uix4u4vxGGM5w0FAT1mKZ841qaYuXy17HPtltJot051Qgk21rMamdHPJrqk8GFArIwm5sFI4-VU7FaipuK9GSV1vmMaupHzQX-n28VT4_AWAw5fFkn86qeBNHMvGcuyYsegWQbo150RFL7V1jcYHdKus13UfUuyRtHe8yQSNbIaEXvJqc6tgXe3OIb_3scSyetJGiLmlpZkYL7DsNIGgGUzH_YY_w"/>
+<div class="absolute top-2 right-2 flex gap-1">
+<button class="bg-white/90 backdrop-blur-md p-1.5 rounded-lg shadow-sm text-on-surface-variant hover:text-error active:scale-90 transition-all"><span class="material-symbols-outlined text-base">delete</span></button>
+</div>
+</div>
+<div class="p-3">
+<p class="font-semibold text-sm text-on-surface truncate">简约都市插画</p>
+<p class="text-[10px] text-outline mt-1 uppercase tracking-wider font-bold">SVG • 450 KB</p>
+</div>
+</div>
+<!-- Asset Card 3 -->
+<div class="group relative bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden flex flex-col aspect-[4/5] hover:border-primary transition-all">
+<div class="flex-1 bg-surface-variant/30 overflow-hidden relative canvas-grid">
+<img class="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-300" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDk5w_Enc9O_kR3uN84qHJgKd7d-w8oJ-hHsrRKX1thfMp9C-LhtZH_rvewk26ZEvb4pZ9aKQeTsjwIC_FT2XTTHTMM50BGu3j1iskIXs7tobVKDlh70_eOIF5IrWzSJsAWbNrWHkjMjWMhutG8br-wN_i4JyYusWOJlo0zERLRRY_Mh1_Hbp8a1Q5Doe0KPTYrGPlMwWfGdKuMc4UP-jwqdjuLzm1K7C7NeHdw4px-eQXwbXQr3ah7RXjJwv9TeNUTr7ZDZJETK3M"/>
+<div class="absolute top-2 right-2 flex gap-1">
+<button class="bg-white/90 backdrop-blur-md p-1.5 rounded-lg shadow-sm text-on-surface-variant hover:text-error active:scale-90 transition-all"><span class="material-symbols-outlined text-base">delete</span></button>
+</div>
+</div>
+<div class="p-3">
+<p class="font-semibold text-sm text-on-surface truncate">抽象流动纹理</p>
+<p class="text-[10px] text-outline mt-1 uppercase tracking-wider font-bold">JPG • 4.1 MB</p>
+</div>
+</div>
+<!-- Asset Card 4 -->
+<div class="group relative bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden flex flex-col aspect-[4/5] hover:border-primary transition-all">
+<div class="flex-1 bg-surface-variant/30 overflow-hidden relative canvas-grid flex items-center justify-center">
+<div class="text-center opacity-40">
+<span class="material-symbols-outlined text-4xl block mb-2 text-on-surface-variant">draw</span>
+<p class="font-semibold text-xs text-on-surface-variant">未命名草稿</p>
+</div>
+<div class="absolute top-2 right-2 flex gap-1">
+<button class="bg-white/90 backdrop-blur-md p-1.5 rounded-lg shadow-sm text-on-surface-variant hover:text-primary active:scale-90 transition-all"><span class="material-symbols-outlined text-base">edit</span></button>
+</div>
+</div>
+<div class="p-3">
+<p class="font-semibold text-sm text-on-surface truncate">新设计 - 2024.03</p>
+<p class="text-[10px] text-outline mt-1 uppercase tracking-wider font-bold">Draft • Editable</p>
+</div>
+</div>
+</section>
+</main>
+<!-- Upload FAB -->
+<button class="fixed bottom-24 right-container-margin w-14 h-14 bg-primary text-on-primary rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center active:scale-90 transition-transform duration-150 z-40 group overflow-hidden">
+<span class="material-symbols-outlined group-hover:rotate-90 transition-transform duration-300">add</span>
+<div class="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+</button>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center bg-surface/95 backdrop-blur-lg border-t border-outline-variant px-2 py-3 z-50">
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-3 py-1 hover:bg-secondary-container rounded-lg transition-colors active:scale-90 duration-100">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-bold mt-0.5">首页</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-3 py-1 hover:bg-secondary-container rounded-lg transition-colors active:scale-90 duration-100">
+<span class="material-symbols-outlined">draw</span>
+<span class="text-[10px] font-bold mt-0.5">设计</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-3 py-1 hover:bg-secondary-container rounded-lg transition-colors active:scale-90 duration-100">
+<span class="material-symbols-outlined">storefront</span>
+<span class="text-[10px] font-bold mt-0.5">商店</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-3 py-1 hover:bg-secondary-container rounded-lg transition-colors active:scale-90 duration-100">
+<span class="material-symbols-outlined">shopping_cart</span>
+<span class="text-[10px] font-bold mt-0.5">购物车</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-primary text-on-primary rounded-lg px-4 py-1 active:scale-90 transition-transform duration-100">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="text-[10px] font-bold mt-0.5">我的</span>
+</button>
+</nav>
+<script>
+        // Simple Interaction logic for tabs
+        const tabs = document.querySelectorAll('.flex.gap-stack-sm.overflow-x-auto button');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => {
+                    t.classList.remove('bg-primary', 'text-on-primary');
+                    t.classList.add('bg-surface-container-high', 'text-on-surface-variant');
+                });
+                tab.classList.remove('bg-surface-container-high', 'text-on-surface-variant');
+                tab.classList.add('bg-primary', 'text-on-primary');
+            });
+        });
+
+        // Search feedback
+        const searchInput = document.querySelector('input[type="text"]');
+        searchInput.addEventListener('input', (e) => {
+            if (e.target.value.length > 0) {
+                searchInput.classList.add('border-primary');
+                searchInput.classList.add('ring-2');
+                searchInput.classList.add('ring-primary/20');
+            } else {
+                searchInput.classList.remove('border-primary');
+                searchInput.classList.remove('ring-2');
+                searchInput.classList.remove('ring-primary/20');
+            }
+        });
+    </script>
+</body></html>

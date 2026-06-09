@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ByChooow - 图形库</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Eb+Garamond:wght@400;500;600;700;800&amp;family=Manrope:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-tertiary-container": "#3a2020",
+                      "on-secondary-fixed": "#2a2420",
+                      "surface": "#faf5ee",
+                      "inverse-primary": "#f0a878",
+                      "surface-variant": "#ece6dc",
+                      "surface-container": "#f2ece4",
+                      "surface-container-lowest": "#ffffff",
+                      "on-secondary-fixed-variant": "#504840",
+                      "primary": "#c2652a",
+                      "on-error-container": "#7a1a10",
+                      "tertiary-fixed-dim": "#e8a0a0",
+                      "inverse-surface": "#3a302a",
+                      "surface-dim": "#dcd6cc",
+                      "secondary-fixed": "#eae2da",
+                      "on-surface-variant": "#605850",
+                      "on-primary-container": "#fbe8d8",
+                      "secondary-container": "#eae2da",
+                      "primary-container": "#e08850",
+                      "outline-variant": "#d8d0c8",
+                      "on-error": "#ffffff",
+                      "on-tertiary-fixed-variant": "#6e3030",
+                      "on-secondary-container": "#605850",
+                      "on-surface": "#3a302a",
+                      "surface-container-highest": "#e6e0d6",
+                      "on-background": "#3a302a",
+                      "on-secondary": "#ffffff",
+                      "secondary-fixed-dim": "#cec6be",
+                      "surface-container-low": "#f6f0e8",
+                      "on-primary-fixed": "#401a08",
+                      "tertiary": "#8c3c3c",
+                      "surface-bright": "#faf5ee",
+                      "tertiary-container": "#d47070",
+                      "inverse-on-surface": "#faf5ee",
+                      "surface-container-high": "#ece6dc",
+                      "secondary": "#78706a",
+                      "error-container": "#fce4e0",
+                      "error": "#c0392b",
+                      "primary-fixed": "#fbe8d8",
+                      "primary-fixed-dim": "#f0a878",
+                      "outline": "#9a9088",
+                      "on-tertiary": "#ffffff",
+                      "surface-tint": "#c2652a",
+                      "background": "#faf5ee",
+                      "tertiary-fixed": "#fce0e0",
+                      "on-primary-fixed-variant": "#8a4518",
+                      "on-primary": "#ffffff",
+                      "on-tertiary-fixed": "#2e1515"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "fontFamily": {
+                      "headline": ["Eb Garamond"],
+                      "display": ["Eb Garamond"],
+                      "body": ["Manrope"],
+                      "label": ["Manrope"]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        body { font-family: 'Manrope', sans-serif; background-color: #faf5ee; color: #3a302a; }
+        .font-headline { font-family: 'Eb Garamond', serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .custom-scrollbar::-webkit-scrollbar { height: 0px; }
+        .masonry-grid { column-count: 2; column-gap: 1rem; }
+        @media (min-width: 768px) { .masonry-grid { column-count: 3; } }
+        @media (min-width: 1024px) { .masonry-grid { column-count: 4; } }
+        .graphic-card { break-inside: avoid; margin-bottom: 1rem; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface overflow-x-hidden min-h-screen">
+<!-- Top AppBar -->
+<header class="fixed top-0 w-full z-50 bg-surface shadow-sm flex justify-between items-center px-6 h-16 w-full">
+<div class="flex items-center gap-4">
+<button class="text-primary hover:opacity-80 transition-opacity scale-95 active:transition-transform">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<h1 class="font-headline text-2xl font-bold text-primary tracking-tight">ByChooow</h1>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-primary hover:opacity-80 transition-opacity scale-95 active:transition-transform">
+<span class="material-symbols-outlined">shopping_bag</span>
+</button>
+</div>
+</header>
+<main class="pt-20 pb-40 px-6 max-w-7xl mx-auto">
+<!-- Search Section -->
+<section class="mb-8">
+<div class="relative group">
+<div class="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline">search</span>
+</div>
+<input class="w-full bg-surface-container-low border-none rounded-xl py-4 pl-12 pr-4 focus:ring-2 focus:ring-primary transition-all duration-300 font-body text-on-surface placeholder-on-surface-variant/50" placeholder="搜索图形素材..." type="text"/>
+</div>
+</section>
+<!-- Horizontal Scroll Categories -->
+<section class="mb-10 -mx-6 px-6 overflow-x-auto custom-scrollbar flex gap-3 whitespace-nowrap">
+<button class="px-6 py-2 rounded-full bg-primary text-on-primary font-body text-sm font-semibold transition-all hover:opacity-90 active:scale-95">推荐</button>
+<button class="px-6 py-2 rounded-full bg-surface-container border border-outline-variant text-on-surface-variant font-body text-sm transition-all hover:bg-surface-variant active:scale-95">几何</button>
+<button class="px-6 py-2 rounded-full bg-surface-container border border-outline-variant text-on-surface-variant font-body text-sm transition-all hover:bg-surface-variant active:scale-95">动物</button>
+<button class="px-6 py-2 rounded-full bg-surface-container border border-outline-variant text-on-surface-variant font-body text-sm transition-all hover:bg-surface-variant active:scale-95">文字</button>
+<button class="px-6 py-2 rounded-full bg-surface-container border border-outline-variant text-on-surface-variant font-body text-sm transition-all hover:bg-surface-variant active:scale-95">抽象</button>
+<button class="px-6 py-2 rounded-full bg-surface-container border border-outline-variant text-on-surface-variant font-body text-sm transition-all hover:bg-surface-variant active:scale-95">复古</button>
+<button class="px-6 py-2 rounded-full bg-surface-container border border-outline-variant text-on-surface-variant font-body text-sm transition-all hover:bg-surface-variant active:scale-95">自然</button>
+</section>
+<!-- Graphics Grid (Masonry Effect) -->
+<div class="masonry-grid">
+<!-- Graphic Item 1 -->
+<div class="graphic-card relative group cursor-pointer" onclick="toggleSelection(this)">
+<div class="overflow-hidden rounded-xl bg-white aspect-[3/4]">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="A sophisticated abstract line drawing of a gazelle in a desert landscape, using warm burnt sienna and golden earthy tones. The style is minimalist and high-end editorial, with plenty of breathable whitespace. Soft evening sun lighting enhances the sun-baked simplicity of the Sahara-inspired aesthetic. The composition is balanced and elegant." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAZpFK5BtlONOgsS8ohvhIQU2Nj4vEoZ5_7hgGamrDKKDb__gWzsyQb22eADkuXK5B7xjaHMztALFprzLmEoExxmelJcByI_cWc4PHAhqdVZml-Y5DRqMQJxQiiZ6PWsIJ-NitZSWIVi-RjKLTtnMTnzYNfISyEmyOHHMdGBTETTrtUEZwu3deAIf72TTT_AEsEwabofuwpPpuiB9Hoe6p_MxrzQ6L9CtaDPIXAtNFwwsmbnhOPDvAxFeORI84VFBlggR5-9y0zvNs"/>
+</div>
+<div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+<div class="selection-indicator w-6 h-6 rounded-full border-2 border-primary bg-white/80 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-xs hidden">check</span>
+</div>
+</div>
+<div class="mt-2 flex justify-between items-center">
+<span class="text-xs font-label text-on-surface-variant">几何构成 01</span>
+<span class="material-symbols-outlined text-sm text-outline">favorite</span>
+</div>
+</div>
+<!-- Graphic Item 2 -->
+<div class="graphic-card relative group cursor-pointer" onclick="toggleSelection(this)">
+<div class="overflow-hidden rounded-xl bg-white aspect-square">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="Intricate geometric pattern featuring overlapping golden circles and lines against a warm linen background. The visual style is curated and minimalist, reflecting a luxury desert theme. Burnt sienna accents punctuate the design, creating a warm-shifted palette. The lighting is diffused and soft, emphasizing texture and precision." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0Ze-i9CzRfXto93UqknzuTu_xlJ8HtDK0cA6J4gX-2qAfhklbY-QqqdhIGL1cLYAdFA7eNVMbYpsDddkeA7Y6uLaDL4rl-BOowok4uomDZXVtHYvA9jr6rhd4h-Iy1t0XX9o2gEvrn5QKzokaT-0E2LfCZQNnkoR1sb3XsDhNDypogK4ILFMuRjHs51bkwon4tG6gWpz7F0WiIKWwRgoc8Gke1fgXGiEPGVA0MsFzel7foi4y-7FAQVqlhLjYVNLqRXQzU-MNW1k"/>
+</div>
+<div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+<div class="selection-indicator w-6 h-6 rounded-full border-2 border-primary bg-white/80 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-xs hidden">check</span>
+</div>
+</div>
+<div class="mt-2 flex justify-between items-center">
+<span class="text-xs font-label text-on-surface-variant">圆弧抽象</span>
+<span class="material-symbols-outlined text-sm text-outline">favorite</span>
+</div>
+</div>
+<!-- Graphic Item 3 -->
+<div class="graphic-card relative group cursor-pointer selection-active" onclick="toggleSelection(this)">
+<div class="overflow-hidden rounded-xl bg-white aspect-[4/5] border-2 border-primary">
+<img class="w-full h-full object-cover scale-110" data-alt="A luxurious digital illustration of a stylized palm leaf in a terracotta vase. The color scheme is a warm palette of dusty rose, sienna, and sandy beige. The image captures a serene, minimalist atmosphere with long soft shadows and abundant whitespace. It perfectly embodies the sun-baked Sahara aesthetic in an editorial layout." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAcJISwWuInkZJwDNvtrkfZ3h1t6Yd8054uFCEGeMBiE2fIkcDQztlVvQ95FO1gSKfIvaPHuKh1Y0cWAldZ0k3DEwu6dkpHk_xclIWNr9sVuRRrhyUy8tqqESib70U6y3RlV6jsBB59VLlRa_H0PYk7bi6__daspOPnHfqssn4ZOHF04dWASUTWRcdT4s6MhvFrM78o8KifOF1V0w8IF3cmZOPWCowPJP0sc0kuaHDGdFuSu4inBw_mHc1XC7Let5kg772WlthrN68"/>
+</div>
+<div class="absolute top-3 right-3 opacity-100">
+<div class="selection-indicator w-6 h-6 rounded-full border-2 border-primary bg-primary flex items-center justify-center shadow-md">
+<span class="material-symbols-outlined text-white text-sm">check</span>
+</div>
+</div>
+<div class="mt-2 flex justify-between items-center">
+<span class="text-xs font-label text-primary font-bold">植系极简</span>
+<span class="material-symbols-outlined text-sm text-primary" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+</div>
+<!-- Graphic Item 4 -->
+<div class="graphic-card relative group cursor-pointer" onclick="toggleSelection(this)">
+<div class="overflow-hidden rounded-xl bg-white aspect-video">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="A vibrant yet disciplined abstract gradient texture blending golden sands with deep sienna. The texture is grainy and organic, reminiscent of shifting desert dunes. The lighting is high-key and warm, avoiding any cool tones. This professional design asset is presented as a clean, modern card for high-end UI patterns." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB6hRxhczHVfHEmqi93Pc-DCfYHqJIZPsgoWU-ykqHYpemujXui1PnoVKZVIFa_QSqKO2NRnIOIZ6aGvj26Z9aKJVlLcewnA3EvLgCVzECRaxdES87LpuZc2jl6TqMeUEd-nAUEXzi3Muaim2f5_-hKxWIRMo4X58JoNjLYdKRtwXZhfJ2TiWTgbGbiCb80wjRvZ5iiIr5W8EbzDBnkpMz6KAc-8uXzqU0sGRsbrUbMwqp_tRl5s1n60-i6ddB3G4tSERsueRFMrFc"/>
+</div>
+<div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+<div class="selection-indicator w-6 h-6 rounded-full border-2 border-primary bg-white/80 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-xs hidden">check</span>
+</div>
+</div>
+<div class="mt-2 flex justify-between items-center">
+<span class="text-xs font-label text-on-surface-variant">砂砾渐变</span>
+<span class="material-symbols-outlined text-sm text-outline">favorite</span>
+</div>
+</div>
+<!-- Graphic Item 5 -->
+<div class="graphic-card relative group cursor-pointer" onclick="toggleSelection(this)">
+<div class="overflow-hidden rounded-xl bg-white aspect-[3/2]">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="Modernist typography graphic featuring a single serif character 'S' in EB Garamond, surrounded by minimalist geometric shapes. The lighting is ultra-soft, casting barely visible shadows. Warm linen background creates a luxurious editorial feel. Burnt sienna focus states add a touch of warmth and disciplined simplicity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB89OXiGqGFJgeh_rmOwkNOhNqZHJpzhYWZPk9nN1zFaOwCDaueYSqpJUTYaL5y-z5121cYsue8wGovRGOoayPJ47_OMAR9wxVPzKKmR9VFfDAjTFt4XwNzZikrC-d8rWxqXapOBAsBlL5UOzXQxEKNOCM7HQ5abwj7mpnKMPc6sUsc85BU9uDLVbkv4LOde48xtsqiYJBHHTJD4QTlkIWUR1hpMlIvgxu9_ZvgD01dzAVLisFx5Aw_l-yc5HHxu5WAXGUxP2GB678"/>
+</div>
+<div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+<div class="selection-indicator w-6 h-6 rounded-full border-2 border-primary bg-white/80 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-xs hidden">check</span>
+</div>
+</div>
+<div class="mt-2 flex justify-between items-center">
+<span class="text-xs font-label text-on-surface-variant">字林系列 04</span>
+<span class="material-symbols-outlined text-sm text-outline">favorite</span>
+</div>
+</div>
+<!-- Graphic Item 6 -->
+<div class="graphic-card relative group cursor-pointer" onclick="toggleSelection(this)">
+<div class="overflow-hidden rounded-xl bg-white aspect-[4/3]">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="A curated collection of minimalist organic shapes inspired by sun-bleached shells and desert stones. The palette is strictly warm, using earthy grays and deep ochres. The layout is asymmetric and professional, with a focus on high-end visual design. No blue or cool tones are present, maintaining a cohesive Sahara theme." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAsSSQ8fk27M5b36rxK_2kDqSfWRdwRZLxQa2WS5Fu4j2yjxw4AK9JX7RA8nCVjhKUUOWQ1LSHs-5Izq7nvmJql1LGtBrOfyX-657pKXxh6RDwOFElvzW0-gdFYCIjJMvVU9ACGwP_eM8LBdYyTBirOywC3eTRBUiR7Hp0GgL8sRfHlCA3l36JheHluCM8yLX-mQEgj8TOLliC9Km3MAnr3GFs62lXFty5nS_GCquJzOuFSjZBlg2XSxhqFYD_o6qKe_dQEvEGZn9E"/>
+</div>
+<div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+<div class="selection-indicator w-6 h-6 rounded-full border-2 border-primary bg-white/80 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-xs hidden">check</span>
+</div>
+</div>
+<div class="mt-2 flex justify-between items-center">
+<span class="text-xs font-label text-on-surface-variant">有机形态</span>
+<span class="material-symbols-outlined text-sm text-outline">favorite</span>
+</div>
+</div>
+</div>
+</main>
+<!-- Selection Bar (Bottom Prompt) -->
+<div class="fixed bottom-20 left-1/2 -translate-x-1/2 w-[90%] max-w-lg bg-inverse-surface text-inverse-on-surface px-6 py-4 rounded-2xl shadow-2xl flex items-center justify-between z-40 transition-all duration-500 transform translate-y-0 opacity-100" id="selection-bar">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-xs font-bold">1</div>
+<p class="font-body text-sm font-medium">已选定 1 个图形</p>
+</div>
+<button class="bg-primary hover:bg-primary/90 text-white px-5 py-2 rounded-xl text-sm font-semibold transition-all active:scale-95 shadow-lg">
+            使用该图形
+        </button>
+</div>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-2 py-3 pb-safe bg-surface-container shadow-[0_-2px_16px_rgba(58,48,42,0.04)] rounded-t-xl">
+<a class="flex flex-col items-center justify-center text-on-surface-variant opacity-70 hover:bg-surface-variant transition-colors rounded-xl px-3 py-1" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-body text-[10px] tracking-wide mt-1">首页</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-xl px-3 py-1 scale-90 active:duration-150" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">brush</span>
+<span class="font-body text-[10px] tracking-wide mt-1 font-bold">设计</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant opacity-70 hover:bg-surface-variant transition-colors rounded-xl px-3 py-1" href="#">
+<span class="material-symbols-outlined">shopping_cart</span>
+<span class="font-body text-[10px] tracking-wide mt-1">购物车</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant opacity-70 hover:bg-surface-variant transition-colors rounded-xl px-3 py-1" href="#">
+<span class="material-symbols-outlined">storefront</span>
+<span class="font-body text-[10px] tracking-wide mt-1">商城</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant opacity-70 hover:bg-surface-variant transition-colors rounded-xl px-3 py-1" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-body text-[10px] tracking-wide mt-1">我的</span>
+</a>
+</nav>
+<script>
+        let selectedCount = 1;
+        const selectionBar = document.getElementById('selection-bar');
+        const countIndicator = selectionBar.querySelector('.font-bold');
+        const countText = selectionBar.querySelector('p');
+
+        function toggleSelection(el) {
+            const indicator = el.querySelector('.selection-indicator');
+            const check = indicator.querySelector('.material-symbols-outlined');
+            const imgContainer = el.querySelector('.overflow-hidden');
+            const label = el.querySelector('.font-label');
+
+            if (el.classList.contains('selection-active')) {
+                el.classList.remove('selection-active');
+                indicator.classList.remove('bg-primary');
+                indicator.classList.add('bg-white/80');
+                check.classList.add('hidden');
+                imgContainer.classList.remove('border-2', 'border-primary');
+                imgContainer.querySelector('img').classList.remove('scale-110');
+                label.classList.remove('text-primary', 'font-bold');
+                label.classList.add('text-on-surface-variant');
+                selectedCount--;
+            } else {
+                el.classList.add('selection-active');
+                indicator.classList.add('bg-primary');
+                indicator.classList.remove('bg-white/80');
+                check.classList.remove('hidden');
+                imgContainer.classList.add('border-2', 'border-primary');
+                imgContainer.querySelector('img').classList.add('scale-110');
+                label.classList.add('text-primary', 'font-bold');
+                label.classList.remove('text-on-surface-variant');
+                selectedCount++;
+            }
+
+            updateSelectionBar();
+        }
+
+        function updateSelectionBar() {
+            if (selectedCount > 0) {
+                selectionBar.style.transform = 'translate(-50%, 0)';
+                selectionBar.style.opacity = '1';
+                countIndicator.innerText = selectedCount;
+                countText.innerText = `已选定 ${selectedCount} 个图形`;
+            } else {
+                selectionBar.style.transform = 'translate(-50%, 150%)';
+                selectionBar.style.opacity = '0';
+            }
+        }
+    </script>
+</body></html>

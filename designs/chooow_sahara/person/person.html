@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "tertiary-fixed-dim": "#c6c6ca",
+                "surface-container-lowest": "#ffffff",
+                "error": "#ba1a1a",
+                "tertiary-container": "#65666a",
+                "on-tertiary-container": "#e5e5e9",
+                "surface-container-highest": "#dce2f3",
+                "secondary-fixed-dim": "#c4c7c9",
+                "secondary-container": "#e0e3e5",
+                "surface-tint": "#004ced",
+                "on-surface-variant": "#434656",
+                "on-primary-container": "#dfe3ff",
+                "on-primary-fixed": "#001452",
+                "on-error-container": "#93000a",
+                "primary-container": "#0052ff",
+                "inverse-primary": "#b7c4ff",
+                "background": "#f9f9ff",
+                "on-tertiary": "#ffffff",
+                "on-surface": "#151c27",
+                "primary-fixed": "#dde1ff",
+                "on-tertiary-fixed": "#1a1c1f",
+                "on-secondary-fixed": "#191c1e",
+                "surface-dim": "#d3daea",
+                "on-error": "#ffffff",
+                "primary-fixed-dim": "#b7c4ff",
+                "on-primary-fixed-variant": "#0038b6",
+                "surface-variant": "#dce2f3",
+                "surface-bright": "#f9f9ff",
+                "outline-variant": "#c3c5d9",
+                "on-secondary": "#ffffff",
+                "outline": "#737688",
+                "surface-container": "#e7eefe",
+                "on-secondary-container": "#626567",
+                "secondary": "#5c5f61",
+                "on-tertiary-fixed-variant": "#45474a",
+                "error-container": "#ffdad6",
+                "on-primary": "#ffffff",
+                "inverse-on-surface": "#ebf1ff",
+                "surface-container-low": "#f0f3ff",
+                "secondary-fixed": "#e0e3e5",
+                "primary": "#003ec7",
+                "on-background": "#151c27",
+                "tertiary": "#4d4e52",
+                "tertiary-fixed": "#e2e2e6",
+                "surface": "#f9f9ff",
+                "surface-container-high": "#e2e8f8",
+                "on-secondary-fixed-variant": "#444749",
+                "inverse-surface": "#2a313d",
+                "sahara-gold": "#c2652a"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+            },
+            "spacing": {
+                "stack-sm": "8px",
+                "stack-md": "16px",
+                "stack-lg": "32px",
+                "gutter": "16px",
+                "unit": "4px",
+                "container-margin": "20px"
+            },
+            "fontFamily": {
+                "headline-lg-mobile": ["Hanken Grotesk"],
+                "title-md": ["Hanken Grotesk"],
+                "body-sm": ["Hanken Grotesk"],
+                "headline-lg": ["Hanken Grotesk"],
+                "display-lg": ["Hanken Grotesk"],
+                "label-md": ["Hanken Grotesk"],
+                "body-lg": ["Hanken Grotesk"]
+            },
+            "fontSize": {
+                "headline-lg-mobile": ["28px", {"lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                "title-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .canvas-grid {
+            background-image: radial-gradient(#c3c5d9 1px, transparent 1px);
+            background-size: 16px 16px;
+        }
+        ::-webkit-scrollbar {
+            display: none;
+        }
+        body {
+            font-family: 'Hanken Grotesk', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-lg antialiased">
+<!-- Top Navigation Anchor -->
+<nav class="fixed top-0 left-0 w-full z-50 bg-surface/80 backdrop-blur-md border-b border-outline-variant">
+<div class="flex justify-between items-center px-container-margin h-14 w-full max-w-7xl mx-auto">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-sahara-gold" data-icon="menu">menu</span>
+<span class="text-title-md font-title-md font-bold text-sahara-gold">ByChooow</span>
+</div>
+<div class="w-9 h-9 rounded-full overflow-hidden border border-outline-variant">
+<img alt="Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCEsnMM_Y5WOFUgqqnZnQA8TyDeFPIEPiMK6jpwsezXGNkwHqz-U3WA_KlwiJ5V0ztGpOxuYXac0SgBvi84VTt3KwPh4OgHFdAuX3uAoVluVF4Nt367Jgv7rdwce-RzRfUQeioe01bZZOcnEuqY9HsMmiLq9qRw693yu4mi17emXzOaP4ghtdxHzFxKyg52Ocrwd4lJQwJw4XUBbwwTC2RX7gXFzS4QC5FlMGnfZ8DdohPVuruzTJqnBJ-VMlsvTD_V_xxSkPjFnZM"/>
+</div>
+</div>
+</nav>
+<main class="pt-14 pb-24 max-w-7xl mx-auto px-container-margin">
+<!-- User Header Section -->
+<header class="py-stack-lg flex flex-col items-center text-center">
+<div class="relative mb-stack-md">
+<div class="w-24 h-24 rounded-full p-0.5 bg-gradient-to-tr from-sahara-gold to-[#fbd38d]">
+<img alt="Creator Avatar" class="w-full h-full rounded-full object-cover border-4 border-surface" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXCBwssGe-nsT__IhXnIu4UtfnPy12m8VS3XLS_-O-sOvwCw74FJGHkrE5bU3yzyze7A59HE9t1x9-z-5x5rWwA2RZ7iWwwRP8OmzM1nAgHmLqrZBWO_S7QA9Ci4Sq0e4XEsTfSV5tlW8fADA8SG-ht1FgsevRFcnkl14olqe5gdw2Z0-NFXXL1cLg1IYt5MilzsBGA9Eyj7Ny7pvEVVw4eJlCGEwzhzbT638oJ8Hur3wYkVxGiTuSOvdud7jczu1COJNoTaNh0Ro"/>
+</div>
+<div class="absolute bottom-0 right-0 bg-sahara-gold text-white text-[10px] px-2 py-0.5 rounded-full font-bold shadow-sm">
+                LV.4
+            </div>
+</div>
+<h1 class="text-headline-lg-mobile font-headline-lg-mobile text-on-surface">陈小周</h1>
+<p class="text-body-sm font-body-sm text-secondary mb-stack-md">高级定制设计师 · Creator</p>
+<div class="flex gap-stack-sm">
+<div class="flex items-center gap-1 px-3 py-1 bg-surface-container rounded-full border border-outline-variant transition-all hover:bg-surface-variant">
+<span class="material-symbols-outlined text-xs text-sahara-gold" style='font-variation-settings: "FILL" 1;'>check_circle</span>
+<span class="text-label-md font-label-md">微信已绑定</span>
+</div>
+<div class="flex items-center gap-1 px-3 py-1 bg-surface-container rounded-full border border-outline-variant transition-all hover:bg-surface-variant">
+<span class="material-symbols-outlined text-xs text-outline" style='font-variation-settings: "FILL" 0;'>link_off</span>
+<span class="text-label-md font-label-md">QQ未绑定</span>
+</div>
+</div>
+</header>
+<!-- Stats Grid (Sahara Style) -->
+<section class="grid grid-cols-2 md:grid-cols-4 gap-gutter mb-stack-lg">
+<div class="bg-surface-container-lowest p-stack-md rounded-xl border border-outline-variant flex flex-col items-center">
+<span class="text-headline-lg-mobile font-headline-lg-mobile text-sahara-gold">24</span>
+<span class="text-label-md font-label-md text-secondary">我的设计</span>
+</div>
+<div class="bg-surface-container-lowest p-stack-md rounded-xl border border-outline-variant flex flex-col items-center">
+<span class="text-headline-lg-mobile font-headline-lg-mobile text-sahara-gold">12</span>
+<span class="text-label-md font-label-md text-secondary">已下单</span>
+</div>
+<div class="bg-surface-container-lowest p-stack-md rounded-xl border border-outline-variant flex flex-col items-center">
+<span class="text-headline-lg-mobile font-headline-lg-mobile text-sahara-gold">156</span>
+<span class="text-label-md font-label-md text-secondary">获赞</span>
+</div>
+<div class="bg-surface-container-lowest p-stack-md rounded-xl border border-outline-variant flex flex-col items-center">
+<span class="text-headline-lg-mobile font-headline-lg-mobile text-sahara-gold">890</span>
+<span class="text-label-md font-label-md text-secondary">积分</span>
+</div>
+</section>
+<!-- Tabs: My Designs -->
+<section class="mb-stack-lg">
+<div class="flex items-center justify-between mb-stack-md">
+<h2 class="text-title-md font-title-md text-on-surface">我的作品廊</h2>
+<div class="flex bg-surface-container rounded-lg p-1">
+<button class="px-4 py-1 text-label-md font-label-md bg-surface-container-lowest text-sahara-gold rounded-md shadow-sm transition-all" id="tab-drafts">草稿箱</button>
+<button class="px-4 py-1 text-label-md font-label-md text-secondary transition-colors hover:text-on-surface" id="tab-ordered">已订购</button>
+</div>
+</div>
+<!-- Design Grid -->
+<div class="grid grid-cols-2 md:grid-cols-3 gap-gutter">
+<!-- Card 1 -->
+<div class="group relative aspect-[4/5] bg-surface-container rounded-xl overflow-hidden border border-outline-variant transition-transform hover:scale-[1.02]">
+<img alt="Design Draft 1" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuArNJtz5id7l_kVqDy9q77UDFa00Qmzx3dTObH430lfddSQGRdF8NT40Hv-0ldAnftfKTRvMENRa_O4Y_s9Kyfw98e2o6z23_egbDGk-ITD0kC7bZpxAnNoaQrpwTAX43294R1EUTtY4DzTqrCZTPTHdpN837UjKudvw2iCyvFQ5ETWJFcHZtBVMrBJUB7dzTjjOIWwDYNAkbq1qfc2ZwNNCs26Zqvdp8WqNA9o2XcchdyWNVIx9Z1RqnRmCKytw56xNKD4oizaBOg"/>
+<div class="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="absolute bottom-0 left-0 w-full p-stack-sm bg-gradient-to-t from-black/40 to-transparent">
+<p class="text-white text-label-md font-label-md">极简未来主义 T-Shirt</p>
+</div>
+<div class="absolute top-2 right-2 px-2 py-0.5 bg-sahara-gold/90 backdrop-blur-md text-white text-[10px] rounded">
+                    草稿
+                </div>
+</div>
+<!-- Card 2 -->
+<div class="group relative aspect-[4/5] bg-surface-container rounded-xl overflow-hidden border border-outline-variant transition-transform hover:scale-[1.02]">
+<img alt="Design Draft 2" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmdqsm1mnUTfH9dcXkf9lg2yAIUNE4haQRM1C7WXGjGLMuLJl4R9KbALdejGBBJ4fVTA29Xa8orLBbj37TXn_J4TIXkxBFddSyDnAG9NpXETZwj1gPzUKl1giPhtGTXfHYqVMajmBurVJbmkeioPdLUa-HXTuVVRpof34peFEeE_QiMCfxSHRiOnbs9YKWi_2mzX0t80VklNowIOwQJhN5zApa4tq5CKsIIHJgyIaRvB2BxoK_z5FojTe61tQe9cOs-MoBaR5lQLo"/>
+<div class="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="absolute bottom-0 left-0 w-full p-stack-sm bg-gradient-to-t from-black/40 to-transparent">
+<p class="text-white text-label-md font-label-md">朋克复兴 Hoodie</p>
+</div>
+</div>
+<!-- Action Card -->
+<div class="aspect-[4/5] canvas-grid border-2 border-dashed border-outline-variant rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-sahara-gold transition-colors group">
+<span class="material-symbols-outlined text-sahara-gold text-3xl transition-transform group-hover:scale-110" data-icon="add_circle">add_circle</span>
+<span class="text-label-md font-label-md text-secondary">开始创作</span>
+</div>
+</div>
+</section>
+<!-- Order Summary (Sahara Card) -->
+<section class="mb-stack-lg">
+<div class="flex items-center justify-between mb-stack-md">
+<h2 class="text-title-md font-title-md text-on-surface">订单概览</h2>
+<a class="text-label-md font-label-md text-sahara-gold flex items-center gap-1 hover:opacity-80 transition-opacity" href="#">
+<span>订单详情</span>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+</a>
+</div>
+<div class="bg-surface-container-low rounded-xl p-stack-md border border-outline-variant">
+<div class="flex items-center justify-around py-2">
+<div class="flex flex-col items-center gap-1 text-secondary hover:text-sahara-gold transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-2xl" data-icon="account_balance_wallet">account_balance_wallet</span>
+<span class="text-label-md font-label-md">待付款</span>
+</div>
+<div class="h-8 w-px bg-outline-variant"></div>
+<div class="flex flex-col items-center gap-1 text-secondary hover:text-sahara-gold transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-2xl" data-icon="package_2">package_2</span>
+<span class="text-label-md font-label-md">待发货</span>
+</div>
+<div class="h-8 w-px bg-outline-variant"></div>
+<div class="flex flex-col items-center gap-1 text-secondary hover:text-sahara-gold transition-colors cursor-pointer relative">
+<span class="material-symbols-outlined text-2xl" data-icon="local_shipping">local_shipping</span>
+<span class="text-label-md font-label-md">运输中</span>
+<div class="absolute -top-1 -right-1 w-2 h-2 bg-error rounded-full"></div>
+</div>
+<div class="h-8 w-px bg-outline-variant"></div>
+<div class="flex flex-col items-center gap-1 text-secondary hover:text-sahara-gold transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-2xl" data-icon="rate_review">rate_review</span>
+<span class="text-label-md font-label-md">待评价</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Account Settings List -->
+<section class="mb-stack-lg">
+<h2 class="text-title-md font-title-md text-on-surface mb-stack-md">账户设置</h2>
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden">
+<div class="flex items-center justify-between p-stack-md border-b border-outline-variant hover:bg-surface-container-low transition-colors cursor-pointer group">
+<div class="flex items-center gap-stack-md">
+<span class="material-symbols-outlined text-secondary group-hover:text-sahara-gold" data-icon="person">person</span>
+<span class="text-body-lg font-body-lg">个人资料修改</span>
+</div>
+<span class="material-symbols-outlined text-outline" data-icon="chevron_right">chevron_right</span>
+</div>
+<div class="flex items-center justify-between p-stack-md border-b border-outline-variant hover:bg-surface-container-low transition-colors cursor-pointer group">
+<div class="flex items-center gap-stack-md">
+<span class="material-symbols-outlined text-secondary group-hover:text-sahara-gold" data-icon="shield">shield</span>
+<span class="text-body-lg font-body-lg">账号与安全</span>
+</div>
+<span class="material-symbols-outlined text-outline" data-icon="chevron_right">chevron_right</span>
+</div>
+<div class="flex items-center justify-between p-stack-md border-b border-outline-variant hover:bg-surface-container-low transition-colors cursor-pointer group">
+<div class="flex items-center gap-stack-md">
+<span class="material-symbols-outlined text-secondary group-hover:text-sahara-gold" data-icon="notifications">notifications</span>
+<span class="text-body-lg font-body-lg">消息推送设置</span>
+</div>
+<span class="material-symbols-outlined text-outline" data-icon="chevron_right">chevron_right</span>
+</div>
+<div class="flex items-center justify-between p-stack-md border-b border-outline-variant hover:bg-surface-container-low transition-colors cursor-pointer group">
+<div class="flex items-center gap-stack-md">
+<span class="material-symbols-outlined text-secondary group-hover:text-sahara-gold" data-icon="perm_media">perm_media</span>
+<span class="text-body-lg font-body-lg">个人素材库</span>
+</div>
+<span class="material-symbols-outlined text-outline" data-icon="chevron_right">chevron_right</span>
+</div>
+<div class="flex items-center justify-between p-stack-md hover:bg-surface-container-low transition-colors cursor-pointer group">
+<div class="flex items-center gap-stack-md">
+<span class="material-symbols-outlined text-secondary group-hover:text-sahara-gold" data-icon="help">help</span>
+<span class="text-body-lg font-body-lg">帮助与反馈</span>
+</div>
+<span class="material-symbols-outlined text-outline" data-icon="chevron_right">chevron_right</span>
+</div>
+</div>
+</section>
+<!-- Logout Button -->
+<button class="w-full py-4 text-error font-bold text-body-lg border border-error/20 rounded-xl hover:bg-error/5 transition-colors mb-stack-lg">
+        退出登录
+    </button>
+</main>
+<!-- Bottom Navigation Bar (Sahara Themed Active State) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 bg-surface/95 backdrop-blur-md border-t border-outline-variant flex justify-around items-center px-4 pb-4 pt-2">
+<a class="flex flex-col items-center justify-center text-secondary px-4 py-1 hover:bg-surface-container-high rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="text-label-md font-label-md">首页</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary px-4 py-1 hover:bg-surface-container-high rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="rebase_edit">rebase_edit</span>
+<span class="text-label-md font-label-md">设计</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary px-4 py-1 hover:bg-surface-container-high rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="shopping_bag">shopping_bag</span>
+<span class="text-label-md font-label-md">商店</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-sahara-gold/10 text-sahara-gold rounded-xl px-4 py-1 scale-95" href="#">
+<span class="material-symbols-outlined" data-icon="person" style='font-variation-settings: "FILL" 1;'>person</span>
+<span class="text-label-md font-label-md">我的</span>
+</a>
+</nav>
+<script>
+    const tabDrafts = document.getElementById('tab-drafts');
+    const tabOrdered = document.getElementById('tab-ordered');
+
+    tabDrafts.addEventListener('click', () => {
+        tabDrafts.classList.add('bg-surface-container-lowest', 'text-sahara-gold', 'shadow-sm');
+        tabDrafts.classList.remove('text-secondary');
+        tabOrdered.classList.remove('bg-surface-container-lowest', 'text-sahara-gold', 'shadow-sm');
+        tabOrdered.classList.add('text-secondary');
+    });
+
+    tabOrdered.addEventListener('click', () => {
+        tabOrdered.classList.add('bg-surface-container-lowest', 'text-sahara-gold', 'shadow-sm');
+        tabOrdered.classList.remove('text-secondary');
+        tabDrafts.classList.remove('bg-surface-container-lowest', 'text-sahara-gold', 'shadow-sm');
+        tabDrafts.classList.add('text-secondary');
+    });
+
+    document.querySelectorAll('button, a, .cursor-pointer').forEach(el => {
+        el.addEventListener('mousedown', () => {
+            el.style.transform = 'scale(0.96)';
+        });
+        el.addEventListener('mouseup', () => {
+            el.style.transform = '';
+        });
+        el.addEventListener('mouseleave', () => {
+            el.style.transform = '';
+        });
+    });
+</script>
+</body></html>

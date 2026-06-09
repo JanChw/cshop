@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+
+<html class="light" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ByChooow Design Studio - Sahara Edition</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed-dim": "#c6c6ca",
+                    "surface-container-lowest": "#ffffff",
+                    "error": "#ba1a1a",
+                    "tertiary-container": "#65666a",
+                    "on-tertiary-container": "#e5e5e9",
+                    "surface-container-highest": "#dce2f3",
+                    "secondary-fixed-dim": "#c4c7c9",
+                    "secondary-container": "#e0e3e5",
+                    "surface-tint": "#c2652a",
+                    "on-surface-variant": "#434656",
+                    "on-primary-container": "#dfe3ff",
+                    "on-primary-fixed": "#321600",
+                    "on-error-container": "#93000a",
+                    "primary-container": "#ffdbcb",
+                    "inverse-primary": "#ffb690",
+                    "background": "#f9f9ff",
+                    "on-tertiary": "#ffffff",
+                    "on-surface": "#151c27",
+                    "primary-fixed": "#ffdbcb",
+                    "on-tertiary-fixed": "#1a1c1f",
+                    "on-secondary-fixed": "#191c1e",
+                    "surface-dim": "#d3daea",
+                    "on-error": "#ffffff",
+                    "primary-fixed-dim": "#ffb690",
+                    "on-primary-fixed-variant": "#8b4500",
+                    "surface-variant": "#f1eee6",
+                    "surface-bright": "#f9f9ff",
+                    "outline-variant": "#d3d3d3",
+                    "on-secondary": "#ffffff",
+                    "outline": "#737688",
+                    "surface-container": "#e7eefe",
+                    "on-secondary-container": "#626567",
+                    "secondary": "#5c5f61",
+                    "on-tertiary-fixed-variant": "#45474a",
+                    "error-container": "#ffdad6",
+                    "on-primary": "#ffffff",
+                    "inverse-on-surface": "#ebf1ff",
+                    "surface-container-low": "#f0f3ff",
+                    "secondary-fixed": "#e0e3e5",
+                    "primary": "#c2652a",
+                    "on-background": "#151c27",
+                    "tertiary": "#4d4e52",
+                    "tertiary-fixed": "#e2e2e6",
+                    "surface": "#f9f9ff",
+                    "surface-container-high": "#e2e8f8",
+                    "on-secondary-fixed-variant": "#444749",
+                    "inverse-surface": "#2a313d"
+            },
+            "borderRadius": {
+                    "DEFAULT": "8px",
+                    "lg": "8px",
+                    "xl": "12px",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-sm": "8px",
+                    "stack-md": "16px",
+                    "stack-lg": "32px",
+                    "gutter": "16px",
+                    "unit": "4px",
+                    "container-margin": "20px"
+            },
+            "fontFamily": {
+                    "headline-lg-mobile": ["Hanken Grotesk"],
+                    "title-md": ["Hanken Grotesk"],
+                    "body-sm": ["Hanken Grotesk"],
+                    "headline-lg": ["Hanken Grotesk"],
+                    "display-lg": ["Hanken Grotesk"],
+                    "label-md": ["Hanken Grotesk"],
+                    "body-lg": ["Hanken Grotesk"]
+            },
+            "fontSize": {
+                    "headline-lg-mobile": ["28px", {"lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "title-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .design-canvas-texture {
+            background-color: #f7f3ee;
+            background-image: radial-gradient(#c2652a1a 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-lg min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="bg-surface border-b border-outline-variant fixed top-0 left-0 w-full z-50">
+<div class="flex justify-between items-center px-container-margin h-14 w-full max-w-7xl mx-auto">
+<button class="text-on-surface hover:opacity-80 transition-opacity active:scale-95">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="text-title-md font-title-md font-bold text-primary">ByChooow</h1>
+<div class="w-9 h-9 rounded-full bg-surface-container-highest overflow-hidden border border-outline-variant">
+<img alt="User Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAquZcDyoN9grXxZFVKJI2k1Rbulb_pnhziqj009b9Po00B2nFT982aGhrmc7adCv8U4fTfi9iORzTFnfajy5O1rb8jq3eoLPRJw0UWZUSKm9YCilgZ_dPpngKyTb7kL8nig2QcR254SU7DgsnN7ETIXdUWTw8qLqQ3Y_aReWd4uPmxwxBr7psDfyav4BCgsNj4_nQa5_swJCA-8Bbsj6Zuy_g8lZI06-btDtH5q6czyBa_3Gjs_vKCElm5m1RF_so0o3UE4uEmCaM"/>
+</div>
+</div>
+</header>
+<main class="flex-1 mt-14 pb-32">
+<!-- 3D Preview Section -->
+<section class="relative w-full aspect-[4/5] design-canvas-texture flex items-center justify-center overflow-hidden">
+<div class="absolute top-4 left-4 z-10">
+<span class="bg-primary text-on-primary px-3 py-1 rounded-lg text-label-md font-label-md shadow-sm">3D 实时预览</span>
+</div>
+<div class="absolute top-4 right-4 z-10 bg-surface/80 backdrop-blur-md px-2 py-1 rounded-lg border border-outline-variant flex items-center gap-1">
+<div class="flex items-center gap-2">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">zoom_in</span>
+<span class="text-[10px] font-bold text-on-surface-variant">250%</span>
+</div>
+<div class="w-[1px] h-3 bg-outline-variant"></div>
+<button class="flex items-center active:scale-90 transition-transform"><span class="material-symbols-outlined text-[16px] text-on-surface-variant">pan_tool</span></button>
+</div>
+</div>
+<div class="relative w-full h-full max-w-md mx-auto p-gutter">
+<img class="w-full h-full object-contain mix-blend-multiply drop-shadow-xl" id="shirt-preview" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDD0bKqNAkqWYWrX5oOHelJUYWGEGaItnibf3B9uWV9ONkd-dQFBZUlou3wi-HvPayzRS3O6PnewN0OwUCgum2IfRXGa820zZMC6IJ1_ocngr-xsRGixRnEOWKCtNzQcIoiXsdqtg_QHj0HFwSTZSLISXSJeEU1iupuZWkYIIBthwcxT9mF7ZZf8tHCoanRnjakthBXTRLlYhMXRma5VMWPBOEJGObrX5tXjTHKrSO0AcHS4K0a0FNNMFD8Xa6NTZag7cO4y2SIT7w"/>
+<!-- Mock Design Overlay -->
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+<div class="w-1/2 h-1/2 border-2 border-dashed border-primary/20 flex items-center justify-center rounded-xl">
+<span class="text-primary/30 font-title-md opacity-50 select-none">放置设计</span>
+</div>
+</div>
+</div>
+<!-- Floating Control Bar -->
+<div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-surface/90 backdrop-blur-md px-4 py-2 rounded-full shadow-lg border border-outline-variant">
+<button class="p-2 hover:bg-surface-variant rounded-full transition-colors active:scale-90" title="撤销">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="undo">undo</span>
+</button>
+<div class="w-[1px] h-4 bg-outline-variant"></div>
+<button class="p-2 hover:bg-surface-variant rounded-full transition-colors active:scale-90" title="重做">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="redo">redo</span>
+</button>
+<div class="w-[1px] h-4 bg-outline-variant"></div>
+<button class="p-2 hover:bg-surface-variant rounded-full transition-colors active:scale-90" title="重置">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="restart_alt">restart_alt</span>
+</button>
+<div class="w-[1px] h-4 bg-outline-variant"></div>
+<button class="p-2 hover:bg-surface-variant rounded-full transition-colors active:scale-90" title="保存图像">
+<span class="material-symbols-outlined text-primary" data-icon="download">download</span>
+</button>
+</div>
+<button class="absolute bottom-24 right-4 z-10 bg-primary text-on-primary px-5 py-3 rounded-full shadow-lg flex items-center gap-2 active:scale-95 transition-transform hover:shadow-xl">
+<span class="material-symbols-outlined">brush</span>
+<span class="text-label-md font-bold">手绘创作</span>
+</button>
+</section>
+<!-- Customization Tools -->
+<section class="px-container-margin mt-stack-lg space-y-stack-lg">
+<!-- Tool Tabs -->
+<div class="flex gap-6 border-b border-outline-variant overflow-x-auto hide-scrollbar">
+<button class="pb-3 border-b-2 border-transparent text-on-surface-variant hover:text-primary transition-colors text-label-md whitespace-nowrap">基础颜色</button>
+<button class="pb-3 border-b-2 border-transparent text-on-surface-variant hover:text-primary transition-colors text-label-md whitespace-nowrap">文字引擎</button>
+<button class="pb-3 border-b-2 border-transparent text-on-surface-variant hover:text-primary transition-colors text-label-md whitespace-nowrap">图形库</button>
+<button class="pb-3 border-b-2 border-transparent text-on-surface-variant hover:text-primary transition-colors text-label-md whitespace-nowrap">上传素材</button>
+<button class="pb-3 border-b-2 border-primary text-primary font-bold text-label-md whitespace-nowrap flex items-center gap-1">
+                    手绘<span class="px-1.5 py-0.5 bg-primary text-on-primary text-[8px] rounded-full uppercase tracking-tighter">Pro</span>
+</button>
+</div>
+<!-- Drawing Tools Panel -->
+<div class="space-y-stack-sm p-5 bg-surface-variant rounded-xl border border-outline-variant shadow-sm" id="drawing-tools">
+<div class="flex justify-between items-center mb-stack-sm bg-primary/10 p-3 -mx-5 -mt-5 rounded-t-xl mb-4 border-b border-outline-variant/30">
+<h3 class="text-label-md font-label-md text-primary font-bold uppercase tracking-wider">手绘工具</h3>
+<span class="material-symbols-outlined text-primary text-[20px]">brush</span>
+</div>
+<div class="space-y-5">
+<div class="flex flex-col gap-2">
+<span class="text-body-sm text-on-surface font-semibold">画笔颜色</span>
+<div class="flex gap-3">
+<button class="w-8 h-8 rounded-full bg-primary ring-2 ring-primary/20 shadow-inner"></button>
+<button class="w-8 h-8 rounded-full bg-[#1a1c19] shadow-inner"></button>
+<button class="w-8 h-8 rounded-full bg-error shadow-inner"></button>
+<button class="w-8 h-8 rounded-full bg-[#3e6368] shadow-inner"></button>
+</div>
+</div>
+<div class="flex flex-col gap-3">
+<div class="flex justify-between items-center">
+<span class="text-body-sm text-on-surface font-semibold">画笔粗细</span>
+<span class="text-body-sm font-bold text-primary bg-primary-container px-2 rounded-full">5px</span>
+</div>
+<input class="w-full h-2 bg-surface-container-highest rounded-lg appearance-none cursor-pointer accent-primary" max="20" min="1" type="range" value="5"/>
+</div>
+</div>
+</div>
+<!-- Graphic Library Quick Access -->
+<div class="space-y-stack-sm">
+<div class="flex justify-between items-center">
+<h3 class="text-label-md font-label-md text-on-surface-variant font-semibold uppercase tracking-wider">推荐图形</h3>
+<button class="text-primary text-label-md font-bold hover:underline">查看全部</button>
+</div>
+<div class="grid grid-cols-3 gap-gutter">
+<div class="aspect-square bg-white border border-outline-variant rounded-xl p-3 flex items-center justify-center hover:border-primary transition-all cursor-pointer shadow-sm active:scale-95">
+<img class="w-14 h-14" data-alt="A minimalist line-art illustration of a stylized mountain range." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAyKb7WfDEwG95rMY5IHV-pLFbSV1jmtjpNW2E2j3_tuYIMFZoRQhF-MqHaoX8DeJc2-b5etAfltIpRMDIoQJA7PNvoIIfsUqvQPexQiavAGFIXCjmMrc54twAvdLRqN-qIdW48_oqzx5sXXv0CKCUjJQAPizFqfmWBo_ND191uCSadeZPQRNHkkeyqT7_dUByyOfw3BwKQiGbl6-8EAh2yWxib2tYABF6WhfuJjahYEQuI9FcAp7c9Ry08FHuRqLgbaL1v4uyiGgs"/>
+</div>
+<div class="aspect-square bg-white border border-outline-variant rounded-xl p-3 flex items-center justify-center hover:border-primary transition-all cursor-pointer shadow-sm active:scale-95">
+<img class="w-14 h-14" data-alt="A vibrant abstract geometric composition." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCjC1bDKBUv-d7Wbz47RQ5puJaTk-HZfmapL77B6gMUsoTHRql2tS7SLmwFp9_meiMuS9KEZ6hkR6EgDUZ1fi7B1r6euDNLHllTJ6HECWc2uNyjl0DQFvSQFUvW-XZDAcvu2p5HDH6BUMHG-_Ur8YT45KEJE_1ZIohZRLvXGB66wiZqUqHHFQBZvGEc9GIZNFfrWTF6VawOmLCddGpajFOZAJmxo0jBnalEkjMKQlR5fqg3A-MosFEZ8ggEoheotj4pWTpFfOknZi0"/>
+</div>
+<div class="aspect-square border border-dashed border-primary/40 rounded-xl p-3 flex flex-col items-center justify-center text-primary/70 hover:bg-surface-variant transition-colors cursor-pointer active:scale-95">
+<span class="material-symbols-outlined mb-1" data-icon="upload">upload</span>
+<span class="text-[10px] font-bold">上传</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full bg-surface border-t border-outline-variant z-50 flex justify-around items-center px-4 pb-6 pt-3 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+<button class="flex flex-col items-center justify-center text-secondary px-4 py-1 hover:bg-surface-variant rounded-lg transition-all">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="text-label-md font-label-md mt-1">首页</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-primary text-on-primary rounded-lg px-5 py-2 shadow-md">
+<span class="material-symbols-outlined" data-icon="brush">brush</span>
+<span class="text-label-md font-label-md mt-1">设计</span>
+</button>
+<button class="flex flex-col items-center justify-center text-secondary px-4 py-1 hover:bg-surface-variant rounded-lg transition-all">
+<span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+<span class="text-label-md font-label-md mt-1">购物车</span>
+</button>
+<button class="flex flex-col items-center justify-center text-secondary px-4 py-1 hover:bg-surface-variant rounded-lg transition-all">
+<span class="material-symbols-outlined" data-icon="store">store</span>
+<span class="text-label-md font-label-md mt-1">商店</span>
+</button>
+<button class="flex flex-col items-center justify-center text-secondary px-4 py-1 hover:bg-surface-variant rounded-lg transition-all">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="text-label-md font-label-md mt-1">个人</span>
+</button>
+</nav>
+<script>
+        const shirtPreview = document.getElementById('shirt-preview');
+        const tabs = document.querySelectorAll('section > div:first-child button');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => {
+                    t.classList.remove('border-primary', 'text-primary', 'font-bold');
+                    t.classList.add('border-transparent', 'text-on-surface-variant');
+                });
+                tab.classList.remove('border-transparent', 'text-on-surface-variant');
+                tab.classList.add('border-primary', 'text-primary', 'font-bold');
+            });
+        });
+    </script>
+</body></html>

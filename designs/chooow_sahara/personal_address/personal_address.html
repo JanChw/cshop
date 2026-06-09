@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&amp;family=Manrope:wght@200..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary-container": "#3a2020",
+                    "on-secondary-fixed": "#2a2420",
+                    "surface": "#faf5ee",
+                    "inverse-primary": "#f0a878",
+                    "surface-variant": "#ece6dc",
+                    "surface-container": "#f2ece4",
+                    "surface-container-lowest": "#ffffff",
+                    "on-secondary-fixed-variant": "#504840",
+                    "primary": "#c2652a",
+                    "on-error-container": "#7a1a10",
+                    "tertiary-fixed-dim": "#e8a0a0",
+                    "inverse-surface": "#3a302a",
+                    "surface-dim": "#dcd6cc",
+                    "secondary-fixed": "#eae2da",
+                    "on-surface-variant": "#605850",
+                    "on-primary-container": "#fbe8d8",
+                    "secondary-container": "#eae2da",
+                    "primary-container": "#e08850",
+                    "outline-variant": "#d8d0c8",
+                    "on-error": "#ffffff",
+                    "on-tertiary-fixed-variant": "#6e3030",
+                    "on-secondary-container": "#605850",
+                    "on-surface": "#3a302a",
+                    "surface-container-highest": "#e6e0d6",
+                    "on-background": "#3a302a",
+                    "on-secondary": "#ffffff",
+                    "secondary-fixed-dim": "#cec6be",
+                    "surface-container-low": "#f6f0e8",
+                    "on-primary-fixed": "#401a08",
+                    "tertiary": "#8c3c3c",
+                    "surface-bright": "#faf5ee",
+                    "tertiary-container": "#d47070",
+                    "inverse-on-surface": "#faf5ee",
+                    "surface-container-high": "#ece6dc",
+                    "secondary": "#78706a",
+                    "error-container": "#fce4e0",
+                    "error": "#c0392b",
+                    "primary-fixed": "#fbe8d8",
+                    "primary-fixed-dim": "#f0a878",
+                    "outline": "#9a9088",
+                    "on-tertiary": "#ffffff",
+                    "surface-tint": "#c2652a",
+                    "background": "#faf5ee",
+                    "tertiary-fixed": "#fce0e0",
+                    "on-primary-fixed-variant": "#8a4518",
+                    "on-primary": "#ffffff",
+                    "on-tertiary-fixed": "#2e1515"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["EB Garamond"],
+                    "display": ["EB Garamond"],
+                    "body": ["Manrope"],
+                    "label": ["Manrope"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Manrope', sans-serif; background-color: #faf5ee; color: #3a302a; }
+        .font-headline { font-family: 'EB Garamond', serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .address-card {
+            box-shadow: 0 2px 16px rgba(58, 48, 42, 0.04);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .address-card:active {
+            transform: scale(0.98);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface selection:bg-primary-container selection:text-on-primary-container min-h-screen flex flex-col">
+<!-- Top AppBar (JSON Logic: TopAppBar style_shell_layout & style_brand_logo) -->
+<header class="fixed top-0 w-full z-50 bg-surface shadow-sm h-16 flex justify-between items-center px-6">
+<button aria-label="Go back" class="text-on-surface hover:opacity-80 transition-opacity active:scale-95">
+<span class="material-symbols-outlined">arrow_back_ios_new</span>
+</button>
+<h1 class="font-headline text-2xl font-bold text-primary">收货地址</h1>
+<button aria-label="Help" class="text-on-surface hover:opacity-80 transition-opacity active:scale-95">
+<span class="material-symbols-outlined">help_outline</span>
+</button>
+</header>
+<!-- Main Content Canvas -->
+<main class="mt-16 mb-24 px-5 py-8 max-w-2xl mx-auto w-full flex-grow">
+<!-- Address List Section -->
+<div class="space-y-4">
+<!-- Default Address Card -->
+<div class="address-card bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/30 flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-3">
+<span class="font-bold text-lg text-on-surface">陈小木</span>
+<span class="text-on-surface-variant font-medium">138 **** 8888</span>
+<span class="px-2 py-0.5 bg-primary text-white text-[10px] rounded-md font-bold tracking-wider">默认</span>
+</div>
+</div>
+<p class="text-on-surface-variant leading-relaxed text-sm">
+                    上海市浦东新区陆家嘴环路 1233 号汇丰大厦 18 层
+                </p>
+<div class="pt-4 border-t border-outline-variant/40 flex justify-end gap-6 text-sm font-semibold">
+<button class="flex items-center gap-1.5 text-on-surface-variant hover:text-primary transition-colors active:scale-90">
+<span class="material-symbols-outlined text-[18px]">edit_square</span>
+                        编辑
+                    </button>
+<button class="flex items-center gap-1.5 text-on-surface-variant hover:text-tertiary transition-colors active:scale-90">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+                        删除
+                    </button>
+</div>
+</div>
+<!-- Regular Address Card 1 -->
+<div class="address-card bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/30 flex flex-col gap-4 opacity-90 hover:opacity-100">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-3">
+<span class="font-bold text-lg text-on-surface">林屿</span>
+<span class="text-on-surface-variant font-medium">159 **** 0012</span>
+</div>
+</div>
+<p class="text-on-surface-variant leading-relaxed text-sm">
+                    浙江省杭州市西湖区灵隐街道 法云弄 22 号 隐逸山庄
+                </p>
+<div class="pt-4 border-t border-outline-variant/40 flex justify-between items-center">
+<button class="text-[12px] text-primary font-bold hover:underline">设为默认</button>
+<div class="flex gap-6 text-sm font-semibold">
+<button class="flex items-center gap-1.5 text-on-surface-variant hover:text-primary transition-colors active:scale-90">
+<span class="material-symbols-outlined text-[18px]">edit_square</span>
+                            编辑
+                        </button>
+<button class="flex items-center gap-1.5 text-on-surface-variant hover:text-tertiary transition-colors active:scale-90">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+                            删除
+                        </button>
+</div>
+</div>
+</div>
+<!-- Regular Address Card 2 -->
+<div class="address-card bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/30 flex flex-col gap-4 opacity-90 hover:opacity-100">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-3">
+<span class="font-bold text-lg text-on-surface">张子谦</span>
+<span class="text-on-surface-variant font-medium">186 **** 4567</span>
+</div>
+</div>
+<p class="text-on-surface-variant leading-relaxed text-sm">
+                    北京市朝阳区三里屯街道 北三里屯南 42 号楼 3 单元 502 室
+                </p>
+<div class="pt-4 border-t border-outline-variant/40 flex justify-between items-center">
+<button class="text-[12px] text-primary font-bold hover:underline">设为默认</button>
+<div class="flex gap-6 text-sm font-semibold">
+<button class="flex items-center gap-1.5 text-on-surface-variant hover:text-primary transition-colors active:scale-90">
+<span class="material-symbols-outlined text-[18px]">edit_square</span>
+                            编辑
+                        </button>
+<button class="flex items-center gap-1.5 text-on-surface-variant hover:text-tertiary transition-colors active:scale-90">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+                            删除
+                        </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Empty State (Placeholder logic) -->
+<div class="hidden flex-col items-center justify-center py-20 text-center">
+<span class="material-symbols-outlined text-6xl text-outline-variant/50 mb-4">location_on</span>
+<h3 class="font-headline text-xl text-on-surface-variant">暂无收货地址</h3>
+<p class="text-sm text-outline mt-2">点击下方按钮添加您的第一个地址</p>
+</div>
+</main>
+<!-- Bottom Action Button (Fixed Bottom) -->
+<div class="fixed bottom-0 left-0 w-full p-5 bg-gradient-to-t from-surface via-surface to-transparent z-50">
+<button class="w-full h-14 bg-primary hover:opacity-90 active:scale-95 transition-all rounded-xl flex items-center justify-center gap-2 text-white shadow-lg">
+<span class="material-symbols-outlined">add</span>
+<span class="font-bold tracking-widest">添加新地址</span>
+</button>
+</div>
+<!-- Mini Bottom Nav for Ecosystem Context (JSON Logic) -->
+<nav class="hidden md:flex fixed bottom-6 left-1/2 -translate-x-1/2 bg-surface-container/90 backdrop-blur-lg px-8 py-3 rounded-full border border-outline-variant/20 shadow-xl items-center gap-10">
+<div class="flex flex-col items-center gap-1 text-on-surface-variant opacity-70 hover:opacity-100 transition-all cursor-pointer">
+<span class="material-symbols-outlined text-xl">home</span>
+<span class="text-[10px] font-bold">首页</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-on-surface-variant opacity-70 hover:opacity-100 transition-all cursor-pointer">
+<span class="material-symbols-outlined text-xl">brush</span>
+<span class="text-[10px] font-bold">设计</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-on-surface-variant opacity-70 hover:opacity-100 transition-all cursor-pointer">
+<span class="material-symbols-outlined text-xl">shopping_cart</span>
+<span class="text-[10px] font-bold">购物车</span>
+</div>
+<div class="flex flex-col items-center gap-1 bg-primary-container text-on-primary-container rounded-full px-4 py-1">
+<span class="material-symbols-outlined text-xl">person</span>
+<span class="text-[10px] font-bold">我的</span>
+</div>
+</nav>
+<script>
+        // Micro-interaction for address deletion (Visual only)
+        document.querySelectorAll('.address-card').forEach(card => {
+            const deleteBtn = card.querySelector('button:last-child');
+            if(deleteBtn) {
+                deleteBtn.addEventListener('click', () => {
+                    if(confirm('确定要删除这个地址吗？')) {
+                        card.style.opacity = '0';
+                        card.style.transform = 'translateY(10px)';
+                        setTimeout(() => {
+                            card.remove();
+                        }, 300);
+                    }
+                });
+            }
+        });
+
+        // Toggle Active States visually
+        document.querySelectorAll('nav div').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('nav div').forEach(t => {
+                    t.classList.remove('bg-primary-container', 'text-on-primary-container', 'rounded-full', 'px-4', 'py-1');
+                    t.classList.add('opacity-70');
+                });
+                tab.classList.add('bg-primary-container', 'text-on-primary-container', 'rounded-full', 'px-4', 'py-1');
+                tab.classList.remove('opacity-70');
+            });
+        });
+    </script>
+</body></html>

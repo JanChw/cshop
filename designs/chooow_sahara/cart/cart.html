@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ByChooow - 购物车</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#c2652a",
+                        "on-primary": "#ffffff",
+                        "primary-container": "#f8ede6",
+                        "on-primary-container": "#3e1a00",
+                        "secondary": "#715b4c",
+                        "on-secondary": "#ffffff",
+                        "secondary-container": "#fdeee3",
+                        "on-secondary-container": "#29190d",
+                        "tertiary": "#5f6135",
+                        "on-tertiary": "#ffffff",
+                        "background": "#fdf8f5",
+                        "on-background": "#201a17",
+                        "surface": "#fffbff",
+                        "on-surface": "#201a17",
+                        "surface-variant": "#f4e0d4",
+                        "on-surface-variant": "#52443c",
+                        "outline": "#85736b",
+                        "outline-variant": "#d7c2b9",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-low": "#fdf1ea",
+                        "surface-container": "#f8ede6",
+                        "surface-container-high": "#f2e7e0",
+                        "surface-container-highest": "#ede2da",
+                        "error": "#ba1a1a",
+                        "on-error": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "8px",
+                        "lg": "8px",
+                        "xl": "8px",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "stack-sm": "8px",
+                        "container-margin": "20px",
+                        "unit": "4px",
+                        "stack-md": "16px",
+                        "stack-lg": "32px"
+                    },
+                    "fontFamily": {
+                        "title-md": ["Manrope", "sans-serif"],
+                        "headline-lg-mobile": ["Manrope", "sans-serif"],
+                        "label-md": ["Manrope", "sans-serif"],
+                        "body-sm": ["Manrope", "sans-serif"],
+                        "body-lg": ["Manrope", "sans-serif"],
+                        "headline-lg": ["Manrope", "sans-serif"],
+                        "display-lg": ["Manrope", "sans-serif"]
+                    },
+                    "fontSize": {
+                        "title-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "headline-lg-mobile": ["28px", {"lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body {
+            background-color: #fdf8f5;
+            font-family: 'Manrope', sans-serif;
+            color: #201a17;
+        }
+        .item-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .item-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(194, 101, 42, 0.08);
+        }
+    </style>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="text-on-surface">
+<!-- TopAppBar -->
+<header class="bg-surface-container-lowest fixed top-0 w-full z-50 border-b border-outline-variant">
+<div class="flex justify-between items-center px-container-margin h-12 w-full max-w-7xl mx-auto">
+<div class="flex items-center gap-4">
+<button class="hover:opacity-80 transition-opacity active:scale-95 transition-transform duration-150">
+<span class="material-symbols-outlined text-primary">arrow_back</span>
+</button>
+<h1 class="text-title-md font-title-md font-bold text-on-surface">购物车</h1>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-label-md font-label-md text-on-surface-variant">共 3 件商品</span>
+</div>
+</div>
+</header>
+<main class="pt-16 pb-32 px-container-margin max-w-7xl mx-auto min-h-screen">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<!-- Shopping Cart Items List -->
+<section class="lg:col-span-8 space-y-stack-md">
+<!-- Item 1: DIY T-Shirt -->
+<div class="item-card bg-surface-container-lowest p-stack-md rounded-lg border border-outline-variant flex gap-4">
+<div class="w-24 h-30 flex-shrink-0 bg-surface-container-low rounded-lg overflow-hidden">
+<img alt="DIY T-shirt" class="w-full h-full object-cover" data-alt="A premium white heavy-weight cotton t-shirt with a minimalist custom geometric design printed on the chest. The studio lighting is bright and clean, emphasizing the high-quality fabric texture and crisp print detail. The aesthetic is modern, gallery-like, and professional, perfectly fitting a high-end DIY apparel brand's visual identity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDpdxrBjD3CogiPj6jWxCdj-fBzrTMI3PM2PY-IbAVmLq0LqPVmvhNbcYgYMGLUW46rWDCDCkFVZ2sBcaTA4B18a_R43xLUcMX139Xlan6MkPMRMXBS1TrgdrnJSvix6QWxDX2LDNcQzPqXzO8SqzDdpfI2rHw7qVdU3BOG0mA2S8TEfF92l8rAt0TB_mcY4XHQlzeXIz_Q9c1pTN-tph944xekDivCJeJ7tLsBn27kiZrV-oZe3EEUlnTualYRqYbU-dOvNWjb8g"/>
+</div>
+<div class="flex-grow flex flex-col justify-between">
+<div>
+<div class="flex justify-between">
+<h3 class="font-title-md text-body-lg text-on-surface">定制创意印花 T恤</h3>
+<button class="text-outline hover:text-error transition-colors">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+<p class="text-body-sm text-on-surface-variant mt-1">白色 / L码 / 纯棉</p>
+<p class="text-body-sm text-primary font-bold mt-1">设计ID: BYCH-8821</p>
+</div>
+<div class="flex justify-between items-end mt-4">
+<div class="flex items-center border border-outline-variant rounded-lg">
+<button class="px-3 py-1 text-on-surface hover:bg-surface-container transition-colors">-</button>
+<span class="px-4 py-1 font-bold text-body-sm">1</span>
+<button class="px-3 py-1 text-on-surface hover:bg-surface-container transition-colors">+</button>
+</div>
+<span class="text-title-md font-bold text-primary">¥ 199.00</span>
+</div>
+</div>
+</div>
+<!-- Item 2: Designer Hoodie -->
+<div class="item-card bg-surface-container-lowest p-stack-md rounded-lg border border-outline-variant flex gap-4">
+<div class="w-24 h-30 flex-shrink-0 bg-surface-container-low rounded-lg overflow-hidden">
+<img alt="Designer Hoodie" class="w-full h-full object-cover" data-alt="A sleek, oversized charcoal gray hoodie featuring a high-density embroidered brand logo on the sleeve. The fabric is thick and luxurious, captured in a minimalist studio setting with soft side lighting that creates professional depth and highlights the premium stitching. The overall mood is sophisticated urban streetwear." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCpNae0SvcSMbLGz80CSWdBSv-4LPDj4s1FU-n2t9rwpU5LawSnIE6-By2OzV2QamdhCrgBCE5KmxH1Z-5UnAYOhCs7prW6D34AGi_l5skpr8XLcYnDbleSkTjmJBg8m7rJ0BGHtOTk2wV3vB4oJMBYaZAsnpOrw0Z9TQRZOOtoHmMId4BhM3eYqsidegKVbeSULm1KtYipkOWxCqIa9QA3_fxMmpTmjNez0RsL3AI2ZzqLosg4ucwXY7EliFGCsxvIzPOc4jo_CGU"/>
+</div>
+<div class="flex-grow flex flex-col justify-between">
+<div>
+<div class="flex justify-between">
+<h3 class="font-title-md text-body-lg text-on-surface">ByChooow 限量款联名连帽衫</h3>
+<button class="text-outline hover:text-error transition-colors">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+<p class="text-body-sm text-on-surface-variant mt-1">炭灰色 / XL码 / 重磅毛圈</p>
+</div>
+<div class="flex justify-between items-end mt-4">
+<div class="flex items-center border border-outline-variant rounded-lg">
+<button class="px-3 py-1 text-on-surface hover:bg-surface-container transition-colors">-</button>
+<span class="px-4 py-1 font-bold text-body-sm">1</span>
+<button class="px-3 py-1 text-on-surface hover:bg-surface-container transition-colors">+</button>
+</div>
+<span class="text-title-md font-bold text-primary">¥ 589.00</span>
+</div>
+</div>
+</div>
+<!-- Item 3: Designer Accessories -->
+<div class="item-card bg-surface-container-lowest p-stack-md rounded-lg border border-outline-variant flex gap-4">
+<div class="w-24 h-30 flex-shrink-0 bg-surface-container-low rounded-lg overflow-hidden">
+<img alt="Tote Bag" class="w-full h-full object-cover" data-alt="A minimalist black canvas tote bag with a bold monochromatic typographic design that says 'CHOOOW'. The bag is shown in a high-key, brightly lit environment, leaning against a clean white wall. The focus is on the durable canvas texture and the clean, high-end professional printing style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDbJfFaQ9TvHgxrJqqwM4t7BuNTpTYsYxksPghN9AxacWpYoxSfGYAKKSYFBRPPQmpZVA3icG2Az_0F9NHXyj3mbu1zaV36BZ9iY1EWlXWR1Z-WsNmlsCgYTmAqDUll-2NLlUJvdYU_RMPRAkvliJqbZeVaigYsk_gpDJ6-36iRA3TVI1bN9gUsGt0jhAy_AiQYf51j6iOcKcQ5wN7nDXVG1NJsfxetgFrY21tPag9ISkPg6VtYTkfcABEpUXEWuIt4IDRkImavLpw"/>
+</div>
+<div class="flex-grow flex flex-col justify-between">
+<div>
+<div class="flex justify-between">
+<h3 class="font-title-md text-body-lg text-on-surface">简约概念帆布袋</h3>
+<button class="text-outline hover:text-error transition-colors">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+<p class="text-body-sm text-on-surface-variant mt-1">黑色 / 均码 / 环保材质</p>
+</div>
+<div class="flex justify-between items-end mt-4">
+<div class="flex items-center border border-outline-variant rounded-lg">
+<button class="px-3 py-1 text-on-surface hover:bg-surface-container transition-colors">-</button>
+<span class="px-4 py-1 font-bold text-body-sm">1</span>
+<button class="px-3 py-1 text-on-surface hover:bg-surface-container transition-colors">+</button>
+</div>
+<span class="text-title-md font-bold text-primary">¥ 88.00</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Checkout Summary -->
+<aside class="lg:col-span-4">
+<div class="sticky top-20 space-y-stack-md">
+<!-- Coupon Card -->
+<div class="bg-surface-container-lowest p-stack-md rounded-lg border border-outline-variant">
+<label class="block text-label-md font-label-md text-on-surface-variant mb-2">优惠券代码</label>
+<div class="flex gap-2">
+<input class="flex-grow bg-background border border-outline-variant rounded-lg px-4 py-2 text-body-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="输入优惠码" type="text"/>
+<button class="bg-primary text-on-primary font-bold px-4 py-2 rounded-lg hover:opacity-90 transition-opacity">应用</button>
+</div>
+</div>
+<!-- Order Summary Card -->
+<div class="bg-surface-container-lowest p-stack-md rounded-lg border border-outline-variant">
+<h2 class="font-title-md text-title-md text-on-surface mb-4">订单摘要</h2>
+<div class="space-y-3">
+<div class="flex justify-between text-body-sm text-on-surface-variant">
+<span>商品小计</span>
+<span>¥ 876.00</span>
+</div>
+<div class="flex justify-between text-body-sm text-on-surface-variant">
+<span>运费</span>
+<span class="text-primary font-bold">免运费</span>
+</div>
+<div class="flex justify-between text-body-sm text-on-surface-variant">
+<span>优惠减免</span>
+<span class="text-error">- ¥ 0.00</span>
+</div>
+<div class="pt-4 border-t border-outline-variant flex justify-between items-baseline">
+<span class="font-bold text-body-lg text-on-surface">订单总计</span>
+<span class="text-display-lg font-display-lg text-primary tracking-tight">¥ 876.00</span>
+</div>
+</div>
+<button class="w-full mt-6 bg-primary text-on-primary font-bold py-4 rounded-lg hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-primary/10 flex justify-center items-center gap-2">
+<span>结算</span>
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+<p class="text-center text-label-md text-outline mt-4">支持 7 天无理由退换货</p>
+</div>
+<!-- Trust Badges -->
+<div class="flex justify-around items-center px-4 py-2">
+<div class="flex flex-col items-center gap-1 group">
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">verified_user</span>
+<span class="text-[10px] text-outline group-hover:text-on-surface-variant">安全支付</span>
+</div>
+<div class="flex flex-col items-center gap-1 group">
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">local_shipping</span>
+<span class="text-[10px] text-outline group-hover:text-on-surface-variant">顺丰包邮</span>
+</div>
+<div class="flex flex-col items-center gap-1 group">
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">support_agent</span>
+<span class="text-[10px] text-outline group-hover:text-on-surface-variant">在线客服</span>
+</div>
+</div>
+</div>
+</aside>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-4 pt-2 bg-surface-container-lowest border-t border-outline-variant z-50">
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-low rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-bold">首页</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-low rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">brush</span>
+<span class="text-[10px] font-bold">设计</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary text-on-primary rounded-lg px-4 py-1 scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">shopping_cart</span>
+<span class="text-[10px] font-bold">购物车</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-low rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">storefront</span>
+<span class="text-[10px] font-bold">商店</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-low rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-bold">个人中心</span>
+</a>
+</nav>
+<script>
+        // Simple Interaction for quantity buttons
+        document.querySelectorAll('button').forEach(btn => {
+            if (btn.innerText === '+' || btn.innerText === '-') {
+                btn.addEventListener('click', function() {
+                    const span = this.parentElement.querySelector('span');
+                    let val = parseInt(span.innerText);
+                    if (this.innerText === '+') val++;
+                    else if (val > 1) val--;
+                    span.innerText = val;
+                });
+            }
+        });
+    </script>
+</body></html>

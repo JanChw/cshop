@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&amp;family=Manrope:wght@200..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container": "#f2ece4",
+                    "surface-container-high": "#ece6dc",
+                    "on-tertiary": "#ffffff",
+                    "primary-fixed": "#fbe8d8",
+                    "tertiary-fixed": "#fce0e0",
+                    "outline-variant": "#d8d0c8",
+                    "on-tertiary-fixed": "#2e1515",
+                    "surface-bright": "#faf5ee",
+                    "inverse-on-surface": "#faf5ee",
+                    "on-secondary": "#ffffff",
+                    "inverse-primary": "#f0a878",
+                    "error": "#c0392b",
+                    "secondary": "#78706a",
+                    "inverse-surface": "#3a302a",
+                    "secondary-container": "#eae2da",
+                    "primary-container": "#e08850",
+                    "surface-container-highest": "#e6e0d6",
+                    "surface": "#faf5ee",
+                    "on-primary": "#ffffff",
+                    "on-primary-fixed-variant": "#8a4518",
+                    "surface-container-lowest": "#ffffff",
+                    "secondary-fixed-dim": "#cec6be",
+                    "surface-container-low": "#f6f0e8",
+                    "secondary-fixed": "#eae2da",
+                    "error-container": "#fce4e0",
+                    "on-primary-container": "#fbe8d8",
+                    "on-surface-variant": "#605850",
+                    "on-secondary-fixed": "#2a2420",
+                    "on-background": "#3a302a",
+                    "surface-variant": "#ece6dc",
+                    "primary-fixed-dim": "#f0a878",
+                    "on-tertiary-container": "#3a2020",
+                    "tertiary": "#8c3c3c",
+                    "on-tertiary-fixed-variant": "#6e3030",
+                    "primary": "#c2652a",
+                    "on-error": "#ffffff",
+                    "background": "#faf5ee",
+                    "tertiary-fixed-dim": "#e8a0a0",
+                    "surface-dim": "#dcd6cc",
+                    "on-secondary-container": "#605850",
+                    "on-primary-fixed": "#401a08",
+                    "on-secondary-fixed-variant": "#504840",
+                    "on-surface": "#3a302a",
+                    "on-error-container": "#7a1a10",
+                    "tertiary-container": "#d47070",
+                    "surface-tint": "#c2652a",
+                    "outline": "#9a9088"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["EB Garamond", "serif"],
+                    "display": ["EB Garamond", "serif"],
+                    "body": ["Manrope", "sans-serif"],
+                    "label": ["Manrope", "sans-serif"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Manrope', sans-serif; background-color: #faf5ee; color: #3a302a; }
+        h1, h2, h3 { font-family: 'EB Garamond', serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        .soft-shadow { box-shadow: 0 2px 16px rgba(58, 48, 42, 0.04); }
+        .tab-transition { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .active-tab { border-bottom: 2px solid #c2652a; color: #c2652a; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen pb-24">
+<!-- Top AppBar (from JSON guidance) -->
+<header class="bg-surface border-b border-outline-variant flex justify-between items-center px-6 h-16 w-full sticky top-0 z-40">
+<button class="material-symbols-outlined text-primary hover:bg-surface-container-high transition-colors p-2 rounded-full">arrow_back</button>
+<h1 class="font-headline text-2xl font-bold text-primary">收藏与草稿</h1>
+<button class="material-symbols-outlined text-primary hover:bg-surface-container-high transition-colors p-2 rounded-full">search</button>
+</header>
+<!-- Navigation Drawer Simulation (Hidden Desktop only example) -->
+<!-- Not rendered as it's a mobile focus task, but logic follows Shared Components -->
+<main class="max-w-4xl mx-auto px-6 pt-8">
+<!-- Section Header / Tabs -->
+<div class="flex items-center gap-8 mb-8 border-b border-outline-variant/60 overflow-x-auto whitespace-nowrap scrollbar-hide">
+<button class="pb-3 text-lg font-label font-medium tab-transition active-tab relative" id="tab-favorites" onclick="switchTab('favorites')">
+                我的收藏
+            </button>
+<button class="pb-3 text-lg font-label font-medium tab-transition text-on-surface-variant/60 hover:text-on-surface-variant" id="tab-drafts" onclick="switchTab('drafts')">
+                设计草稿
+            </button>
+</div>
+<!-- Content Area: My Favorites -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8 opacity-100 transition-opacity duration-300" id="content-favorites">
+<!-- Favorite Card 1 -->
+<div class="bg-surface-container-low rounded-xl overflow-hidden soft-shadow group hover:translate-y-[-4px] transition-transform duration-300">
+<div class="aspect-[4/5] relative overflow-hidden bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="A luxurious ceramic vase with artisanal glaze textures, set against a warm linen background with soft sun-baked shadows. The lighting is editorial and high-key, highlighting the earthy burnt sienna and dusty rose tones of the scene. Minimalist luxury aesthetic with clean lines and a curated, serene mood." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYvbbfJj0LDUY6cRPJN5WFFxRII-6pw4L1Jg5ZwmHEGp-e35k2KCIfafqoqJda5T2i_ro17kfMPxoUcYw-_E9MVCpw9ElplR4P_aXC3jpfWZM8qlB3MI5YP2xexGOV8ByN-Ulz7A9jk9ikhIXck_K4_TgAyIy6S7DmZix_mi3eWWDhICJNG-JXyOLbEjH2DqBOO0ANUHzFSU9fnAJz76ScdjAlwTIapN6CjPKb6zvOk28UIbini_MFDdXtogk2wjnEOx2qYkedO4Q"/>
+<button class="absolute top-4 right-4 bg-surface/80 backdrop-blur-md p-2 rounded-full text-primary shadow-sm active:scale-95 transition-all">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</button>
+</div>
+<div class="p-6">
+<div class="flex justify-between items-start mb-2">
+<h3 class="text-xl font-headline font-semibold text-on-surface">手工陶艺纹理花瓶</h3>
+<span class="text-primary font-label font-bold">¥ 280</span>
+</div>
+<p class="text-on-surface-variant text-sm font-label mb-4 line-clamp-1">Sahara 极简系列 - 温暖亚麻质感</p>
+<button class="w-full py-3 bg-primary text-on-primary rounded-lg font-label text-sm font-bold tracking-wide hover:opacity-90 transition-opacity">加入购物车</button>
+</div>
+</div>
+<!-- Favorite Card 2 -->
+<div class="bg-surface-container-low rounded-xl overflow-hidden soft-shadow group hover:translate-y-[-4px] transition-transform duration-300">
+<div class="aspect-[4/5] relative overflow-hidden bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="Modern minimalist bedroom scene featuring organic linen bedding in warm sand and cream tones. The atmosphere is sun-drenched and peaceful, with soft natural light streaming in. The decor follows a disciplined minimalist style with burnt sienna accents and high-quality textures." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAt-46XIzcZlk4NVxxw9uW0ygdch8BVrnZbzbopfAfPJe7SK-5ZQur3GjsP2AxKG7CpOLXVatRbYLNuneaunG5J7eOxfkl3xWaXgbaXVoeAHoxZwuKJVHZsMpaPnROqGx81i8v8T01uHPz8CSrWbCh-aNtUcMOfLlI8g6nPlehrbajR5_sOg88ioZaS-LgifjKZEqckBdX4Cz0_peiclQcMPRNwMa5AyZYOC836f3mTKV1g-O_GXwfr9TUYC2sJPMzVLOn0jM52-cA"/>
+<button class="absolute top-4 right-4 bg-surface/80 backdrop-blur-md p-2 rounded-full text-primary shadow-sm active:scale-95 transition-all">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</button>
+</div>
+<div class="p-6">
+<div class="flex justify-between items-start mb-2">
+<h3 class="text-xl font-headline font-semibold text-on-surface">自然棉麻床品套装</h3>
+<span class="text-primary font-label font-bold">¥ 1,240</span>
+</div>
+<p class="text-on-surface-variant text-sm font-label mb-4 line-clamp-1">100% 纯天然长绒棉，呼吸感触感</p>
+<button class="w-full py-3 border border-outline text-primary rounded-lg font-label text-sm font-bold tracking-wide hover:bg-surface-container-high transition-colors">查看详情</button>
+</div>
+</div>
+</div>
+<!-- Content Area: Design Drafts (Hidden by default) -->
+<div class="hidden grid grid-cols-1 md:grid-cols-3 gap-6 opacity-0 transition-opacity duration-300" id="content-drafts">
+<!-- Draft Card 1 (Add New) -->
+<div class="bg-surface-container-highest border-2 border-dashed border-outline-variant flex flex-col items-center justify-center p-8 rounded-xl h-[400px] hover:border-primary transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-4xl text-on-surface-variant mb-4 group-hover:text-primary transition-colors">add_circle</span>
+<p class="font-label font-medium text-on-surface-variant">开启新创作</p>
+</div>
+<!-- Draft Card 2 -->
+<div class="bg-surface-container-low rounded-xl overflow-hidden soft-shadow relative h-[400px]">
+<div class="h-2/3 bg-surface-container overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="An artist's workstation with sketches of furniture designs spread across a wooden table. Warm afternoon sunlight illuminates the space, creating a creative and focused mood. The palette includes warm neutrals, browns, and earthy ochre tones, maintaining a high-end minimalist design look." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA03Msu7_Ouh03U-tLA9h7lYyvCTFw8h86SlR0FshlWVChfihygU8oYYtmw5wyWhv0DdWAX-0hE_43VbdUHO8dTJOpsY9UvYa2MOv5Jj6EFwSO1Odse-5MdxfTeNW19FKUsNSfro0wkNvMv32GuU4OfB62lbjjzyTm8MeL6vGwdsDqCNrOWc-ad4j6mIkf6KWd42pwa5In3gmIlzTfMTeoAG50CbixPd89zb8nZdm-tkyi5l_EQbeOWei95SaYLOCGRI2beOwMiSa4"/>
+</div>
+<div class="p-4 h-1/3 flex flex-col justify-between">
+<div>
+<h3 class="font-headline text-lg font-bold">Sahara 扶手椅方案</h3>
+<p class="text-xs text-on-surface-variant font-label mt-1">最后编辑：2小时前</p>
+</div>
+<div class="flex justify-between items-center mt-2">
+<span class="text-xs px-2 py-1 bg-secondary-container text-on-secondary-container rounded-full font-label">草稿 #04</span>
+<button class="material-symbols-outlined text-primary hover:bg-surface-container-high p-2 rounded-full">edit</button>
+</div>
+</div>
+</div>
+<!-- Draft Card 3 -->
+<div class="bg-surface-container-low rounded-xl overflow-hidden soft-shadow relative h-[400px]">
+<div class="h-2/3 bg-surface-container overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Minimalist abstract digital art piece with layered textures in sienna, dusty rose, and off-white. The composition is asymmetrical and balanced, reflecting the Sahara theme's North Star of sun-baked simplicity. Soft warm lighting and rich canvas-like textures." src="https://lh3.googleusercontent.com/aida-public/AB6AXuANqnfF4MB6DLQxr8sWHNLDR7iune1C4dUaTmElC26SvFhvlOGAfO1Vtul5DuSxLx2V0otwvQvgvon-7VTso_0nblqITFM9Vq8wu8Y2ZWO1y5BGILcGpK7ZRFJY2BXqH7hERTFztsB7pYuFZImzQhzsyUK4-R0XNN0C8gzlE9YINmqpDSktqdCT5xftZTW60-EP8xh580OYuFLwFFfmW4l8UGGv2Xyn5I2VtkS4URTsJg4oVQcJwlc54Y-_amqMI0Nt0SKZAtQlMEo"/>
+</div>
+<div class="p-4 h-1/3 flex flex-col justify-between">
+<div>
+<h3 class="font-headline text-lg font-bold">抽象极简装饰画</h3>
+<p class="text-xs text-on-surface-variant font-label mt-1">最后编辑：昨天</p>
+</div>
+<div class="flex justify-between items-center mt-2">
+<span class="text-xs px-2 py-1 bg-secondary-container text-on-secondary-container rounded-full font-label">草稿 #02</span>
+<button class="material-symbols-outlined text-primary hover:bg-surface-container-high p-2 rounded-full">edit</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar (as specified in JSON) -->
+<!-- Highlighted: "Profile" maps to "我的" in prompt -->
+<nav class="fixed bottom-0 w-full z-50 flex justify-around items-center px-4 py-2 bg-surface border-t border-outline-variant">
+<div class="flex flex-col items-center justify-center text-on-surface-variant px-3 py-1 hover:text-primary transition-all">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label text-[10px] mt-1">Home</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant px-3 py-1 hover:text-primary transition-all">
+<span class="material-symbols-outlined">draw</span>
+<span class="font-label text-[10px] mt-1">Design</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant px-3 py-1 hover:text-primary transition-all">
+<span class="material-symbols-outlined">shopping_cart</span>
+<span class="font-label text-[10px] mt-1">Cart</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant px-3 py-1 hover:text-primary transition-all">
+<span class="material-symbols-outlined">storefront</span>
+<span class="font-label text-[10px] mt-1">Shop</span>
+</div>
+<!-- Active Tab: Profile (我的) -->
+<div class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-lg px-3 py-1">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="font-label text-[10px] mt-1">Profile</span>
+</div>
+</nav>
+<!-- FAB for Create New (Contextual) -->
+<button class="hidden fixed right-6 bottom-24 w-14 h-14 bg-primary text-on-primary rounded-xl flex items-center justify-center shadow-lg active:scale-95 transition-all" id="fab-create">
+<span class="material-symbols-outlined">add</span>
+</button>
+<script>
+        function switchTab(tab) {
+            const favContent = document.getElementById('content-favorites');
+            const draftContent = document.getElementById('content-drafts');
+            const favTabBtn = document.getElementById('tab-favorites');
+            const draftTabBtn = document.getElementById('tab-drafts');
+            const fab = document.getElementById('fab-create');
+
+            if (tab === 'favorites') {
+                favContent.classList.remove('hidden');
+                setTimeout(() => favContent.classList.add('opacity-100'), 10);
+                draftContent.classList.add('hidden');
+                draftContent.classList.remove('opacity-100');
+                
+                favTabBtn.classList.add('active-tab');
+                favTabBtn.classList.remove('text-on-surface-variant/60');
+                draftTabBtn.classList.remove('active-tab');
+                draftTabBtn.classList.add('text-on-surface-variant/60');
+                
+                fab.classList.add('hidden');
+            } else {
+                draftContent.classList.remove('hidden');
+                setTimeout(() => draftContent.classList.add('opacity-100'), 10);
+                favContent.classList.add('hidden');
+                favContent.classList.remove('opacity-100');
+
+                draftTabBtn.classList.add('active-tab');
+                draftTabBtn.classList.remove('text-on-surface-variant/60');
+                favTabBtn.classList.remove('active-tab');
+                favTabBtn.classList.add('text-on-surface-variant/60');
+
+                fab.classList.remove('hidden');
+            }
+        }
+
+        // Simple smooth scroll logic or tab persistence if needed can go here.
+        // For now, pure tab switching.
+    </script>
+</body></html>

@@ -1,0 +1,101 @@
+---
+import MainLayout from '../layouts/MainLayout.astro'
+---
+
+<MainLayout title="登录">
+<!-- Header -->
+<header class="fixed top-0 w-full z-50 flex justify-center items-center h-20 bg-transparent">
+<h1 class="font-headline text-3xl font-bold text-primary tracking-tight">ByChooow</h1>
+</header>
+
+<main class="flex-grow flex items-center justify-center px-6 py-24 pb-32">
+<div class="w-full max-w-md">
+<div class="text-center mb-10 space-y-2">
+<h2 class="font-headline text-4xl md:text-5xl text-on-surface font-semibold">欢迎回来</h2>
+<p class="text-on-surface-variant text-sm tracking-wide">登录以继续您的创意之旅</p>
+</div>
+<div class="bg-surface-container-low p-8 md:p-10 rounded-lg shadow-card border border-outline-variant/60">
+<form class="space-y-6" id="loginForm">
+<div class="space-y-2">
+<label class="block text-xs font-bold uppercase tracking-widest text-secondary ml-1" for="identifier">邮箱 / 手机号</label>
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors">mail</span>
+<input class="w-full pl-12 pr-4 py-3.5 bg-surface-container-lowest border border-outline-variant rounded-lg focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all placeholder:text-outline/60" id="identifier" name="identifier" placeholder="输入您的联系方式" required type="text"/>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between items-end">
+<label class="block text-xs font-bold uppercase tracking-widest text-secondary ml-1" for="password">密码</label>
+<a class="text-xs font-semibold text-primary hover:opacity-80 transition-opacity" href="#">忘记密码？</a>
+</div>
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors">lock</span>
+<input class="w-full pl-12 pr-12 py-3.5 bg-surface-container-lowest border border-outline-variant rounded-lg focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all placeholder:text-outline/60" id="password" name="password" placeholder="输入您的密码" required type="password"/>
+<button class="absolute right-4 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface transition-colors" type="button" onclick="togglePassword()">
+<span class="material-symbols-outlined" id="password-toggle-icon">visibility</span>
+</button>
+</div>
+</div>
+<button class="w-full bg-primary text-white py-4 px-6 rounded-lg font-bold tracking-wide flex items-center justify-center space-x-2 hover:opacity-90 active:scale-[0.98] transition-all group shadow-lg shadow-primary/10" type="submit">
+<span>登录</span>
+<span class="material-symbols-outlined text-xl group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</form>
+<div class="mt-10">
+<div class="relative flex items-center mb-8">
+<div class="flex-grow border-t border-outline-variant/60"></div>
+<span class="flex-shrink mx-4 text-xs font-bold text-outline uppercase tracking-widest">使用其他方式登录</span>
+<div class="flex-grow border-t border-outline-variant/60"></div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<button class="flex items-center justify-center space-x-3 py-3 px-4 border border-outline-variant rounded-lg hover:bg-surface-variant transition-colors group">
+<div class="w-6 h-6 flex items-center justify-center bg-[#07C160] rounded-full">
+<span class="material-symbols-outlined text-white text-[16px]" style="font-variation-settings: 'FILL' 1">chat</span>
+</div>
+<span class="text-sm font-semibold text-on-surface-variant">微信</span>
+</button>
+<button class="flex items-center justify-center space-x-3 py-3 px-4 border border-outline-variant rounded-lg hover:bg-surface-variant transition-colors group">
+<div class="w-6 h-6 flex items-center justify-center bg-[#12B7F5] rounded-full">
+<span class="material-symbols-outlined text-white text-[16px]" style="font-variation-settings: 'FILL' 1">person</span>
+</div>
+<span class="text-sm font-semibold text-on-surface-variant">QQ</span>
+</button>
+</div>
+</div>
+</div>
+<p class="mt-8 text-center text-on-surface-variant text-sm font-medium">
+        还没有账号？
+        <a class="text-primary font-bold hover:underline decoration-2 underline-offset-4" href="/register">立即注册</a>
+</p>
+</div>
+</main>
+
+<div class="fixed top-0 right-0 -z-10 w-1/3 h-1/3 blur-3xl opacity-20 bg-primary/20 pointer-events-none"></div>
+<div class="fixed bottom-0 left-0 -z-10 w-1/2 h-1/2 blur-[100px] opacity-30 bg-secondary-container/50 pointer-events-none"></div>
+
+<script>
+function togglePassword() {
+    const passwordInput = document.getElementById('password');
+    const toggleIcon = document.getElementById('password-toggle-icon');
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleIcon.innerText = 'visibility_off';
+    } else {
+        passwordInput.type = 'password';
+        toggleIcon.innerText = 'visibility';
+    }
+}
+
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const btn = this.querySelector('button[type="submit"]');
+    const originalContent = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="inline-block animate-spin material-symbols-outlined">progress_activity</span>';
+    setTimeout(() => {
+        btn.innerHTML = '<span class="material-symbols-outlined">check_circle</span> <span>成功</span>';
+        btn.classList.add('bg-on-surface-variant');
+    }, 1200);
+});
+</script>
+</MainLayout>

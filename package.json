@@ -4,9 +4,12 @@
   "workspaces": ["packages/*"],
   "scripts": {
     "dev": "bun --filter '@cshop/backend' dev",
+    "dev:frontend": "bun --filter '@cshop/frontend' dev",
     "build": "bun --filter '@cshop/backend' build",
+    "build:frontend": "bun --filter '@cshop/frontend' build",
     "lint": "bun --filter '@cshop/backend' typecheck",
     "typecheck": "bun --filter '@cshop/backend' typecheck",
+    "typecheck:frontend": "bun --filter '@cshop/frontend' typecheck",
     "test": "bun --filter '@cshop/backend' test",
     "db:generate": "bun --filter backend db:generate",
     "db:migrate": "bun --filter backend db:migrate"

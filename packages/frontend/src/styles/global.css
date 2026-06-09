@@ -1,0 +1,94 @@
+@import 'tailwindcss';
+
+@theme {
+  /* === Colors: Home Page Sahara Theme === */
+  --color-primary: #c2652a;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #f8e9df;
+  --color-on-primary-container: #3e1c00;
+
+  --color-secondary: #705d4e;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #fbeee4;
+  --color-on-secondary-container: #291b0f;
+
+  --color-tertiary: #5d624c;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #e2e7d0;
+  --color-on-tertiary-container: #1a1e0e;
+
+  --color-background: #faf9f6;
+  --color-on-background: #1f1b18;
+
+  --color-surface: #faf9f6;
+  --color-on-surface: #1f1b18;
+  --color-surface-variant: #f0ede6;
+  --color-on-surface-variant: #4f453d;
+
+  --color-outline: #81756a;
+  --color-outline-variant: #d2ccc3;
+
+  --color-surface-container: #f4f1eb;
+  --color-surface-container-low: #f9f6f1;
+  --color-surface-container-high: #efece5;
+  --color-surface-container-lowest: #ffffff;
+
+  --color-inverse-surface: #352f2a;
+  --color-inverse-on-surface: #f9f0ea;
+
+  --color-error: #c0392b;
+  --color-on-error: #ffffff;
+  --color-error-container: #fce4e0;
+  --color-on-error-container: #7a1a10;
+
+  /* === Typography === */
+  --font-sans: 'Manrope', sans-serif;
+  --font-serif: 'Playfair Display', serif;
+  --font-headline: 'Playfair Display', serif;
+  --font-body: 'Manrope', sans-serif;
+  --font-label: 'Manrope', sans-serif;
+
+  --text-headline-lg: 32px / 40px;
+  --text-headline-lg-mobile: 28px / 34px;
+  --text-display-lg: 48px / 56px;
+  --text-title-md: 20px / 28px;
+  --text-body-lg: 16px / 24px;
+  --text-body-sm: 14px / 20px;
+  --text-label-md: 12px / 16px;
+
+  /* === Spacing === */
+  --spacing-gutter: 16px;
+  --spacing-stack-sm: 8px;
+  --spacing-stack-md: 16px;
+  --spacing-stack-lg: 32px;
+  --spacing-unit: 4px;
+  --spacing-container-margin: 20px;
+
+  /* === Border Radius === */
+  --radius-lg: 8px;
+  --radius-xl: 16px;
+
+  /* === Shadows === */
+  --shadow-card: 0 2px 16px rgba(58, 48, 42, 0.04);
+  --shadow-elevated: 0 8px 24px rgba(58, 48, 42, 0.08);
+}
+
+/* === Base Styles === */
+@layer base {
+  html {
+    font-family: Manrope, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-on-surface);
+  }
+}
+
+/* === Utility Classes === */
+@utility hide-scrollbar {
+  &::-webkit-scrollbar { display: none; }
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

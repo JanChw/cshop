@@ -1,0 +1,202 @@
+---
+import MainLayout from '../layouts/MainLayout.astro'
+---
+
+<MainLayout title="购物车">
+<!-- TopAppBar -->
+<header class="bg-surface-container-lowest fixed top-0 w-full z-50 border-b border-outline-variant">
+<div class="flex justify-between items-center px-container-margin h-12 w-full max-w-7xl mx-auto">
+<div class="flex items-center gap-4">
+<button class="hover:opacity-80 transition-opacity active:scale-95 transition-transform duration-150">
+<span class="material-symbols-outlined text-primary">arrow_back</span>
+</button>
+<h1 class="text-title-md font-bold text-on-surface">购物车</h1>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-label-md text-on-surface-variant">共 3 件商品</span>
+</div>
+</div>
+</header>
+
+<main class="pt-16 pb-32 px-container-margin max-w-7xl mx-auto min-h-screen">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<!-- Shopping Cart Items List -->
+<section class="lg:col-span-8 space-y-stack-md">
+<!-- Item 1 -->
+<div class="bg-surface-container-lowest p-stack-md rounded-lg border border-outline-variant flex gap-4 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(194,101,42,0.08)] transition-all duration-200">
+<div class="w-24 h-30 flex-shrink-0 bg-surface-container-low rounded-lg overflow-hidden">
+<img alt="DIY T-shirt" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDpdxrBjD3CogiPj6jWxCdj-fBzrTMI3PM2PY-IbAVmLq0LqPVmvhNbcYgYMGLUW46rWDCDCkFVZ2sBcaTA4B18a_R43xLUcMX139Xlan6MkPMRMXBS1TrgdrnJSvix6QWxDX2LDNcQzPqXzO8SqzDdpfI2rHw7qVdU3BOG0mA2S8TEfF92l8rAt0TB_mcY4XHQlzeXIz_Q9c1pTN-tph944xekDivCJeJ7tLsBn27kiZrV-oZe3EEUlnTualYRqYbU-dOvNWjb8g"/>
+</div>
+<div class="flex-grow flex flex-col justify-between">
+<div>
+<div class="flex justify-between">
+<h3 class="text-body-lg text-on-surface">定制创意印花 T恤</h3>
+<button class="text-outline hover:text-error transition-colors">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+<p class="text-body-sm text-on-surface-variant mt-1">白色 / L码 / 纯棉</p>
+<p class="text-body-sm text-primary font-bold mt-1">设计ID: BYCH-8821</p>
+</div>
+<div class="flex justify-between items-end mt-4">
+<div class="flex items-center border border-outline-variant rounded-lg">
+<button class="px-3 py-1 text-on-surface hover:bg-surface-container transition-colors">-</button>
+<span class="px-4 py-1 font-bold text-body-sm">1</span>
+<button class="px-3 py-1 text-on-surface hover:bg-surface-container transition-colors">+</button>
+</div>
+<span class="text-title-md font-bold text-primary">¥ 199.00</span>
+</div>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="bg-surface-container-lowest p-stack-md rounded-lg border border-outline-variant flex gap-4 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(194,101,42,0.08)] transition-all duration-200">
+<div class="w-24 h-30 flex-shrink-0 bg-surface-container-low rounded-lg overflow-hidden">
+<img alt="Designer Hoodie" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCpNae0SvcSMbLGz80CSWdBSv-4LPDj4s1FU-n2t9rwpU5LawSnIE6-By2OzV2QamdhCrgBCE5KmxH1Z-5UnAYOhCs7prW6D34AGi_l5skpr8XLcYnDbleSkTjmJBg8m7rJ0BGHtOTk2wV3vB4oJMBYaZAsnpOrw0Z9TQRZOOtoHmMId4BhM3eYqsidegKVbeSULm1KtYipkOWxCqIa9QA3_fxMmpTmjNez0RsL3AI2ZzqLosg4ucwXY7EliFGCsxvIzPOc4jo_CGU"/>
+</div>
+<div class="flex-grow flex flex-col justify-between">
+<div>
+<div class="flex justify-between">
+<h3 class="text-body-lg text-on-surface">ByChooow 限量款联名连帽衫</h3>
+<button class="text-outline hover:text-error transition-colors">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+<p class="text-body-sm text-on-surface-variant mt-1">炭灰色 / XL码 / 重磅毛圈</p>
+</div>
+<div class="flex justify-between items-end mt-4">
+<div class="flex items-center border border-outline-variant rounded-lg">
+<button class="px-3 py-1 text-on-surface hover:bg-surface-container transition-colors">-</button>
+<span class="px-4 py-1 font-bold text-body-sm">1</span>
+<button class="px-3 py-1 text-on-surface hover:bg-surface-container transition-colors">+</button>
+</div>
+<span class="text-title-md font-bold text-primary">¥ 589.00</span>
+</div>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="bg-surface-container-lowest p-stack-md rounded-lg border border-outline-variant flex gap-4 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(194,101,42,0.08)] transition-all duration-200">
+<div class="w-24 h-30 flex-shrink-0 bg-surface-container-low rounded-lg overflow-hidden">
+<img alt="Tote Bag" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDbJfFaQ9TvHgxrJqqwM4t7BuNTpTYsYxksPghN9AxacWpYoxSfGYAKKSYFBRPPQmpZVA3icG2Az_0F9NHXyj3mbu1zaV36BZ9iY1EWlXWR1Z-WsNmlsCgYTmAqDUll-2NLlUJvdYU_RMPRAkvliJqbZeVaigYsk_gpDJ6-36iRA3TVI1bN9gUsGt0jhAy_AiQYf51j6iOcKcQ5wN7nDXVG1NJsfxetgFrY21tPag9ISkPg6VtYTkfcABEpUXEWuIt4IDRkImavLpw"/>
+</div>
+<div class="flex-grow flex flex-col justify-between">
+<div>
+<div class="flex justify-between">
+<h3 class="text-body-lg text-on-surface">简约概念帆布袋</h3>
+<button class="text-outline hover:text-error transition-colors">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+<p class="text-body-sm text-on-surface-variant mt-1">黑色 / 均码 / 环保材质</p>
+</div>
+<div class="flex justify-between items-end mt-4">
+<div class="flex items-center border border-outline-variant rounded-lg">
+<button class="px-3 py-1 text-on-surface hover:bg-surface-container transition-colors">-</button>
+<span class="px-4 py-1 font-bold text-body-sm">1</span>
+<button class="px-3 py-1 text-on-surface hover:bg-surface-container transition-colors">+</button>
+</div>
+<span class="text-title-md font-bold text-primary">¥ 88.00</span>
+</div>
+</div>
+</div>
+</section>
+
+<!-- Checkout Summary -->
+<aside class="lg:col-span-4">
+<div class="sticky top-20 space-y-stack-md">
+<!-- Coupon Card -->
+<div class="bg-surface-container-lowest p-stack-md rounded-lg border border-outline-variant">
+<label class="block text-label-md text-on-surface-variant mb-2">优惠券代码</label>
+<div class="flex gap-2">
+<input class="flex-grow bg-background border border-outline-variant rounded-lg px-4 py-2 text-body-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="输入优惠码" type="text"/>
+<button class="bg-primary text-on-primary font-bold px-4 py-2 rounded-lg hover:opacity-90 transition-opacity">应用</button>
+</div>
+</div>
+<!-- Order Summary Card -->
+<div class="bg-surface-container-lowest p-stack-md rounded-lg border border-outline-variant">
+<h2 class="text-title-md text-on-surface mb-4">订单摘要</h2>
+<div class="space-y-3">
+<div class="flex justify-between text-body-sm text-on-surface-variant">
+<span>商品小计</span>
+<span>¥ 876.00</span>
+</div>
+<div class="flex justify-between text-body-sm text-on-surface-variant">
+<span>运费</span>
+<span class="text-primary font-bold">免运费</span>
+</div>
+<div class="flex justify-between text-body-sm text-on-surface-variant">
+<span>优惠减免</span>
+<span class="text-error">- ¥ 0.00</span>
+</div>
+<div class="pt-4 border-t border-outline-variant flex justify-between items-baseline">
+<span class="font-bold text-body-lg text-on-surface">订单总计</span>
+<span class="text-display-lg font-headline text-primary tracking-tight">¥ 876.00</span>
+</div>
+</div>
+<button class="w-full mt-6 bg-primary text-on-primary font-bold py-4 rounded-lg hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-primary/10 flex justify-center items-center gap-2">
+<span>结算</span>
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+<p class="text-center text-label-md text-outline mt-4">支持 7 天无理由退换货</p>
+</div>
+<!-- Trust Badges -->
+<div class="flex justify-around items-center px-4 py-2">
+<div class="flex flex-col items-center gap-1 group">
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">verified_user</span>
+<span class="text-[10px] text-outline group-hover:text-on-surface-variant">安全支付</span>
+</div>
+<div class="flex flex-col items-center gap-1 group">
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">local_shipping</span>
+<span class="text-[10px] text-outline group-hover:text-on-surface-variant">顺丰包邮</span>
+</div>
+<div class="flex flex-col items-center gap-1 group">
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">support_agent</span>
+<span class="text-[10px] text-outline group-hover:text-on-surface-variant">在线客服</span>
+</div>
+</div>
+</div>
+</aside>
+</div>
+</main>
+
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-4 pt-2 bg-surface-container-lowest border-t border-outline-variant z-50">
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-low rounded-lg transition-all" href="/">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-bold">首页</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-low rounded-lg transition-all" href="/design">
+<span class="material-symbols-outlined">brush</span>
+<span class="text-[10px] font-bold">设计</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary text-on-primary rounded-lg px-4 py-1 scale-90 transition-transform duration-200" href="/cart">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">shopping_cart</span>
+<span class="text-[10px] font-bold">购物车</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-low rounded-lg transition-all" href="/shop">
+<span class="material-symbols-outlined">storefront</span>
+<span class="text-[10px] font-bold">商店</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-low rounded-lg transition-all" href="/person">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-bold">个人中心</span>
+</a>
+</nav>
+
+<script>
+document.querySelectorAll('button').forEach(btn => {
+    if (btn.innerText === '+' || btn.innerText === '-') {
+        btn.addEventListener('click', function() {
+            const span = this.parentElement.querySelector('span');
+            let val = parseInt(span.innerText);
+            if (this.innerText === '+') val++;
+            else if (val > 1) val--;
+            span.innerText = val;
+        });
+    }
+});
+</script>
+
+<style>
+body { min-height: max(884px, 100dvh); }
+</style>
+</MainLayout>

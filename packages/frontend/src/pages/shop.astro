@@ -1,0 +1,223 @@
+---
+import MainLayout from '../layouts/MainLayout.astro'
+---
+
+<MainLayout title="商店">
+<!-- TopAppBar -->
+<header class="bg-surface border-b border-outline-variant sticky top-0 z-50">
+<div class="flex justify-between items-center px-container-margin h-12 w-full max-w-7xl mx-auto">
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-primary hover:opacity-80 transition-opacity active:scale-95 duration-150">menu</button>
+<span class="text-title-md font-bold text-primary">ByChooow</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-on-surface-variant hover:opacity-80 transition-opacity">search</button>
+<div class="w-8 h-8 rounded-full bg-secondary-container overflow-hidden border border-outline-variant">
+<img alt="User Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuACO1FDt1_uQh0Ln4IggOJsy5ok06DnWLxkv-5QqU_NHrM2pT6ekUGzJiEMa_8Bc-a5x8UExX9Pa1IKJ0AdUWXxcdUk3JcFUf2AJ4fH81hhmfB-dcUNFhgjYOPUN5w4Kpn_r8xmCVsdhG5a5A_cvCMl8NQh0N6OY7KYtMd_dTgKldopmOGbd0Pv1qUGdIzpci5rxf9-qsILxfX_27XLvCczAnNF4Pc6I4nEeZZn1ds9Y8AjTxaS2MrfrRBe1T4YPK8LFSkGbZEuDcU"/>
+</div>
+</div>
+</div>
+</header>
+
+<!-- Main Content Canvas -->
+<main class="max-w-7xl mx-auto pb-32">
+<!-- Search & Filter Header -->
+<section class="px-container-margin pt-stack-lg pb-stack-md">
+<div class="flex flex-col gap-stack-md">
+<h1 class="text-headline-lg-mobile md:text-headline-lg text-on-surface">探索精品</h1>
+<!-- Category Chips -->
+<div class="flex overflow-x-auto no-scrollbar gap-stack-sm pb-2">
+<button class="flex-shrink-0 bg-primary text-on-primary px-4 py-2 rounded-lg font-label-md text-label-md transition-transform active:scale-95">全部</button>
+<button class="flex-shrink-0 bg-surface-container-high text-on-surface-variant px-4 py-2 rounded-lg font-label-md text-label-md hover:bg-surface-variant transition-colors">基础系列 (Basics)</button>
+<button class="flex-shrink-0 bg-surface-container-high text-on-surface-variant px-4 py-2 rounded-lg font-label-md text-label-md hover:bg-surface-variant transition-colors">核心系列 (Essentials)</button>
+<button class="flex-shrink-0 bg-surface-container-high text-on-surface-variant px-4 py-2 rounded-lg font-label-md text-label-md hover:bg-surface-variant transition-colors">设计师款 (Designer)</button>
+<button class="flex-shrink-0 bg-surface-container-high text-on-surface-variant px-4 py-2 rounded-lg font-label-md text-label-md hover:bg-surface-variant transition-colors">定制款 (Custom)</button>
+</div>
+</div>
+</section>
+
+<!-- Advanced Filter Bar -->
+<section class="px-container-margin py-stack-md flex items-center justify-between border-y border-outline-variant/30 sticky top-12 bg-background z-40">
+<div class="flex gap-stack-md overflow-x-auto no-scrollbar py-1">
+<div class="flex items-center gap-1 border border-primary text-primary rounded-lg px-3 py-1.5 whitespace-nowrap bg-surface">
+<span class="text-label-md">面料: 棉质</span>
+<span class="material-symbols-outlined text-[16px]">keyboard_arrow_down</span>
+</div>
+<div class="flex items-center gap-1 border border-outline rounded-lg px-3 py-1.5 whitespace-nowrap bg-surface">
+<span class="text-label-md">版型: 宽松</span>
+<span class="material-symbols-outlined text-[16px]">keyboard_arrow_down</span>
+</div>
+<div class="flex items-center gap-1 border border-outline rounded-lg px-3 py-1.5 whitespace-nowrap bg-surface">
+<span class="text-label-md">价格: ¥200+</span>
+<span class="material-symbols-outlined text-[16px]">keyboard_arrow_down</span>
+</div>
+</div>
+<button class="ml-4 flex items-center gap-2 text-primary font-label-md text-label-md">
+<span class="material-symbols-outlined">tune</span>
+<span class="hidden md:inline">筛选</span>
+</button>
+</section>
+
+<!-- Product Grid -->
+<section class="px-container-margin py-stack-lg grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-gutter">
+<!-- Product Card 1 -->
+<div class="group cursor-pointer" onclick="this.style.transform='scale(0.98)';setTimeout(()=>this.style.transform='scale(1)',100)">
+<div class="aspect-[4/5] rounded-lg bg-surface-container overflow-hidden mb-stack-sm relative border border-outline-variant/20">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBcxIOEDbuvm6JLHMJfWZm5Xw2gobOffrSP8fYAedNZBy0mQoJa4JeRax-IgFJHtFi-bdYHnzNUVyIwNLd5dr8nDLF9fHZTOyVlfj8Ynv0m3YyLW8U_LFQnY6JQ_So2sDETtiXAF8qOsNY0lwrvoQ8FApBAdAdAvhwfuMr0b1dDPzTpgOWVjDhzQuxbc8pyKA1SuZ9IlJLOkELEU_hfGCI2FQKXlNSVKwKzpboiUmn2FCwUBCeIZFq3WlabWC6l_w_h6wrR1YSEQpg" alt="重磅基础圆领T恤"/>
+<button class="absolute top-3 right-3 bg-white/80 backdrop-blur-md p-1.5 rounded-full text-on-surface shadow-sm" onclick="event.stopPropagation()">
+<span class="material-symbols-outlined text-[20px]">favorite</span>
+</button>
+</div>
+<div class="flex flex-col">
+<span class="text-label-md font-label-md text-on-surface-variant">Basics</span>
+<h3 class="text-body-lg font-semibold text-on-surface truncate">重磅基础圆领T恤</h3>
+<p class="text-title-md font-bold text-primary mt-1">¥299</p>
+</div>
+</div>
+<!-- Product Card 2 -->
+<div class="group cursor-pointer" onclick="this.style.transform='scale(0.98)';setTimeout(()=>this.style.transform='scale(1)',100)">
+<div class="aspect-[4/5] rounded-lg bg-surface-container overflow-hidden mb-stack-sm relative border border-outline-variant/20">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDtLq-C1TDSMoNwcHnn-eVcvKG5bW9qcDnSLkENuOUd4p63l9lIRGw6y7Wf2lHWQL5XUCi9oK2vNCP--Ic_P2z6G166x5hIOuYFR4TwWQvHA1WGCHgWCP6CBhQwnn9plpjCKuhrAmD3_JxM1YiUhe7GNScFK9wDxoZT_y41Na-WAQ9fFQ8M2AcvwJT9miQidD1BomvhU3bNKvMPn9kk2EGUlH6ezxfZOkKtwVYWP-j2SyoLx-rYb25fUEFO8mEc59lqo3w6xO8scPo" alt="全棉连帽卫衣"/>
+<button class="absolute top-3 right-3 bg-white/80 backdrop-blur-md p-1.5 rounded-full text-on-surface shadow-sm" onclick="event.stopPropagation()">
+<span class="material-symbols-outlined text-[20px]">favorite</span>
+</button>
+</div>
+<div class="flex flex-col">
+<span class="text-label-md font-label-md text-on-surface-variant">Essentials</span>
+<h3 class="text-body-lg font-semibold text-on-surface truncate">全棉连帽卫衣</h3>
+<p class="text-title-md font-bold text-primary mt-1">¥589</p>
+</div>
+</div>
+<!-- Product Card 3 -->
+<div class="group cursor-pointer" onclick="this.style.transform='scale(0.98)';setTimeout(()=>this.style.transform='scale(1)',100)">
+<div class="aspect-[4/5] rounded-lg bg-surface-container overflow-hidden mb-stack-sm relative border border-outline-variant/20">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAIcHDcQdljht2z6gQ41gLuV1ojUjxwy4bWFh89z7xckp-OdCE8P_WwuiQDxwhven813Q6WUo6kkIS1OpvtrkCUZkxmPNxNXm7vCbJSm-Js7LuoQbcbXDvW6N947AlmRD_8-BEEPZKVskrV82GLkj2iAb2ijj__zUOlsa6-Av40EiCaJ6cxj2CVCJIIGXbZYI3XnmGpoK2-s5C0ZSuoyH5IcqMe7yLP9eJ_fJRib-sEsZz7RbxZH9OX9bFhe2S4t2Corz34yCM0x-Q" alt="艺术家合作款短袖"/>
+<button class="absolute top-3 right-3 bg-white/80 backdrop-blur-md p-1.5 rounded-full text-on-surface shadow-sm" onclick="event.stopPropagation()">
+<span class="material-symbols-outlined text-[20px]">favorite</span>
+</button>
+</div>
+<div class="flex flex-col">
+<span class="text-label-md font-label-md text-on-surface-variant">Designer</span>
+<h3 class="text-body-lg font-semibold text-on-surface truncate">艺术家合作款短袖</h3>
+<p class="text-title-md font-bold text-primary mt-1">¥899</p>
+</div>
+</div>
+<!-- Product Card 4 -->
+<div class="group cursor-pointer" onclick="this.style.transform='scale(0.98)';setTimeout(()=>this.style.transform='scale(1)',100)">
+<div class="aspect-[4/5] rounded-lg bg-surface-container overflow-hidden mb-stack-sm relative border border-outline-variant/20">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBMSwZyZ4zLPPjxJ1sMCKcHLY9aFmf7BNfeLbsA0brfMz-guyQOf_bLuoTAn8aFg1f942gafBVLPDrHa8xeMmsUUnbXzRnpcMSIHLu2ebCGI5eOifptXsd8GWVoq9U6ZF3wl9vH1YRiQxU7HFs4hMdJXsBV0hpsBhPTK1idjNh2EcM0gnyNb7HDsOWC0sJ0oyNDFNbusKmIm4ZEIIlpniis74rgbyxxI2SgM_90nWNG7S-fijzaHI66htva8j7ZbPPpf7EXIWIqxrY" alt="手工水洗丹宁夹克"/>
+<div class="absolute top-3 left-3 bg-primary text-on-primary text-[10px] px-2 py-0.5 rounded-lg font-bold uppercase tracking-wider">New</div>
+<button class="absolute top-3 right-3 bg-white/80 backdrop-blur-md p-1.5 rounded-full text-on-surface shadow-sm" onclick="event.stopPropagation()">
+<span class="material-symbols-outlined text-[20px]">favorite</span>
+</button>
+</div>
+<div class="flex flex-col">
+<span class="text-label-md font-label-md text-on-surface-variant">Custom</span>
+<h3 class="text-body-lg font-semibold text-on-surface truncate">手工水洗丹宁夹克</h3>
+<p class="text-title-md font-bold text-primary mt-1">¥1,299</p>
+</div>
+</div>
+<!-- Product Card 5 -->
+<div class="group cursor-pointer" onclick="this.style.transform='scale(0.98)';setTimeout(()=>this.style.transform='scale(1)',100)">
+<div class="aspect-[4/5] rounded-lg bg-surface-container overflow-hidden mb-stack-sm relative border border-outline-variant/20">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCpuaD8FazEBJOA0_62jqtProQd1eCNt-azH7UUcjreol2d57cYmNiSGD8VIwJ4e8NLrA4kZAEKJgzKDbOi4dVB8ZYN_DDKnqTdNAmq3dFZj_-FOlRhh3Q0SD0_uFMDaohyalYYLLuE6b_k9Iev9MBbc-0hd7xDqs8m8HnBI00hon-AMqPR4fDvtFE3BKFCmR_qS6eQTMVdngHgHmHka0A64QV5ECRqrSdGucWF4elY0uLveyOahqeBvA4QzXdjXdTMMdWFaQ7d4_c" alt="莫代尔混纺T恤"/>
+<button class="absolute top-3 right-3 bg-white/80 backdrop-blur-md p-1.5 rounded-full text-on-surface shadow-sm" onclick="event.stopPropagation()">
+<span class="material-symbols-outlined text-[20px]">favorite</span>
+</button>
+</div>
+<div class="flex flex-col">
+<span class="text-label-md font-label-md text-on-surface-variant">Essentials</span>
+<h3 class="text-body-lg font-semibold text-on-surface truncate">莫代尔混纺T恤</h3>
+<p class="text-title-md font-bold text-primary mt-1">¥349</p>
+</div>
+</div>
+<!-- Product Card 6 -->
+<div class="group cursor-pointer" onclick="this.style.transform='scale(0.98)';setTimeout(()=>this.style.transform='scale(1)',100)">
+<div class="aspect-[4/5] rounded-lg bg-surface-container overflow-hidden mb-stack-sm relative border border-outline-variant/20">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA0A3aMuC4cizuVAd7icLzj9LidBydEL6nDBh0YmU2Du4OBFwbETf59UNSN2MpWy4KsYb_pCHNVzSdqD7u_zqt3wX-PLYuplbYw4BfehrC8IHaOIyH7zWaiM4gCzhMnRjKYy2Cy-DviIo_RALbHLGO2EfksZlQ4KWCCOy0ikRmoqkqVtTR_gBCIG9TjATmU16zSbb6_k2_69KTgcPHywTI53AAD-FTCwG9fa6vOwUklgcasGfxkXJOMXmIJjoxolnKjpD6H7vDtnWU" alt="廓形立领衬衫"/>
+<button class="absolute top-3 right-3 bg-white/80 backdrop-blur-md p-1.5 rounded-full text-on-surface shadow-sm" onclick="event.stopPropagation()">
+<span class="material-symbols-outlined text-[20px]">favorite</span>
+</button>
+</div>
+<div class="flex flex-col">
+<span class="text-label-md font-label-md text-on-surface-variant">Designer</span>
+<h3 class="text-body-lg font-semibold text-on-surface truncate">廓形立领衬衫</h3>
+<p class="text-title-md font-bold text-primary mt-1">¥749</p>
+</div>
+</div>
+</section>
+</main>
+
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full bg-surface border-t border-outline-variant z-50 flex justify-around items-center px-4 pb-4 pt-2">
+<a class="flex flex-col items-center justify-center text-secondary px-4 py-1 hover:bg-surface-variant rounded-lg transition-opacity" href="/">
+<span class="material-symbols-outlined">home</span>
+<span class="text-label-md mt-1">首页</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary px-4 py-1 hover:bg-surface-variant rounded-lg transition-opacity" href="/design">
+<span class="material-symbols-outlined">brush</span>
+<span class="text-label-md mt-1">设计</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary px-4 py-1 hover:bg-surface-variant rounded-lg transition-opacity" href="/cart">
+<span class="material-symbols-outlined">shopping_cart</span>
+<span class="text-label-md mt-1">购物车</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-lg px-4 py-1 scale-90 transition-transform duration-200" href="/shop">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">storefront</span>
+<span class="text-label-md mt-1">商店</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary px-4 py-1 hover:bg-surface-variant rounded-lg transition-opacity" href="/person">
+<span class="material-symbols-outlined">person</span>
+<span class="text-label-md mt-1">个人中心</span>
+</a>
+</nav>
+
+<!-- Floating Action Button -->
+<button class="fixed right-6 bottom-24 w-14 h-14 bg-primary text-on-primary rounded-lg shadow-lg flex items-center justify-center active:scale-95 transition-transform">
+<span class="material-symbols-outlined">shopping_cart</span>
+</button>
+
+<script>
+document.querySelectorAll('.group').forEach(card => {
+    card.addEventListener('click', () => {
+        card.style.transform = 'scale(0.98)';
+        setTimeout(() => card.style.transform = 'scale(1)', 100);
+    });
+});
+
+const scrollContainer = document.querySelector('.no-scrollbar');
+if (scrollContainer) {
+    scrollContainer.addEventListener('wheel', (evt) => {
+        evt.preventDefault();
+        scrollContainer.scrollLeft += evt.deltaY;
+    });
+}
+</script>
+
+<style>
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Shop page overrides for cool palette */
+:root {
+  --color-background: #f9f9ff;
+  --color-on-background: #151c27;
+  --color-surface: #f9f9ff;
+  --color-on-surface: #151c27;
+  --color-surface-variant: #dce2f3;
+  --color-on-surface-variant: #434656;
+  --color-surface-container: #e7eefe;
+  --color-surface-container-low: #f0f3ff;
+  --color-surface-container-high: #e2e8f8;
+  --color-surface-container-highest: #dce2f3;
+  --color-secondary: #5c5f61;
+  --color-secondary-container: #e0e3e5;
+  --color-outline: #737688;
+  --color-outline-variant: #c3c5d9;
+  --color-primary: #c2652a;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #c2652a;
+  --color-on-primary-container: #ffffff;
+}
+</style>
+</MainLayout>

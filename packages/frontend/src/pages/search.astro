@@ -1,0 +1,173 @@
+---
+import MainLayout from '../layouts/MainLayout.astro'
+---
+
+<MainLayout title="搜索">
+<!-- Top AppBar -->
+<header class="bg-surface border-b border-outline-variant sticky top-0 z-50">
+<div class="flex justify-between items-center px-6 h-16 w-full max-w-7xl mx-auto">
+<button class="text-primary hover:bg-surface-container-high transition-colors p-2 rounded-full active:scale-95 duration-100">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<h1 class="font-headline text-2xl font-bold text-primary">ByChooow</h1>
+<button class="text-primary hover:bg-surface-container-high transition-colors p-2 rounded-full active:scale-95 duration-100">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</div>
+</header>
+
+<main class="pb-24 max-w-7xl mx-auto">
+<!-- Search & Filters -->
+<section class="px-6 pt-6">
+<div class="relative w-full mb-6">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full bg-surface-container-low border border-outline-variant rounded-full py-4 pl-12 pr-6 text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" placeholder="搜索连帽衫、T恤..." type="text" value="高级休闲服"/>
+</div>
+<!-- Filter Chips -->
+<div class="flex gap-3 overflow-x-auto hide-scrollbar pb-2">
+<button class="bg-primary text-on-primary px-6 py-2 rounded-full text-sm font-medium whitespace-nowrap active:scale-95 transition-all">全部</button>
+<button class="bg-surface-container-high text-on-surface-variant px-6 py-2 rounded-full text-sm font-medium whitespace-nowrap border border-outline-variant hover:bg-surface-container-highest transition-all">基础款</button>
+<button class="bg-surface-container-high text-on-surface-variant px-6 py-2 rounded-full text-sm font-medium whitespace-nowrap border border-outline-variant hover:bg-surface-container-highest transition-all">精选必备</button>
+<button class="bg-surface-container-high text-on-surface-variant px-6 py-2 rounded-full text-sm font-medium whitespace-nowrap border border-outline-variant hover:bg-surface-container-highest transition-all">限量系列</button>
+<button class="bg-surface-container-high text-on-surface-variant px-6 py-2 rounded-full text-sm font-medium whitespace-nowrap border border-outline-variant hover:bg-surface-container-highest transition-all">配饰</button>
+</div>
+</section>
+
+<!-- Results Info -->
+<section class="px-6 py-4 flex justify-between items-center">
+<p class="text-on-surface-variant text-sm font-headline italic tracking-wide">为您找到 24 个结果</p>
+<button class="flex items-center gap-2 text-primary font-medium text-sm">
+<span class="material-symbols-outlined text-lg">tune</span>
+        筛选
+    </button>
+</section>
+
+<!-- Product Grid -->
+<section class="px-6 grid grid-cols-2 gap-x-4 gap-y-8">
+<!-- Product 1 -->
+<div class="group cursor-pointer">
+<div class="aspect-[3/4] rounded-xl overflow-hidden bg-surface-container relative mb-4">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDxjeqPtAtv1vDI3ICB7fluamLzpQM0HFOfYDY7TToUIpy8USSftbwfLhFAEjHpKHVWzzHM7CfcA3XmnrgFmiLOa2MVMHB6k-SKcW7iPJ5QV5RtUzn2tuIzMRV4hcRzDRo4WjNJGUwx7QT4O4m1PjMnENjr5EcBg-0cxPVzQEhQdRsBJ9NvoN-IxOFJq3Kd7jCisiDjQKmwAfNe4-PDTqw9I2PG9vQtX3jLL86Q90xxJmpnln-BV4yojBbWg0BP79BdAi_qMYQML0k" alt="简约基础款 T恤"/>
+<button class="absolute top-3 right-3 w-10 h-10 bg-surface/80 backdrop-blur rounded-full flex items-center justify-center text-on-surface hover:text-tertiary transition-colors">
+<span class="material-symbols-outlined text-xl">favorite</span>
+</button>
+</div>
+<h3 class="text-on-surface font-medium mb-1">简约基础款 T恤</h3>
+<p class="text-on-surface-variant text-xs mb-2">大地色系 / 有机棉</p>
+<div class="flex items-center justify-between">
+<span class="text-primary font-bold">¥299</span>
+<span class="material-symbols-outlined text-on-surface-variant text-lg">add_shopping_cart</span>
+</div>
+</div>
+<!-- Product 2 -->
+<div class="group cursor-pointer">
+<div class="aspect-[3/4] rounded-xl overflow-hidden bg-surface-container relative mb-4">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDos5V5Gb1QLDlEhWU1SraDqsN4oLUpjGhjnOBCUN3fmcmVWXGnHmgYMfU2hkazShPcFArhBzLnN3roSAZzjPjaDcnuHEyT1kOuFSXxqBf4jnIBQL-gY9gVvwNXvv1CW56sG-l_AwuD_aXy5VL9HPBlH1phDar678gslF3MW2rBNlwKwTygAaIAhHku-knfZAjlZ3icoc3Unb8lSUMVGUxttnJKwEp2CK5pquGG0zSsJgSJPaJe6xtbuS-c6AFI2ku88WcBQs6v_z8" alt="重磅廓形连帽衫"/>
+<button class="absolute top-3 right-3 w-10 h-10 bg-surface/80 backdrop-blur rounded-full flex items-center justify-center text-on-surface hover:text-tertiary transition-colors">
+<span class="material-symbols-outlined text-xl">favorite</span>
+</button>
+</div>
+<h3 class="text-on-surface font-medium mb-1">重磅廓形连帽衫</h3>
+<p class="text-on-surface-variant text-xs mb-2">落肩设计 / 舒适透气</p>
+<div class="flex items-center justify-between">
+<span class="text-primary font-bold">¥599</span>
+<span class="material-symbols-outlined text-on-surface-variant text-lg">add_shopping_cart</span>
+</div>
+</div>
+<!-- Product 3 -->
+<div class="group cursor-pointer">
+<div class="aspect-[3/4] rounded-xl overflow-hidden bg-surface-container relative mb-4">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDgnuWwt1V07i6iEOgDool_RZe93W6nXQOYRExLjPonQ3DPJu3KjYFGDT_aVCNIIjQfbVMfifwzn5Qplub8ciEDzyJP1tEwlj_rZ4gNmwSYz59wlmzOK1L8BDtEOzjY_zYctK1H3L0FBafmmK3PE-gJ6azo2k_FmIgSnCRPY6ueOCrp9MbB7Hf_qwxczLvxJxnOmiPXqpv04gz3rbTJxlDc1yRXCNRVWqlBR7iE-nRQDBuEM1JGpYp8xr-dGzBQrmKe8ygK6BItfhw" alt="极简立领卫衣"/>
+<button class="absolute top-3 right-3 w-10 h-10 bg-surface/80 backdrop-blur rounded-full flex items-center justify-center text-on-surface hover:text-tertiary transition-colors">
+<span class="material-symbols-outlined text-xl">favorite</span>
+</button>
+</div>
+<h3 class="text-on-surface font-medium mb-1">极简立领卫衣</h3>
+<p class="text-on-surface-variant text-xs mb-2">沙色系列 / 限量版</p>
+<div class="flex items-center justify-between">
+<span class="text-primary font-bold">¥459</span>
+<span class="material-symbols-outlined text-on-surface-variant text-lg">add_shopping_cart</span>
+</div>
+</div>
+<!-- Product 4 -->
+<div class="group cursor-pointer">
+<div class="aspect-[3/4] rounded-xl overflow-hidden bg-surface-container relative mb-4">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD9c142wqxUHzxXIG0HxwKGgABo5lsc72OUYJQkKgVHpo7uqvqDmX8VDs7EhMIKC2bt4gcJWX5S-LMDx4TRZ1obKyYbhhBrWcjMvq4fLZJAIv-pRWYg7JjW-u4w84I7p0_CRMoH-f2AamLz827nxj3K_aXmsYs38bmjOrTZKutgUMTetGsYeUJI4NpAA-6riKwetshzJzgqxqlPz8uw_IhYALwSCTtzXb7gQSt1ivW_F3TS76clRrPRFFXFd4GypQZLQ-yMNr4yNvo" alt="修身针织短袖"/>
+<button class="absolute top-3 right-3 w-10 h-10 bg-surface/80 backdrop-blur rounded-full flex items-center justify-center text-on-surface hover:text-tertiary transition-colors">
+<span class="material-symbols-outlined text-xl">favorite</span>
+</button>
+</div>
+<h3 class="text-on-surface font-medium mb-1">修身针织短袖</h3>
+<p class="text-on-surface-variant text-xs mb-2">深灰色 / 经典剪裁</p>
+<div class="flex items-center justify-between">
+<span class="text-primary font-bold">¥389</span>
+<span class="material-symbols-outlined text-on-surface-variant text-lg">add_shopping_cart</span>
+</div>
+</div>
+</section>
+
+<!-- Promotional Banner -->
+<section class="px-6 py-10">
+<div class="bg-surface-container-highest rounded-2xl p-8 flex flex-col items-start relative overflow-hidden">
+<div class="relative z-10 max-w-[60%]">
+<h2 class="font-headline text-3xl text-on-surface mb-3 leading-tight">夏季限时<br/>精选系列</h2>
+<p class="text-sm text-on-surface-variant mb-6">探索专为炎热午后设计的轻盈面料。</p>
+<button class="bg-inverse-surface text-inverse-on-surface px-6 py-2 rounded-lg text-sm font-semibold active:scale-95 transition-transform">立即探索</button>
+</div>
+<div class="absolute -right-10 -bottom-10 w-48 h-48 rounded-full bg-primary/10 blur-3xl"></div>
+<span class="material-symbols-outlined absolute right-6 top-1/2 -translate-y-1/2 text-primary opacity-20 text-[120px] select-none">wb_sunny</span>
+</div>
+</section>
+</main>
+
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 flex justify-around items-center px-4 py-2 bg-surface border-t border-outline-variant">
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-3 py-1 hover:text-primary transition-all active:scale-90 duration-150" href="/">
+<span class="material-symbols-outlined">home</span>
+<span class="text-label-md text-xs mt-1">首页</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-3 py-1 hover:text-primary transition-all active:scale-90 duration-150" href="/design">
+<span class="material-symbols-outlined">brush</span>
+<span class="text-label-md text-xs mt-1">设计</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-3 py-1 hover:text-primary transition-all active:scale-90 duration-150" href="/cart">
+<span class="material-symbols-outlined">shopping_cart</span>
+<span class="text-label-md text-xs mt-1">购物车</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-lg px-4 py-1 active:scale-90 duration-150 shadow-sm" href="/shop">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">storefront</span>
+<span class="text-label-md text-xs mt-1">商店</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-3 py-1 hover:text-primary transition-all active:scale-90 duration-150" href="/person">
+<span class="material-symbols-outlined">person</span>
+<span class="text-label-md text-xs mt-1">我的</span>
+</a>
+</nav>
+
+<script>
+document.querySelectorAll('.overflow-x-auto button').forEach(button => {
+    button.addEventListener('click', function() {
+        document.querySelectorAll('.overflow-x-auto button').forEach(b => {
+            b.classList.remove('bg-primary', 'text-on-primary');
+            b.classList.add('bg-surface-container-high', 'text-on-surface-variant');
+        });
+        this.classList.remove('bg-surface-container-high', 'text-on-surface-variant');
+        this.classList.add('bg-primary', 'text-on-primary');
+    });
+});
+
+document.querySelectorAll('.aspect-\\[3\\/4\\] button').forEach(button => {
+    button.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const icon = this.querySelector('.material-symbols-outlined');
+        if (icon.style.fontVariationSettings.includes("'FILL' 1")) {
+            icon.style.fontVariationSettings = "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24";
+            icon.classList.remove('text-tertiary');
+        } else {
+            icon.style.fontVariationSettings = "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24";
+            icon.classList.add('text-tertiary');
+        }
+    });
+});
+</script>
+</MainLayout>

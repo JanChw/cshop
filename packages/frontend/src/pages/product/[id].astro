@@ -1,0 +1,158 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro'
+
+export function getStaticPaths() {
+  return [{ params: { id: 'p1' } }, { params: { id: 'p2' } }, { params: { id: 'p3' } }]
+}
+---
+
+<MainLayout title="定制创意印花 T恤">
+<!-- Top App Bar -->
+<header class="bg-surface border-b border-outline-variant fixed top-0 w-full z-50 h-14 flex justify-between items-center px-container-margin max-w-7xl mx-auto left-1/2 -translate-x-1/2">
+<button class="text-on-surface hover:opacity-80 transition-opacity active:scale-95 duration-150" onclick="history.back()">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h1 class="text-title-md font-bold text-on-surface">ByChooow</h1>
+<button class="text-on-surface hover:opacity-80 transition-opacity active:scale-95 duration-150">
+<span class="material-symbols-outlined">share</span>
+</button>
+</header>
+<main class="pt-14 pb-32 max-w-2xl mx-auto">
+<section class="relative bg-white mb-stack-md">
+<div class="aspect-[4/5] overflow-hidden">
+<img alt="定制创意印花 T恤" class="w-full h-full object-cover" id="main-product-image" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBlLFBybbM1v6aMlzUhTe0r7hOja-Sfc3fITuJ3-8xcojV6wxuFv1dS6NGKo7iUOG4DVROYiu1Q53pBJoVu1WOcfKHqjVkarWJ6ZjkyUjeceLTFMAyFmQ6lqXyVryCrLSYQz6yPx2lBhKB70007Ypc8HZfabQsRgVFzMLTAtaWwY7reaXoOS5QzD3WJsw9m2nB0DhRASiwsqs4nZDRN3Pow65MVeg_d5bIhRrY5zWPyFRhYbi7fRV1vfYDFuv1ABwTc1dsamV65ovI"/>
+</div>
+<div class="flex gap-stack-sm p-container-margin overflow-x-auto no-scrollbar">
+<div class="w-16 h-16 rounded-lg overflow-hidden border-2 border-primary cursor-pointer flex-shrink-0" onclick="updateMainImage(this.children[0].src, this)">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmY2l7cm3oTXbaoviBKGNtb18VMyDFjiwRfJr6Vvmvvj5yESvj5eo1KU8OdhtgDR2XVBZ81V_inakxStCpO3Wj-tj1dgLRwz7q4-28lMUnzrc2YXyxLa4h5hjn-xrVmsTCN2uBBDnpOtB4mP-ayzKkgnnagD8PT-dZikBwqM37u_vPLBpXa2xDtPv1bdWMAji9t6QrwUPhOf0PcMFh_rVFzn-FWqTTn0TehtA3j8niitk1c6DJsL8p0dK6e7TGuxZYdwZ3_Aczdus"/>
+</div>
+<div class="w-16 h-16 rounded-lg overflow-hidden border-2 border-transparent hover:border-outline-variant cursor-pointer flex-shrink-0" onclick="updateMainImage(this.children[0].src, this)">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBWAG6exWlIpiseu3eglyfBu-tv3ajXxI0TOFdQFBmPvlQq5zVQcujexyntCnF-Y0XWJwk3J2OWAgOIgphvt3kIhnGP_ED6OmlwA9dqTLXAt-44eqXsq1k8XarZypcpO_Vp59WBzQcb3qkp0tepM7DPB-fBDNQ0IE9QNkYV99s62q3_gJNbFBQT3vP16afoHICVdmUowIDXbdbMEh_cHUXutWCZjlvqQmYpBGa6SwtH7DpsvOLQ6HKpMulrX24qWb9hwjKhpjcvvMw"/>
+</div>
+<div class="w-16 h-16 rounded-lg overflow-hidden border-2 border-transparent hover:border-outline-variant cursor-pointer flex-shrink-0" onclick="updateMainImage(this.children[0].src, this)">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDAQYrsF1zcG1ic3_kQm4c6-Q8jr0YTLlL-ESDBhHx-h6KudwzkPulytjyI6psh9Yc_IUNJ5BCYM8zm4Ba_msZikQwHhFXX1K9FBXcXrkCsU7XYCJrNY6NpL6BTy-7VMTp6gkgqDOjIsUCH8pJZ4RPRFzEMW0nXt5-O2WUIbUc4c0VgUA9aa_Lyh14rXtYic9JJr3vSiRyYM_Pm4VEWx3rOevk0-G6poImtgZz8KAFD143FbdE5QXIHrDApo_DDns5hYoFSPZNVUq0"/>
+</div>
+</div>
+</section>
+<section class="px-container-margin mb-stack-lg">
+<div class="flex justify-between items-start mb-unit">
+<span class="bg-primary-container text-primary text-label-md px-2 py-1 rounded">DIY Customizable</span>
+</div>
+<h2 class="text-headline-lg-mobile text-on-surface mb-2">定制创意印花 T恤</h2>
+<div class="flex items-baseline gap-2 mb-stack-md">
+<span class="text-primary font-bold text-2xl">¥ 199.00</span>
+<span class="text-outline text-body-sm line-through">¥ 299.00</span>
+</div>
+<p class="text-on-surface-variant text-body-sm leading-relaxed">采用 100% 高品质精梳棉，手感柔软亲肤。支持多区域个性化定制，让你的创意灵感跃然衣上。</p>
+</section>
+<section class="mx-container-margin mb-stack-lg p-stack-md bg-surface-container-low rounded-lg border border-outline-variant">
+<div class="flex items-center gap-stack-md">
+<div class="w-12 h-12 rounded-lg bg-primary flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined">rebase_edit</span>
+</div>
+<div class="flex-1">
+<h4 class="text-body-lg font-bold text-on-surface">开始您的创作</h4>
+<p class="text-body-sm text-on-surface-variant">点击前往设计画布，添加属于你的印花</p>
+</div>
+<span class="material-symbols-outlined text-outline">chevron_right</span>
+</div>
+</section>
+<section class="px-container-margin mb-stack-lg">
+<div class="mb-stack-lg">
+<h5 class="text-label-md text-on-surface uppercase mb-stack-sm tracking-wider">颜色选择</h5>
+<div class="flex gap-stack-sm">
+<button class="px-4 py-2 rounded-lg border-2 border-primary text-body-sm text-on-surface bg-white">白色</button>
+<button class="px-4 py-2 rounded-lg border border-outline-variant text-body-sm text-on-surface hover:bg-surface-container transition-colors">黑色</button>
+<button class="px-4 py-2 rounded-lg border border-outline-variant text-body-sm text-on-surface hover:bg-surface-container transition-colors">灰色</button>
+</div>
+</div>
+<div>
+<div class="flex justify-between items-center mb-stack-sm">
+<h5 class="text-label-md text-on-surface uppercase tracking-wider">尺码选择</h5>
+<button class="text-primary text-label-md flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">straighten</span>尺码表</button>
+</div>
+<div class="grid grid-cols-5 gap-stack-sm">
+<button class="py-2 rounded-lg border border-outline-variant text-center text-body-sm hover:bg-surface-container transition-colors">S</button>
+<button class="py-2 rounded-lg border-2 border-primary bg-white text-center text-body-sm">M</button>
+<button class="py-2 rounded-lg border border-outline-variant text-center text-body-sm hover:bg-surface-container transition-colors">L</button>
+<button class="py-2 rounded-lg border border-outline-variant text-center text-body-sm hover:bg-surface-container transition-colors">XL</button>
+<button class="py-2 rounded-lg border border-outline-variant text-center text-body-sm hover:bg-surface-container transition-colors">XXL</button>
+</div>
+</div>
+</section>
+<section class="mx-container-margin p-stack-md bg-white rounded-lg border border-outline-variant mb-stack-lg space-y-4">
+<div class="flex items-start gap-stack-md">
+<span class="material-symbols-outlined text-primary">local_shipping</span>
+<div><p class="font-bold text-on-surface">免费配送</p><p class="text-body-sm text-on-surface-variant">所有定制订单均享顺丰包邮服务</p></div>
+</div>
+<div class="flex items-start gap-stack-md">
+<span class="material-symbols-outlined text-primary">verified_user</span>
+<div><p class="font-bold text-on-surface">售后保障</p><p class="text-body-sm text-on-surface-variant">支持 7 天无理由退换（定制印花除外）</p></div>
+</div>
+</section>
+<section class="px-container-margin mb-stack-lg">
+<div class="border-t border-outline-variant pt-stack-lg">
+<h5 class="text-title-md mb-stack-md text-on-surface">商品详情</h5>
+<div class="space-y-stack-md text-body-sm text-on-surface-variant">
+<div class="flex justify-between border-b border-outline-variant pb-2"><span>材质</span><span class="text-on-surface font-semibold">100% 精梳棉</span></div>
+<div class="flex justify-between border-b border-outline-variant pb-2"><span>克重</span><span class="text-on-surface font-semibold">220g 重磅</span></div>
+<div class="flex justify-between border-b border-outline-variant pb-2"><span>版型</span><span class="text-on-surface font-semibold">宽松落肩</span></div>
+</div>
+<div class="mt-stack-lg">
+<h6 class="font-bold text-on-surface mb-2">设计师寄语</h6>
+<p class="text-body-sm leading-relaxed italic border-l-4 border-primary pl-4 py-1 bg-surface-container-low">"这不仅是一件 T恤，更是你表达自我的画布。我们致力于提供最高品质的基础款，让你的每一个设计都能完美呈现。"</p>
+</div>
+</div>
+</section>
+</main>
+<div class="fixed bottom-0 left-0 w-full bg-white border-t border-outline-variant z-[60]">
+<div class="flex items-center gap-stack-md px-container-margin py-stack-md max-w-7xl mx-auto">
+<div class="flex flex-col items-center justify-center text-secondary px-2">
+<span class="material-symbols-outlined">chat_bubble</span>
+<span class="text-[10px]">咨询</span>
+</div>
+<div class="flex flex-col items-center justify-center text-secondary px-2">
+<span class="material-symbols-outlined">favorite</span>
+<span class="text-[10px]">收藏</span>
+</div>
+<div class="flex-1 flex gap-2">
+<button class="flex-1 py-3 rounded-lg border border-primary font-bold text-primary text-body-lg active:scale-95 transition-transform bg-white">加入购物车</button>
+<button class="flex-1 py-3 rounded-lg bg-primary font-bold text-on-primary text-body-lg active:scale-95 transition-transform">立即购买</button>
+</div>
+</div>
+</div>
+<script>
+function updateMainImage(src, thumbElement) {
+    const mainImg = document.getElementById('main-product-image');
+    mainImg.style.opacity = '0.5';
+    setTimeout(() => {
+        mainImg.src = src;
+        mainImg.style.opacity = '1';
+        document.querySelectorAll('.flex-shrink-0.rounded-lg').forEach(el => {
+            el.classList.remove('border-primary');
+            el.classList.add('border-transparent');
+        });
+        thumbElement.classList.remove('border-transparent');
+        thumbElement.classList.add('border-primary');
+    }, 150);
+}
+const sizeButtons = document.querySelectorAll('.grid-cols-5 button');
+sizeButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+        sizeButtons.forEach(b => { b.classList.remove('border-2', 'border-primary', 'bg-white'); b.classList.add('border', 'border-outline-variant'); });
+        btn.classList.add('border-2', 'border-primary', 'bg-white');
+        btn.classList.remove('border', 'border-outline-variant');
+    });
+});
+const colorButtons = document.querySelectorAll('.flex.gap-stack-sm button');
+colorButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+        colorButtons.forEach(b => { b.classList.remove('border-2', 'border-primary', 'bg-white'); b.classList.add('border', 'border-outline-variant'); });
+        btn.classList.add('border-2', 'border-primary', 'bg-white');
+        btn.classList.remove('border', 'border-outline-variant');
+    });
+});
+</script>
+<style>.no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{-ms-overflow-style:none;scrollbar-width:none}</style>
+</MainLayout>

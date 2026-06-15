@@ -2,14 +2,14 @@ import { Hono } from 'hono'
 import { db } from '../db'
 import {
   products, productVariants, orders, orderItems,
-  cartItems, designs, users, uploads
+  cartItems, designs, users, uploads, productVariantOptions, categories
 } from '../db/schema'
-import { eq, desc, count, sum, and, sql } from 'drizzle-orm'
+import { eq, desc, count, sum, and, sql, inArray, like, asc, isNull, isNotNull } from 'drizzle-orm'
 import { auth } from '../middleware/auth'
 import { requireStaff, requirePermission } from '../middleware/permission'
 import { success, fail } from '../utils/response'
 import { validateJson } from '../utils/validate'
-import { productSchema, productVariantSchema, orderStatusSchema } from '../validators'
+import { productSchema, productVariantSchema, orderStatusSchema, variantBatchDeleteSchema, variantBatchUpdateSchema, productVariantOptionSchema, productVariantOptionUpdateSchema, productBatchDeleteSchema } from '../validators'
 import { trackBusinessEvent } from '../utils/track'
 import { canTransition } from '../utils/orderTransitions'
 import { processImage } from '../utils/image'
@@ -24,6 +24,7 @@ import rolesRoutes from './admin/roles'
 import usersRoutes from './admin/users'
 import uploadsRoutes from './admin/uploads'
 import menusRoutes from './admin/menus'
+import { adminVariantOptionsRoutes } from './variantOptions'
 import type { AppEnv } from '../types/hono'
 
 const app = new Hono<AppEnv>()
@@ -57,9 +58,35 @@ app.get('/products', requirePermission('product.read'), async (c) => {
   const limit = Math.min(100, Math.max(1, parseInt(c.req.query('limit') ?? '20')))
   const offset = (page - 1) * limit
   const includeInactive = c.req.query('includeInactive') === 'true'
+  const onlyDeleted = c.req.query('onlyDeleted') === 'true'
+  const q = c.req.query('q')?.trim()
 
-  const where = includeInactive ? undefined : eq(products.isActive, true)
-  const baseQuery = db.select().from(products)
+  const conditions = []
+  if (onlyDeleted) {
+    conditions.push(isNotNull(products.deletedAt))
+  } else {
+    if (!includeInactive) conditions.push(eq(products.isActive, true))
+    conditions.push(isNull(products.deletedAt))
+  }
+  if (q) {
+    const escaped = q.replace(/[\\%_]/g, ch => '\\' + ch)
+    conditions.push(sql`${products.name} LIKE ${'%' + escaped + '%'} ESCAPE '\\'`)
+  }
+  const where = conditions.length > 0 ? and(...conditions) : undefined
+
+  const baseQuery = db.select({
+    id: products.id,
+    name: products.name,
+    description: products.description,
+    basePrice: products.basePrice,
+    categoryId: products.categoryId,
+    categoryName: categories.name,
+    image: products.image,
+    stock: products.stock,
+    isActive: products.isActive,
+    createdAt: products.createdAt,
+    deletedAt: products.deletedAt
+  }).from(products).leftJoin(categories, eq(products.categoryId, categories.id))
   const countQuery = db.select({ n: count() }).from(products)
 
   const [items, [{ n: total }]] = await Promise.all([
@@ -156,7 +183,11 @@ app.post('/products/:id/image', requirePermission('product.update'), async (c) =
 
 app.delete('/products/:id', requirePermission('product.delete'), async (c) => {
   const id = parseInt(c.req.param('id'))
-  await db.update(products).set({ isActive: false }).where(eq(products.id, id))
+  const [existing] = await db.select({ id: products.id }).from(products).where(eq(products.id, id)).limit(1)
+  if (!existing) {
+    return fail(c, '商品不存在', 404)
+  }
+  await db.update(products).set({ deletedAt: sql`datetime('now')` }).where(eq(products.id, id))
   return success(c, null)
 })
 
@@ -166,8 +197,51 @@ app.post('/products/:id/restore', requirePermission('product.update'), async (c)
   if (!existing) {
     return fail(c, '商品不存在', 404)
   }
-  await db.update(products).set({ isActive: true }).where(eq(products.id, id))
+  await db.update(products).set({ deletedAt: null }).where(eq(products.id, id))
   return success(c, null)
+})
+
+async function checkProductReferences(ids: number[]): Promise<{ referenced: number[] }> {
+  const referenced: number[] = []
+  for (const id of ids) {
+    const [orderRef] = await db.select({ n: count() }).from(orderItems).where(eq(orderItems.productId, id))
+    const [cartRef] = await db.select({ n: count() }).from(cartItems).where(eq(cartItems.productId, id))
+    const [designRef] = await db.select({ n: count() }).from(designs).where(eq(designs.productId, id))
+    if (orderRef.n > 0 || cartRef.n > 0 || designRef.n > 0) {
+      referenced.push(id)
+    }
+  }
+  return { referenced }
+}
+
+app.post('/products/:id/permanent', requirePermission('product.hardDelete'), async (c) => {
+  const id = parseInt(c.req.param('id'))
+  const [existing] = await db.select({ id: products.id }).from(products).where(eq(products.id, id)).limit(1)
+  if (!existing) {
+    return fail(c, '商品不存在', 404)
+  }
+  const { referenced } = await checkProductReferences([id])
+  if (referenced.length > 0) {
+    return fail(c, '该商品有订单/购物车/设计记录，无法彻底删除', 409)
+  }
+  await db.delete(products).where(eq(products.id, id))
+  return success(c, null)
+})
+
+app.post('/products/batch-delete', requirePermission('product.delete'), validateJson(productBatchDeleteSchema), async (c) => {
+  const { ids } = c.req.valid('json')
+  await db.update(products).set({ deletedAt: sql`datetime('now')` }).where(inArray(products.id, ids))
+  return success(c, { count: ids.length })
+})
+
+app.post('/products/batch-permanent', requirePermission('product.hardDelete'), validateJson(productBatchDeleteSchema), async (c) => {
+  const { ids } = c.req.valid('json')
+  const { referenced } = await checkProductReferences(ids)
+  if (referenced.length > 0) {
+    return fail(c, `选中商品中有 ${referenced.length} 个有订单/购物车/设计记录，无法彻底删除`, 409)
+  }
+  await db.delete(products).where(inArray(products.id, ids))
+  return success(c, { count: ids.length })
 })
 
 app.get('/products/:id/variants', requirePermission('product.read'), async (c) => {
@@ -224,21 +298,160 @@ app.delete('/products/:productId/variants/:variantId', requirePermission('produc
   return success(c, null)
 })
 
+app.post('/products/:id/variants/batch-delete', requirePermission('product.delete'), validateJson(variantBatchDeleteSchema), async (c) => {
+  const productId = parseInt(c.req.param('id'))
+  const { ids } = c.req.valid('json')
+
+  const refRows = db
+    .select({ id: orderItems.variantId, n: count() })
+    .from(orderItems)
+    .where(inArray(orderItems.variantId, ids))
+    .groupBy(orderItems.variantId)
+    .all()
+  const cartRows = db
+    .select({ id: cartItems.variantId, n: count() })
+    .from(cartItems)
+    .where(inArray(cartItems.variantId, ids))
+    .groupBy(cartItems.variantId)
+    .all()
+  const designRows = db
+    .select({ id: designs.variantId, n: count() })
+    .from(designs)
+    .where(inArray(designs.variantId, ids))
+    .groupBy(designs.variantId)
+    .all()
+
+  const blocked = new Set<number>()
+  refRows.forEach(r => { if (r.id != null && r.n > 0) blocked.add(r.id) })
+  cartRows.forEach(r => { if (r.id != null && r.n > 0) blocked.add(r.id) })
+  designRows.forEach(r => { if (r.id != null && r.n > 0) blocked.add(r.id) })
+
+  const deletable = ids.filter(id => !blocked.has(id))
+  if (deletable.length === 0) {
+    return fail(c, '所选规格均已被订单/购物车/设计引用，无法删除', 409)
+  }
+
+  db.delete(productVariants).where(inArray(productVariants.id, deletable)).run()
+
+  if (blocked.size > 0) {
+    return success(c, { deleted: deletable.length, skipped: Array.from(blocked) })
+  }
+  return success(c, { deleted: deletable.length, skipped: [] })
+})
+
+app.post('/products/:id/variants/batch-update', requirePermission('product.update'), validateJson(variantBatchUpdateSchema), async (c) => {
+  const { ids, data } = c.req.valid('json')
+  db.update(productVariants).set(data).where(inArray(productVariants.id, ids)).run()
+  return success(c, { updated: ids.length })
+})
+
+// 商品级规格选项
+app.get('/products/:id/variant-options', requirePermission('product.read'), async (c) => {
+  const productId = parseInt(c.req.param('id'))
+  const type = c.req.query('type') as 'material' | 'weight' | 'size' | 'color' | undefined
+  const conditions = type
+    ? and(eq(productVariantOptions.productId, productId), eq(productVariantOptions.type, type))
+    : eq(productVariantOptions.productId, productId)
+  const items = db.select().from(productVariantOptions)
+    .where(conditions)
+    .orderBy(asc(productVariantOptions.sort), asc(productVariantOptions.id))
+    .all()
+  return success(c, { items })
+})
+
+app.post('/products/:id/variant-options', requirePermission('product.update'), validateJson(productVariantOptionSchema), async (c) => {
+  const productId = parseInt(c.req.param('id'))
+  const [exists] = db.select({ id: products.id }).from(products).where(eq(products.id, productId)).limit(1).all()
+  if (!exists) return fail(c, '商品不存在', 404)
+  const data = c.req.valid('json')
+  const [record] = db.insert(productVariantOptions).values({
+    productId,
+    type: data.type,
+    value: data.value,
+    sort: data.sort ?? 0
+  }).returning().all()
+  return success(c, record, 201)
+})
+
+app.put('/products/:productId/variant-options/:optionId', requirePermission('product.update'), validateJson(productVariantOptionUpdateSchema), async (c) => {
+  const optionId = parseInt(c.req.param('optionId'))
+  const data = c.req.valid('json')
+  const [existing] = db.select({ id: productVariantOptions.id }).from(productVariantOptions).where(eq(productVariantOptions.id, optionId)).limit(1).all()
+  if (!existing) return fail(c, '选项不存在', 404)
+  db.update(productVariantOptions).set(data).where(eq(productVariantOptions.id, optionId)).run()
+  return success(c, null)
+})
+
+app.delete('/products/:productId/variant-options/:optionId', requirePermission('product.update'), async (c) => {
+  const optionId = parseInt(c.req.param('optionId'))
+  const [existing] = db.select({ id: productVariantOptions.id }).from(productVariantOptions).where(eq(productVariantOptions.id, optionId)).limit(1).all()
+  if (!existing) return fail(c, '选项不存在', 404)
+  db.delete(productVariantOptions).where(eq(productVariantOptions.id, optionId)).run()
+  return success(c, null)
+})
+
 app.get('/orders', requirePermission('order.read'), async (c) => {
   const page = Math.max(1, parseInt(c.req.query('page') ?? '1'))
   const limit = Math.min(100, Math.max(1, parseInt(c.req.query('limit') ?? '20')))
   const offset = (page - 1) * limit
   const status = c.req.query('status')
+  const q = c.req.query('q')?.trim()
 
   const conditions = []
-  if (status) conditions.push(eq(orders.status, status as 'pending' | 'paid' | 'processing' | 'shipped' | 'completed' | 'cancelled'))
+  if (status) conditions.push(eq(orders.status, status as typeof orders.$inferSelect.status))
+  if (q) {
+    const escaped = q.replace(/[\\%_]/g, ch => '\\' + ch)
+    const pattern = '%' + escaped + '%'
+    conditions.push(sql`(
+      printf('%05d', ${orders.id}) LIKE ${pattern} ESCAPE '\\'
+      OR ${users.name} LIKE ${pattern} ESCAPE '\\'
+      OR ${users.email} LIKE ${pattern} ESCAPE '\\'
+      OR ${orders.trackingNo} LIKE ${pattern} ESCAPE '\\'
+    )`)
+  }
 
   const where = conditions.length > 0 ? and(...conditions) : undefined
 
-  const [items, [{ n: total }]] = await Promise.all([
-    db.select().from(orders).where(where).orderBy(desc(orders.createdAt)).limit(limit).offset(offset),
-    db.select({ n: count() }).from(orders).where(where)
+  const [rawItems, [{ n: total }]] = await Promise.all([
+    db.select({
+      id: orders.id,
+      userId: orders.userId,
+      status: orders.status,
+      total: orders.total,
+      address: orders.address,
+      paidAt: orders.paidAt,
+      shippedAt: orders.shippedAt,
+      completedAt: orders.completedAt,
+      cancelledAt: orders.cancelledAt,
+      trackingNo: orders.trackingNo,
+      createdAt: orders.createdAt,
+      updatedAt: orders.updatedAt,
+      userName: users.name,
+      userEmail: users.email,
+    })
+      .from(orders)
+      .leftJoin(users, eq(orders.userId, users.id))
+      .where(where)
+      .orderBy(desc(orders.createdAt)).limit(limit).offset(offset),
+    db.select({ n: count() }).from(orders).leftJoin(users, eq(orders.userId, users.id)).where(where)
   ])
+
+  const ids = rawItems.map(o => o.id)
+  const itemCounts: Record<number, number> = {}
+  if (ids.length > 0) {
+    const counts = await db.select({
+      orderId: orderItems.orderId,
+      n: count(),
+    }).from(orderItems).where(inArray(orderItems.orderId, ids)).groupBy(orderItems.orderId)
+    for (const c of counts) { itemCounts[c.orderId] = c.n }
+  }
+
+  const items = rawItems.map(o => ({
+    ...o,
+    orderNo: `ORD-${String(o.id).padStart(5, '0')}`,
+    userName: o.userName ?? '未知用户',
+    itemCount: itemCounts[o.id] ?? 0,
+  }))
 
   return success(c, { items, total, page, limit })
 })
@@ -348,5 +561,6 @@ app.route('/roles', rolesRoutes)
 app.route('/users', usersRoutes)
 app.route('/uploads', uploadsRoutes)
 app.route('/menus', menusRoutes)
+app.route('/variant-options', adminVariantOptionsRoutes)
 
 export default app

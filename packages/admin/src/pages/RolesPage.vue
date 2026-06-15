@@ -80,19 +80,19 @@
                   <span class="text-sm font-semibold text-text-primary">{{ group.title }}</span>
                   <div
                     v-for="perm in group.perms"
-                    :key="perm"
+                    :key="perm.code"
                     class="flex items-center gap-2"
                   >
                     <div
                       class="w-[18px] h-[18px] rounded flex items-center justify-center text-xs text-white cursor-pointer transition-colors"
-                      :class="isPermChecked(group.title, perm)
+                      :class="isPermChecked(group.title, perm.code)
                         ? 'bg-primary'
                         : 'bg-gray-200'"
-                      @click="togglePerm(group.title, perm)"
+                      @click="togglePerm(group.title, perm.code)"
                     >
-                      <span v-if="isPermChecked(group.title, perm)">✓</span>
+                      <span v-if="isPermChecked(group.title, perm.code)">✓</span>
                     </div>
-                    <span class="text-sm text-text-primary">{{ perm }}</span>
+                    <span class="text-sm text-text-primary">{{ perm.description }}</span>
                   </div>
                 </div>
               </div>
@@ -100,7 +100,10 @@
           </div>
 
           <div class="flex justify-end mt-5 pt-3 border-t border-border">
-            <button class="rounded bg-primary text-white text-sm font-medium h-10 px-5 hover:bg-primary/90 transition-colors">
+            <button
+              class="rounded bg-primary text-white text-sm font-medium h-10 px-5 hover:bg-primary/90 transition-colors"
+              @click="savePermissions"
+            >
               保存
             </button>
           </div>
@@ -210,9 +213,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch, nextTick } from 'vue'
+import { ref, reactive, watch, nextTick, onMounted } from 'vue'
 import { Plus, Lock, Trash2, Pencil } from 'lucide-vue-next'
+import { api } from '@/utils/api'
+import { useToast } from '@/composables/useToast'
 import gsap from 'gsap'
+
+interface Permission {
+  id: number
+  code: string
+  module: string
+  description: string
+}
 
 interface Role {
   id: number
@@ -221,20 +233,40 @@ interface Role {
   description: string
   permCount: number
   isSystem: boolean
-  permissions: Record<string, string[]>
+  permissions: Permission[]
 }
 
-const roles = ref<Role[]>([
-  { id: 1, name: '超级管理员', identifier: 'super_admin', description: '拥有全部系统权限', permCount: 25, isSystem: true, permissions: { '商品管理': ['创建商品', '查看商品', '更新商品', '删除商品'], '订单管理': ['查看订单', '更新状态'], '用户管理': ['查看用户', '更新用户', '禁用用户'], '员工管理': ['查看员工', '创建员工', '更新员工', '删除员工'], '数据分析': ['查看分析', '导出数据'], '分类管理': ['创建分类', '更新分类', '删除分类'], '贴纸管理': ['创建贴纸', '更新贴纸', '删除贴纸'], '备份管理': ['创建备份', '下载备份', '删除备份'], '设置管理': ['查看设置', '更新设置'] } },
-  { id: 2, name: '商品管理员', identifier: 'product_mgr', description: '管理商品、分类和贴纸', permCount: 12, isSystem: true, permissions: { '商品管理': ['创建商品', '查看商品', '更新商品', '删除商品'], '分类管理': ['创建分类', '更新分类', '删除分类'], '贴纸管理': ['创建贴纸', '更新贴纸', '删除贴纸'] } },
-  { id: 3, name: '订单管理员', identifier: 'order_mgr', description: '管理订单和查看用户', permCount: 4, isSystem: false, permissions: { '订单管理': ['查看订单', '更新状态'], '用户管理': ['查看用户', '更新用户'] } },
-  { id: 4, name: '数据分析员', identifier: 'analytics_viewer', description: '查看数据分析报表', permCount: 3, isSystem: false, permissions: { '数据分析': ['查看分析', '导出数据'] } },
-])
+const MODULE_TO_TITLE: Record<string, string> = {
+  product: '商品管理',
+  order: '订单管理',
+  user: '用户管理',
+  staff: '员工管理',
+  analytics: '数据分析',
+  category: '分类管理',
+  sticker: '贴纸管理',
+  backup: '备份管理',
+  settings: '设置管理',
+  menu: '菜单管理',
+}
 
-const selectedRole = ref<Role>(roles.value[0])
+const GROUP_ORDER = Object.values(MODULE_TO_TITLE)
+
+const { success: toastSuccess, error: toastError } = useToast()
+
+const roles = ref<Role[]>([])
+const selectedRole = ref<Role | null>(null)
 const permContainerRef = ref<HTMLElement | null>(null)
 
+const permCodeToId: Record<string, number> = {}
+
+const permRows = ref<Array<Array<{ title: string; perms: Permission[] }>>>([])
+
+const checkedPerms = reactive<Record<string, string[]>>({})
+
 watch(selectedRole, () => {
+  if (selectedRole.value) {
+    populateCheckedPerms(selectedRole.value)
+  }
   nextTick(() => {
     const cards = permContainerRef.value?.querySelectorAll('.border.rounded-md.p-4')
     if (cards?.length) {
@@ -243,35 +275,63 @@ watch(selectedRole, () => {
   })
 })
 
-const permRows = [
-  [
-    { title: '商品管理', perms: ['创建商品', '查看商品', '更新商品', '删除商品'] },
-    { title: '订单管理', perms: ['查看订单', '更新状态'] },
-    { title: '用户管理', perms: ['查看用户', '更新用户', '禁用用户'] },
-  ],
-  [
-    { title: '员工管理', perms: ['查看员工', '创建员工', '更新员工', '删除员工'] },
-    { title: '数据分析', perms: ['查看分析', '导出数据'] },
-    { title: '分类管理', perms: ['创建分类', '更新分类', '删除分类'] },
-  ],
-  [
-    { title: '贴纸管理', perms: ['创建贴纸', '更新贴纸', '删除贴纸'] },
-    { title: '备份管理', perms: ['创建备份', '下载备份', '删除备份'] },
-    { title: '设置管理', perms: ['查看设置', '更新设置'] },
-  ],
-]
+async function fetchRoles() {
+  const res = await api.get<{ items: Array<{ id: number; name: string; displayName: string; description: string; isSystem: boolean; permissions: Permission[] }> }>('/admin/roles')
+  if (res.success && res.data) {
+    roles.value = res.data.items.map((r) => ({
+      id: r.id,
+      name: r.displayName,
+      identifier: r.name,
+      description: r.description,
+      isSystem: r.isSystem,
+      permissions: r.permissions,
+      permCount: r.permissions.length,
+    }))
+  }
+}
 
-const checkedPerms = reactive<Record<string, string[]>>({
-  '商品管理': ['创建商品', '查看商品', '更新商品', '删除商品'],
-  '订单管理': ['查看订单', '更新状态'],
-  '用户管理': ['查看用户', '更新用户', '禁用用户'],
-  '员工管理': ['查看员工', '创建员工', '更新员工', '删除员工'],
-  '数据分析': ['查看分析', '导出数据'],
-  '分类管理': ['创建分类', '更新分类', '删除分类'],
-  '贴纸管理': ['创建贴纸', '更新贴纸', '删除贴纸'],
-  '备份管理': ['创建备份', '下载备份', '删除备份'],
-  '设置管理': ['查看设置', '更新设置'],
+async function fetchPermissions() {
+  const res = await api.get<{ items: Permission[] }>('/admin/roles/permissions')
+  if (res.success && res.data) {
+    for (const perm of res.data.items) {
+      permCodeToId[perm.code] = perm.id
+    }
+    const groups: Record<string, Permission[]> = {}
+    for (const perm of res.data.items) {
+      const title = MODULE_TO_TITLE[perm.module]
+      if (title) {
+        if (!groups[title]) groups[title] = []
+        groups[title].push(perm)
+      }
+    }
+    const rows: Array<Array<{ title: string; perms: Permission[] }>> = []
+    const existing = GROUP_ORDER.filter((t) => groups[t])
+    for (let i = 0; i < existing.length; i += 3) {
+      rows.push(existing.slice(i, i + 3).map((title) => ({ title, perms: groups[title] })))
+    }
+    permRows.value = rows
+  }
+}
+
+onMounted(async () => {
+  await Promise.all([fetchRoles(), fetchPermissions()])
+  if (!selectedRole.value && roles.value.length > 0) {
+    selectedRole.value = roles.value[0]
+  }
 })
+
+function populateCheckedPerms(role: Role) {
+  for (const key of Object.keys(checkedPerms)) {
+    checkedPerms[key] = []
+  }
+  for (const perm of role.permissions) {
+    const title = MODULE_TO_TITLE[perm.module]
+    if (title) {
+      if (!checkedPerms[title]) checkedPerms[title] = []
+      checkedPerms[title].push(perm.code)
+    }
+  }
+}
 
 function isPermChecked(group: string, perm: string) {
   return checkedPerms[group]?.includes(perm) ?? false
@@ -282,6 +342,27 @@ function togglePerm(group: string, perm: string) {
   const idx = checkedPerms[group].indexOf(perm)
   if (idx >= 0) checkedPerms[group].splice(idx, 1)
   else checkedPerms[group].push(perm)
+}
+
+async function savePermissions() {
+  if (!selectedRole.value) return
+  const ids: number[] = []
+  for (const perms of Object.values(checkedPerms)) {
+    for (const code of perms) {
+      const id = permCodeToId[code]
+      if (id !== undefined) ids.push(id)
+    }
+  }
+  const res = await api.put(`/admin/roles/${selectedRole.value.id}/permissions`, { permissionIds: ids })
+  if (res.success) {
+    toastSuccess('权限保存成功')
+    await fetchRoles()
+    const found = roles.value.find((r) => r.id === selectedRole.value!.id)
+    if (found) selectedRole.value = found
+    else selectedRole.value = roles.value[0] || null
+  } else {
+    toastError(res.error || '保存失败')
+  }
 }
 
 const modalVisible = ref(false)
@@ -316,35 +397,47 @@ function openDeleteModal(role: Role) {
   deleteModalVisible.value = true
 }
 
-function confirmDelete() {
-  if (deletingRole.value) {
-    roles.value = roles.value.filter((r) => r.id !== deletingRole.value!.id)
-    if (selectedRole.value?.id === deletingRole.value.id) {
-      selectedRole.value = roles.value[0] || null
-    }
+async function confirmDelete() {
+  if (!deletingRole.value) return
+  const res = await api.delete(`/admin/roles/${deletingRole.value.id}`)
+  if (!res.success) {
+    toastError(res.error || '删除失败')
+    return
+  }
+  roles.value = roles.value.filter((r) => r.id !== deletingRole.value!.id)
+  if (selectedRole.value?.id === deletingRole.value.id) {
+    selectedRole.value = roles.value[0] || null
   }
   deleteModalVisible.value = false
   deletingRole.value = null
+  toastSuccess('角色已删除')
 }
 
-function saveRole() {
+async function saveRole() {
   if (!newRole.identifier || !newRole.name) return
   if (editingRole.value) {
     editingRole.value.name = newRole.name
+    editingRole.value.identifier = newRole.identifier
     editingRole.value.description = newRole.description
+    closeModal()
+    toastSuccess('角色已更新')
   } else {
-    const maxId = Math.max(...roles.value.map((r) => r.id))
-    roles.value.push({
-      id: maxId + 1,
-      name: newRole.name,
-      identifier: newRole.identifier,
+    const res = await api.post<{ id: number }>('/admin/roles', {
+      name: newRole.identifier,
+      displayName: newRole.name,
       description: newRole.description,
-      permCount: 0,
-      isSystem: false,
-      permissions: {},
     })
+    if (!res.success) {
+      toastError(res.error || '创建失败')
+      return
+    }
+    closeModal()
+    toastSuccess('角色已创建')
+    await fetchRoles()
+    if (res.data?.id) {
+      selectedRole.value = roles.value.find((r) => r.id === res.data!.id) || roles.value[0]
+    }
   }
-  closeModal()
 }
 </script>
 

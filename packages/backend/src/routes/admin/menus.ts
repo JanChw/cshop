@@ -65,6 +65,21 @@ app.post('/', requirePermission('menu.create'), validateJson(menuSchema), async 
   return success(c, record, 201)
 })
 
+app.put('/reorder', requirePermission('menu.update'), validateJson(menuReorderSchema), async (c) => {
+  const items = c.req.valid('json')
+
+  db.transaction((tx) => {
+    for (const item of items) {
+      tx.update(menus).set({
+        parentId: item.parentId,
+        sort: item.sort
+      }).where(eq(menus.id, item.id)).run()
+    }
+  })
+
+  return success(c, null)
+})
+
 app.put('/:id', requirePermission('menu.update'), validateJson(menuUpdateSchema), async (c) => {
   const id = parseInt(c.req.param('id'))
   const data = c.req.valid('json')
@@ -98,21 +113,6 @@ app.delete('/:id', requirePermission('menu.delete'), async (c) => {
 
   db.delete(menus).where(eq(menus.parentId, id)).run()
   db.delete(menus).where(eq(menus.id, id)).run()
-  return success(c, null)
-})
-
-app.put('/reorder', requirePermission('menu.update'), validateJson(menuReorderSchema), async (c) => {
-  const items = c.req.valid('json')
-
-  db.transaction((tx) => {
-    for (const item of items) {
-      tx.update(menus).set({
-        parentId: item.parentId,
-        sort: item.sort
-      }).where(eq(menus.id, item.id)).run()
-    }
-  })
-
   return success(c, null)
 })
 

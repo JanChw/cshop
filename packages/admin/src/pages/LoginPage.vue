@@ -14,21 +14,29 @@
         </div>
       </div>
 
+      <div v-if="error" class="rounded-lg bg-red-500/10 border border-red-500/30 px-3 py-2 text-sm text-red-400">
+        {{ error }}
+      </div>
+
       <div class="flex flex-col gap-1.5">
         <label class="text-sm font-medium text-text-primary">邮箱 / 账号</label>
         <input
+          v-model="email"
           type="text"
           placeholder="admin@cshop.com"
           class="h-10 rounded-lg border border-border/50 px-3 text-sm text-text-primary placeholder:text-text-muted bg-white/30 outline-none focus:border-primary focus:bg-white/50 transition-all"
+          @keyup.enter="handleLogin"
         />
       </div>
 
       <div class="flex flex-col gap-1.5">
         <label class="text-sm font-medium text-text-primary">密码</label>
         <input
+          v-model="password"
           type="password"
           placeholder="••••••••"
           class="h-10 rounded-lg border border-border/50 px-3 text-sm text-text-primary placeholder:text-text-muted bg-white/30 outline-none focus:border-primary focus:bg-white/50 transition-all"
+          @keyup.enter="handleLogin"
         />
       </div>
 
@@ -40,11 +48,45 @@
         <button class="text-sm text-primary hover:underline">忘记密码？</button>
       </div>
 
-      <button class="h-10 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors shadow-lg shadow-primary/30">
-        登录
+      <button
+        class="h-10 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors shadow-lg shadow-primary/30 disabled:opacity-50 disabled:cursor-not-allowed"
+        :disabled="loading"
+        @click="handleLogin"
+      >
+        {{ loading ? '登录中...' : '登录' }}
       </button>
 
       <p class="text-xs text-text-muted text-center">© 2024 CShop. All rights reserved.</p>
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuth } from '../composables/useAuth'
+
+const router = useRouter()
+const { login, isLoggedIn } = useAuth()
+
+const email = ref('')
+const password = ref('')
+const loading = ref(false)
+const error = ref('')
+
+async function handleLogin() {
+  if (!email.value || !password.value) {
+    error.value = '请输入邮箱和密码'
+    return
+  }
+  loading.value = true
+  error.value = ''
+  const result = await login(email.value, password.value)
+  loading.value = false
+  if (result.success) {
+    router.push('/')
+  } else {
+    error.value = result.error || '登录失败，请检查邮箱和密码'
+  }
+}
+</script>

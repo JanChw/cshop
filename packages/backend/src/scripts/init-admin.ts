@@ -48,7 +48,6 @@ async function main() {
       return
     }
     db.transaction((tx) => {
-      tx.update(users).set({ role: 'admin' }).where(eq(users.id, existing.id)).run()
       tx.insert(staff).values({
         userId: existing.id,
         roleId: superAdminRole.id,
@@ -67,8 +66,7 @@ async function main() {
     const [user] = tx.insert(users).values({
       email,
       passwordHash,
-      name,
-      role: 'admin'
+      name
     }).returning().all()
 
     const [s] = tx.insert(staff).values({

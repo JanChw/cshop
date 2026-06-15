@@ -1,12 +1,13 @@
 import { Hono } from 'hono'
 import { db } from '../db'
 import { orders, orderItems, cartItems, products, productVariants } from '../db/schema'
-import { eq, and, desc, inArray, sql } from 'drizzle-orm'
+import { eq, and, desc, inArray, isNull, sql } from 'drizzle-orm'
 import { auth } from '../middleware/auth'
 import { success, fail } from '../utils/response'
 import { orderSchema } from '../validators'
 import { validateJson } from '../utils/validate'
 import { trackBusinessEvent } from '../utils/track'
+import { sendNotification } from '../utils/notify'
 import type { AppEnv } from '../types/hono'
 
 const app = new Hono<AppEnv>()
@@ -54,7 +55,7 @@ app.post('/', validateJson(orderSchema), async (c) => {
     new Set(items.map(i => i.variantId).filter((v): v is number => v !== null))
   )
 
-  const productList = await db.select().from(products).where(inArray(products.id, productIds))
+  const productList = await db.select().from(products).where(and(inArray(products.id, productIds), isNull(products.deletedAt)))
   const variantList = variantIds.length > 0
     ? await db.select().from(productVariants).where(inArray(productVariants.id, variantIds))
     : []
@@ -145,6 +146,35 @@ app.post('/', validateJson(orderSchema), async (c) => {
     eventType: 'order_create',
     metadata: { orderId: order.id, total: order.total }
   })
+
+  // 通知: 新订单
+  sendNotification(
+    'new_order',
+    `新订单 #${order.id}`,
+    `订单号 ORD-${String(order.id).padStart(5, '0')}，金额 ¥${order.total}，收货地址 ${address}`
+  )
+
+  // 通知: 库存预警（订单扣减后检查每个变体/商品的剩余库存）
+  const STOCK_ALERT_THRESHOLD = 5
+  const lowStockIds: string[] = []
+  for (const line of lines) {
+    if (line.variantId !== null) {
+      const [v] = db.select({ stock: productVariants.stock, size: productVariants.size, color: productVariants.color, productId: productVariants.productId })
+        .from(productVariants).where(eq(productVariants.id, line.variantId)).limit(1).all()
+      if (v && v.stock <= STOCK_ALERT_THRESHOLD) {
+        lowStockIds.push(`变体 #${v.productId} ${v.size}/${v.color} 库存剩 ${v.stock}`)
+      }
+    } else {
+      const [p] = db.select({ stock: products.stock, name: products.name })
+        .from(products).where(eq(products.id, line.productId)).limit(1).all()
+      if (p && p.stock <= STOCK_ALERT_THRESHOLD) {
+        lowStockIds.push(`商品 #${p.name} 库存剩 ${p.stock}`)
+      }
+    }
+  }
+  if (lowStockIds.length > 0) {
+    sendNotification('stock_alert', '库存预警', lowStockIds.join('；'))
+  }
 
   return success(c, order, 201)
 })

@@ -19,6 +19,10 @@ export const logoutSchema = z.object({
   refreshToken: z.string().min(1, 'refreshToken 不能为空')
 })
 
+export const deactivateAccountSchema = z.object({
+  confirm: z.literal('确认注销', { errorMap: () => ({ message: '请输入「确认注销」以继续' }) })
+})
+
 export const designSchema = z.object({
   productId: z.number(),
   variantId: z.number().nullable().optional(),
@@ -60,6 +64,27 @@ export const productVariantSchema = z.object({
   priceAdjustment: z.number().default(0),
   stock: z.number().int().min(0).default(0)
 })
+
+export const variantBatchDeleteSchema = z.object({
+  ids: z.array(z.number().int().positive()).min(1, '至少选择一个规格')
+})
+
+export const variantBatchUpdateSchema = z.object({
+  ids: z.array(z.number().int().positive()).min(1, '至少选择一个规格'),
+  data: z.object({
+    stock: z.number().int().min(0).optional(),
+    priceAdjustment: z.number().optional()
+  }).refine(d => Object.keys(d).length > 0, '至少修改一个字段')
+})
+
+export const productBatchDeleteSchema = z.object({
+  ids: z.array(z.number().int().positive()).min(1, '至少选择一个商品').max(100, '一次最多删除 100 个')
+})
+
+export const categoryReorderSchema = z.array(z.object({
+  id: z.number().int().positive(),
+  sort: z.number().int().min(0)
+})).min(1)
 
 export const orderStatusSchema = z.object({
   status: z.enum(['pending', 'paid', 'processing', 'shipped', 'completed', 'cancelled']),
@@ -110,3 +135,25 @@ export const menuReorderSchema = z.array(z.object({
   parentId: z.number().int().positive().nullable(),
   sort: z.number().int().min(0)
 }))
+
+export const variantOptionSchema = z.object({
+  type: z.enum(['material', 'weight', 'size', 'color']),
+  value: z.string().min(1, '值不能为空'),
+  sort: z.number().int().min(0).optional()
+})
+
+export const variantOptionUpdateSchema = z.object({
+  value: z.string().min(1).optional(),
+  sort: z.number().int().min(0).optional()
+}).refine(d => Object.keys(d).length > 0, '至少修改一个字段')
+
+export const productVariantOptionSchema = z.object({
+  type: z.enum(['material', 'weight', 'size', 'color']),
+  value: z.string().min(1, '值不能为空'),
+  sort: z.number().int().min(0).optional()
+})
+
+export const productVariantOptionUpdateSchema = z.object({
+  value: z.string().min(1).optional(),
+  sort: z.number().int().min(0).optional()
+}).refine(d => Object.keys(d).length > 0, '至少修改一个字段')

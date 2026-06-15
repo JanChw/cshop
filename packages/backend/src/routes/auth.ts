@@ -7,9 +7,11 @@ import { success, fail } from '../utils/response'
 import { auth } from '../middleware/auth'
 import { rateLimit } from '../middleware/rateLimit'
 import { validateJson } from '../utils/validate'
-import { registerSchema, loginSchema, refreshSchema, logoutSchema, changePasswordSchema, updateMeSchema, forgotPasswordSchema } from '../validators'
+import { registerSchema, loginSchema, refreshSchema, logoutSchema, changePasswordSchema, updateMeSchema, forgotPasswordSchema, deactivateAccountSchema } from '../validators'
 import { trackLogin, trackLogout, trackBusinessEvent } from '../utils/track'
 import { loadStaffContext } from '../utils/staff'
+import { checkLockout, recordFailure, recordSuccess, formatLockMessage, formatRemainingMessage, formatLockedWaitMessage } from '../utils/loginGuard'
+import { sendNotification } from '../utils/notify'
 import type { AppEnv } from '../types/hono'
 
 const loginThrottle = rateLimit({ limit: 10, windowMs: 60_000 })
@@ -28,7 +30,7 @@ async function cleanupExpiredSessions(userId: number): Promise<void> {
     .where(and(eq(sessions.userId, userId), lt(sessions.expiresAt, new Date().toISOString())))
 }
 
-async function issueTokensForUser(userId: number, role: 'customer' | 'admin') {
+async function issueTokensForUser(userId: number) {
   const staffCtx = await loadStaffContext(userId)
   const accessToken = signAccessToken({
     userId,
@@ -45,7 +47,7 @@ async function issueTokensForUser(userId: number, role: 'customer' | 'admin') {
     expiresAt: refreshExpiry()
   })
 
-  return { accessToken, refreshToken, isStaff: staffCtx.isStaff, roleId: staffCtx.roleId, roleName: staffCtx.roleName, permissions: staffCtx.permissions, legacyRole: role }
+  return { accessToken, refreshToken, isStaff: staffCtx.isStaff, roleId: staffCtx.roleId, roleName: staffCtx.roleName, permissions: staffCtx.permissions }
 }
 
 const app = new Hono<AppEnv>()
@@ -63,11 +65,17 @@ app.post('/register', registerThrottle, validateJson(registerSchema), async (c) 
 
   trackBusinessEvent({ c, userId: user.id, eventType: 'register' })
 
-  const tokens = await issueTokensForUser(user.id, user.role)
+  sendNotification(
+    'user_register',
+    '新用户注册',
+    `${name} (${email}) 刚注册了账号`
+  )
+
+  const tokens = await issueTokensForUser(user.id)
   return success(c, {
     accessToken: tokens.accessToken,
     refreshToken: tokens.refreshToken,
-    user: { id: user.id, email: user.email, name: user.name, role: user.role },
+    user: { id: user.id, email: user.email, name: user.name },
     isStaff: tokens.isStaff,
     roleId: tokens.roleId,
     roleName: tokens.roleName,
@@ -77,29 +85,49 @@ app.post('/register', registerThrottle, validateJson(registerSchema), async (c) 
 
 app.post('/login', loginThrottle, validateJson(loginSchema), async (c) => {
   const { email, password } = c.req.valid('json')
+  const ip = c.req.header('x-forwarded-for')?.split(',')[0].trim() || c.req.header('x-real-ip') || 'unknown'
+  const userAgent = c.req.header('user-agent') ?? null
 
-  const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1)
+  const lockout = checkLockout(email)
+  if (lockout.locked) {
+    return fail(c, formatLockedWaitMessage(lockout.remainingMs), 423)
+  }
+
+  const [user] = db.select().from(users).where(eq(users.email, email)).limit(1).all()
   if (!user) {
     return fail(c, '邮箱或密码错误', 401)
   }
 
+  if (user.status === 'disabled') {
+    return fail(c, '账号已被禁用，请联系管理员', 403)
+  }
+  if (user.status === 'deactivated') {
+    return fail(c, '账号已注销', 403)
+  }
+
   const valid = await Bun.password.verify(password, user.passwordHash, 'bcrypt')
   if (!valid) {
-    return fail(c, '邮箱或密码错误', 401)
+    const result = recordFailure(email, ip, userAgent)
+    if (result.locked) {
+      return fail(c, formatLockMessage(result.lockMinutes), 423)
+    }
+    return fail(c, formatRemainingMessage(result.remainingAttempts), 401)
   }
+
+  recordSuccess(email, ip, userAgent)
 
   await cleanupExpiredSessions(user.id)
 
   await db.update(users).set({ lastLoginAt: new Date().toISOString() }).where(eq(users.id, user.id))
 
-  const tokens = await issueTokensForUser(user.id, user.role)
+  const tokens = await issueTokensForUser(user.id)
 
   trackLogin({ c, userId: user.id })
 
   return success(c, {
     accessToken: tokens.accessToken,
     refreshToken: tokens.refreshToken,
-    user: { id: user.id, email: user.email, name: user.name, role: user.role },
+    user: { id: user.id, email: user.email, name: user.name },
     isStaff: tokens.isStaff,
     roleId: tokens.roleId,
     roleName: tokens.roleName,
@@ -191,7 +219,7 @@ app.post('/logout-all', auth, async (c) => {
 app.get('/me', auth, async (c) => {
   const userId = c.get('userId')
   const [user] = await db
-    .select({ id: users.id, email: users.email, name: users.name, role: users.role, createdAt: users.createdAt })
+    .select({ id: users.id, email: users.email, name: users.name, createdAt: users.createdAt })
     .from(users)
     .where(eq(users.id, userId))
     .limit(1)
@@ -203,7 +231,6 @@ app.get('/me', auth, async (c) => {
     id: user.id,
     email: user.email,
     name: user.name,
-    role: user.role,
     createdAt: user.createdAt,
     isStaff: staffCtx.isStaff,
     roleId: staffCtx.roleId,
@@ -271,26 +298,17 @@ app.patch('/me', auth, validateJson(updateMeSchema), async (c) => {
   return success(c, { id: userId, ...updates })
 })
 
-app.delete('/me', auth, async (c) => {
+app.post('/account/deactivate', auth, validateJson(deactivateAccountSchema), async (c) => {
   const userId = c.get('userId')
 
-  const [orderCount] = await db
-    .select({ n: sql<number>`count(*)` })
-    .from(orders)
-    .where(eq(orders.userId, userId))
+  await db.update(users).set({ status: 'deactivated' }).where(eq(users.id, userId))
 
-  if ((orderCount?.n ?? 0) > 0) {
-    await db.update(users).set({ disabled: true }).where(eq(users.id, userId))
-    await db
-      .update(sessions)
-      .set({ revokedAt: new Date().toISOString() })
-      .where(and(eq(sessions.userId, userId), isNull(sessions.revokedAt)))
-    return success(c, { id: userId, softDeleted: true })
-  }
+  await db
+    .update(sessions)
+    .set({ revokedAt: new Date().toISOString() })
+    .where(and(eq(sessions.userId, userId), isNull(sessions.revokedAt)))
 
-  await db.delete(sessions).where(eq(sessions.userId, userId))
-  await db.delete(users).where(eq(users.id, userId))
-  return success(c, { id: userId, softDeleted: false })
+  return success(c, { id: userId, status: 'deactivated' })
 })
 
 app.get('/sessions', auth, async (c) => {

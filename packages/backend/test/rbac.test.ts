@@ -8,7 +8,7 @@ import { createStaff, createUser } from './helpers/factories'
 
 describe('RBAC enforcement', () => {
   test('non-staff user gets 403 on admin endpoint', async () => {
-    const customer = await createUser({ role: 'customer' })
+    const customer = await createUser({})
     const { status, body } = await api('/api/v1/admin/dashboard', { token: customer.accessToken })
     expect(status).toBe(403)
     expect(body.error).toContain('无权限')

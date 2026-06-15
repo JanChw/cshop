@@ -1,6 +1,6 @@
 import { db } from '../db'
-import { activityEvents, userOnline, settings, uploads } from '../db/schema'
-import { eq, and, lt, isNull } from 'drizzle-orm'
+import { activityEvents, userOnline, settings, uploads, products, cartItems, designs, orderItems } from '../db/schema'
+import { eq, and, lt, isNull, isNotNull, inArray, sql } from 'drizzle-orm'
 import { readdir, unlink, stat } from 'node:fs/promises'
 import { config } from '../config'
 import type { DeviceType } from './deviceDetect'
@@ -134,13 +134,33 @@ export async function lazyClean(): Promise<void> {
   if (Math.random() > 0.01) return
 
   try {
-    const [row] = db.select({ value: settings.value }).from(settings).where(eq(settings.key, 'activity_retention_days')).limit(1).all()
+    const [row] = db.select({ value: settings.value }).from(settings).where(eq(settings.key, 'trash_retention_days')).limit(1).all()
     const days = row ? parseInt(row.value) : 30
-    if (!Number.isFinite(days)) return
+    if (!Number.isFinite(days) || days < 0) return
 
-    db.delete(activityEvents)
-      .where(lt(activityEvents.createdAt, new Date(Date.now() - days * 86400000).toISOString()))
-      .run()
+    if (days > 0) {
+      const trashThreshold = new Date(Date.now() - days * 86400000).toISOString()
+      const candidates = db.select({ id: products.id })
+        .from(products)
+        .where(and(isNotNull(products.deletedAt), lt(products.deletedAt, trashThreshold)))
+        .all()
+      if (candidates.length > 0) {
+        const ids = candidates.map(c => c.id)
+        const withOrders = db.select({ id: orderItems.productId })
+          .from(orderItems)
+          .where(inArray(orderItems.productId, ids))
+          .all()
+        const protectedIds = new Set(withOrders.map(o => o.id))
+        const cleanable = ids.filter(id => !protectedIds.has(id))
+
+        if (cleanable.length > 0) {
+          db.delete(cartItems).where(inArray(cartItems.productId, cleanable)).run()
+          db.delete(designs).where(inArray(designs.productId, cleanable)).run()
+          db.delete(products).where(inArray(products.id, cleanable)).run()
+          console.log(`[lazyClean] hard-deleted ${cleanable.length} trashed products (older than ${days} days); ${protectedIds.size} retained due to order history`)
+        }
+      }
+    }
 
     const staleThreshold = new Date(Date.now() - 24 * 3600000).toISOString()
     db.delete(userOnline)

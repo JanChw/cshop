@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { db } from '../db'
-import { products, productVariants } from '../db/schema'
-import { eq, and, count, type SQL, sql } from 'drizzle-orm'
+import { products, productVariants, productVariantOptions } from '../db/schema'
+import { eq, and, count, asc, isNull, type SQL, sql } from 'drizzle-orm'
 import { success, fail } from '../utils/response'
 import { trackBusinessEvent } from '../utils/track'
 import { authOptional } from '../middleware/auth'
@@ -17,7 +17,7 @@ app.get('/', async (c) => {
   const q = c.req.query('q')?.trim()
   const offset = (page - 1) * limit
 
-  const conditions: SQL[] = [eq(products.isActive, true)]
+  const conditions: SQL[] = [eq(products.isActive, true), isNull(products.deletedAt)]
   if (categoryId) {
     const cid = parseInt(categoryId)
     if (Number.isFinite(cid)) {
@@ -43,7 +43,7 @@ app.get('/:id', async (c) => {
   const [product] = await db
     .select()
     .from(products)
-    .where(and(eq(products.id, id), eq(products.isActive, true)))
+    .where(and(eq(products.id, id), eq(products.isActive, true), isNull(products.deletedAt)))
     .limit(1)
   if (!product) {
     return fail(c, '商品不存在', 404)
@@ -63,6 +63,23 @@ app.get('/:id', async (c) => {
   })
 
   return success(c, { ...product, variants })
+})
+
+app.get('/:id/variant-options', async (c) => {
+  const productId = parseInt(c.req.param('id'))
+  const type = c.req.query('type') as 'material' | 'weight' | 'size' | 'color' | undefined
+
+  const conditions = type
+    ? and(eq(productVariantOptions.productId, productId), eq(productVariantOptions.type, type))
+    : eq(productVariantOptions.productId, productId)
+
+  const items = db
+    .select()
+    .from(productVariantOptions)
+    .where(conditions)
+    .orderBy(asc(productVariantOptions.sort), asc(productVariantOptions.id))
+    .all()
+  return success(c, { items })
 })
 
 export default app

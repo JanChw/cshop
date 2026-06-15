@@ -47,14 +47,13 @@ export async function getUserWithStaff(userId: number): Promise<{
   id: number
   email: string
   name: string
-  role: 'customer' | 'admin'
   isStaff: boolean
   roleId: number | null
   roleName: string | null
   permissions: PermissionCode[]
 } | null> {
   const [user] = db
-    .select({ id: users.id, email: users.email, name: users.name, role: users.role })
+    .select({ id: users.id, email: users.email, name: users.name })
     .from(users)
     .where(eq(users.id, userId))
     .limit(1)

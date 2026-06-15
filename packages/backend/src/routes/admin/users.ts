@@ -11,7 +11,7 @@ import type { AppEnv } from '../../types/hono'
 
 const updateSchema = z.object({
   name: z.string().min(1).optional(),
-  disabled: z.boolean().optional()
+  status: z.enum(['active', 'disabled']).optional()
 })
 
 const resetPasswordSchema = z.object({
@@ -27,21 +27,18 @@ app.get('/', requirePermission('user.read'), async (c) => {
   const limit = Math.min(100, Math.max(1, parseInt(c.req.query('limit') ?? '20')))
   const offset = (page - 1) * limit
   const search = c.req.query('q')
-  const role = c.req.query('role')
-  const disabled = c.req.query('disabled')
+  const status = c.req.query('status')
 
-  const conditions = []
+  const conditions = [isNull(staff.id)]
   if (search) {
     const escaped = search.replace(/[\\%_]/g, ch => '\\' + ch)
     conditions.push(sql`(${users.email} LIKE ${'%' + escaped + '%'} ESCAPE '\\' OR ${users.name} LIKE ${'%' + escaped + '%'} ESCAPE '\\')`)
   }
-  if (role === 'admin' || role === 'customer') {
-    conditions.push(eq(users.role, role))
+  if (status === 'active' || status === 'disabled' || status === 'deactivated') {
+    conditions.push(eq(users.status, status))
   }
-  if (disabled === 'true') conditions.push(eq(users.disabled, true))
-  if (disabled === 'false') conditions.push(eq(users.disabled, false))
 
-  const where = conditions.length > 0 ? and(...conditions) : undefined
+  const where = and(...conditions)
 
   const [items, [{ n: total }]] = await Promise.all([
     db
@@ -49,12 +46,10 @@ app.get('/', requirePermission('user.read'), async (c) => {
         id: users.id,
         email: users.email,
         name: users.name,
-        role: users.role,
-        disabled: users.disabled,
+        status: users.status,
         lastLoginAt: users.lastLoginAt,
         createdAt: users.createdAt,
-        isStaff: sql<number>`CASE WHEN ${staff.id} IS NOT NULL THEN 1 ELSE 0 END`,
-        staffStatus: staff.status
+        orderCount: sql<number>`(SELECT COUNT(*) FROM ${orders} WHERE ${orders.userId} = ${users.id})`
       })
       .from(users)
       .leftJoin(staff, eq(users.id, staff.userId))
@@ -62,7 +57,11 @@ app.get('/', requirePermission('user.read'), async (c) => {
       .orderBy(desc(users.createdAt))
       .limit(limit)
       .offset(offset),
-    db.select({ n: count() }).from(users).where(where)
+    db
+      .select({ n: count() })
+      .from(users)
+      .leftJoin(staff, eq(users.id, staff.userId))
+      .where(where)
   ])
 
   return success(c, { items, total, page, limit })
@@ -75,8 +74,7 @@ app.get('/:id', requirePermission('user.read'), async (c) => {
       id: users.id,
       email: users.email,
       name: users.name,
-      role: users.role,
-      disabled: users.disabled,
+      status: users.status,
       lastLoginAt: users.lastLoginAt,
       createdAt: users.createdAt
     })
@@ -106,13 +104,17 @@ app.put('/:id', requirePermission('user.update'), validateJson(updateSchema), as
   }
 
   const currentUserId = c.get('userId')
-  if (id === currentUserId && data.disabled === true) {
+  if (id === currentUserId && data.status === 'disabled') {
     return fail(c, '不能禁用自己', 400)
   }
 
-  const updates: Partial<{ name: string; disabled: boolean }> = {}
+  if (existing.status === 'deactivated') {
+    return fail(c, '用户已注销，状态不可变更', 400)
+  }
+
+  const updates: Partial<{ name: string; status: 'active' | 'disabled' }> = {}
   if (data.name !== undefined) updates.name = data.name
-  if (data.disabled !== undefined) updates.disabled = data.disabled
+  if (data.status !== undefined) updates.status = data.status
 
   if (Object.keys(updates).length === 0) {
     return fail(c, '没有可更新的字段', 400)
@@ -122,28 +124,7 @@ app.put('/:id', requirePermission('user.update'), validateJson(updateSchema), as
   return success(c, null)
 })
 
-app.delete('/:id', requirePermission('user.disable'), async (c) => {
-  const id = parseInt(c.req.param('id'))
-  const currentUserId = c.get('userId')
-
-  if (id === currentUserId) {
-    return fail(c, '不能删除自己', 400)
-  }
-
-  const [existing] = await db.select().from(users).where(eq(users.id, id)).limit(1)
-  if (!existing) {
-    return fail(c, '用户不存在', 404)
-  }
-
-  const [orderCount] = await db.select({ n: count() }).from(orders).where(eq(orders.userId, id))
-  if ((orderCount?.n ?? 0) > 0) {
-    await db.update(users).set({ disabled: true }).where(eq(users.id, id))
-    return success(c, { id, softDeleted: true, reason: '用户有订单记录，已禁用账号' })
-  }
-
-  await db.delete(users).where(eq(users.id, id))
-  return success(c, { id, softDeleted: false })
-})
+// NOTE: 管理员不能删除用户。用户自己可通过 POST /account/deactivate 注销账号。
 
 app.post('/:id/reset-password', requirePermission('user.disable'), validateJson(resetPasswordSchema), async (c) => {
   const id = parseInt(c.req.param('id'))

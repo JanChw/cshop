@@ -11,22 +11,44 @@
       <button class="text-text-muted hover:text-primary transition-colors">
         <Bell :size="20" />
       </button>
+      <div class="flex items-center gap-2 cursor-pointer relative group" @click="toggleDropdown">
+        <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+          <span class="text-white text-xs font-bold">{{ userInitial }}</span>
+        </div>
+        <span class="text-sm text-text-primary hidden md:block">{{ userName }}</span>
+      </div>
       <div
-        class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"
+        v-if="dropdownOpen"
+        class="absolute top-14 right-6 w-48 bg-card border border-border rounded-md shadow-lg py-1 z-50"
+        @click.stop
       >
-        <span class="text-white text-xs font-bold">A</span>
+        <div class="px-4 py-2 border-b border-border">
+          <p class="text-sm font-medium text-text-primary">{{ userName }}</p>
+          <p class="text-xs text-text-muted">{{ userEmail }}</p>
+        </div>
+        <button
+          class="w-full px-4 py-2 text-sm text-left text-text-primary hover:bg-gray-50 transition-colors flex items-center gap-2"
+          @click="handleLogout"
+        >
+          退出登录
+        </button>
       </div>
     </div>
   </header>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { ChevronRight, Bell } from 'lucide-vue-next'
 import ThemeSwitcher from '@/components/ui/ThemeSwitcher.vue'
+import { useAuth } from '@/composables/useAuth'
 
 const route = useRoute()
+const router = useRouter()
+const { user, logout } = useAuth()
+
+const dropdownOpen = ref(false)
 
 const titleMap: Record<string, string> = {
   '/': '仪表盘',
@@ -42,7 +64,31 @@ const titleMap: Record<string, string> = {
 }
 
 const currentPageTitle = computed(() => {
-  if (route.path === '/') return '仪表盘'
   return titleMap[route.path] || '页面'
+})
+
+const userName = computed(() => user.value?.name || '管理员')
+const userEmail = computed(() => user.value?.email || '')
+const userInitial = computed(() => userName.value.charAt(0).toUpperCase())
+
+function toggleDropdown() {
+  dropdownOpen.value = !dropdownOpen.value
+}
+
+function handleLogout() {
+  logout()
+  router.push('/login')
+}
+
+function handleClickOutside() {
+  dropdownOpen.value = false
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
 })
 </script>

@@ -34,6 +34,49 @@ bun --filter <pkg> test         # 运行单个包的测试
 bun run build                   # 构建所有包
 ```
 
+## 技术栈铁律
+
+### 前端交互：必须用 SolidJS + AstroJS
+
+所有前端交互逻辑必须使用 SolidJS 组件 + AstroJS 实现，禁止使用内联 `<script>` 标签或 vanilla JS。
+
+| 禁止 ❌ | 必须 ✅ |
+|---------|---------|
+| `<script>document.querySelector(...)</script>` | `<Component client:load />` |
+| `onclick="history.back()"` | `<Button onclick={history.back}>` |
+| vanila DOM 操作（classList, style 直接操作） | SolidJS `createSignal` / `createMemo` 状态驱动 |
+
+### 组件化原则
+
+1. **交互即组件**：任何包含用户交互的界面区域，必须封装为 SolidJS 组件，在 Astro 页面中以 `<Component client:load />` 引用。
+2. **状态即 Signal**：组件内所有可变状态必须使用 `createSignal` / `createMemo`，禁止直接读写 DOM 属性。
+3. **高复用先提取**：一个模式出现 2 次以上的，必须提取为 `src/components/ui/` 下的共享组件。
+4. **页面状态容器**：涉及多个信号和衍生状态的页面（如购物车、商店筛选），用 `src/components/page/` 下的容器组件管理。
+
+### 目录结构规范
+
+```
+src/components/
+├── ui/              # 纯 UI 展示组件（ProductCard, FavoriteButton, SearchInput 等）
+├── layout/          # 布局组件（TopAppBar, BottomNavBar）
+├── page/            # 页面级状态容器（CartContent, ShopContent, SearchContent）
+└── person/          # 个人中心相关组件（ProfileForm, AddressManager 等，按需建子目录）
+```
+
+### 响应式设计优先级
+
+项目优先适配移动端，其次为平板，不考虑桌面端：
+
+| 优先级 | 设备 | 断点 | 说明 |
+|--------|------|------|------|
+| 1 | 手机 (Mobile) | < 768px | **首要适配**，所有功能和样式以移动端为标准设计 |
+| 2 | 平板 (Tablet) | 768px - 1024px | 可选增强，使用 `md:` 前缀做响应式适配 |
+| 3 | 桌面 (PC) | > 1024px | **不支持**，禁止使用 `lg:` `xl:` `2xl:` 断点及 `max-w-[4-7]xl` 类 |
+
+- 所有新页面和组件必须从移动端布局开始设计，平板适配为可选项
+- 禁止优先考虑桌面布局
+- 已有 PC 端适配已全部移除
+
 ## 关键约定
 
 - **运行时**：后端脚本用 `bun` 执行，不用 `node`。
@@ -118,3 +161,88 @@ bun run build                   # 构建所有包
 - 因过度复杂而重写的次数减少
 - 澄清问题在犯错之前提出
 - PR 干净精炼，没有顺带的重构
+
+# context-mode — 强制路由规则
+
+context-mode MCP 工具可用。规则保护上下文窗口不被数据淹没。
+
+## Think in Code — 强制
+
+分析/计数/过滤/比较/搜索/解析/转换数据时：**编写代码** 通过 `context-mode_ctx_execute(language, code)`，`console.log()` 只输出答案。不要将原始数据读入上下文。编程式分析，而非计算式。纯 JavaScript — 仅限 Node.js 内置模块（`fs`、`path`、`child_process`）。使用 `try/catch`，处理 `null`/`undefined`。一个脚本替换十个工具调用。
+
+## 禁止 — 不要尝试
+
+### curl / wget — 禁止
+Shell `curl`/`wget` 会被拦截。不要再试。
+使用：`context-mode_ctx_fetch_and_index(url, source)` 或 `context-mode_ctx_execute(language: "javascript", code: "const r = await fetch(...)")`
+
+### 内联 HTTP — 禁止
+`fetch('http`、`requests.get(`、`requests.post(`、`http.get(`、`http.request(` — 会被拦截。不要再试。
+使用：`context-mode_ctx_execute(language, code)` — 只有 stdout 进入上下文
+
+### 直接网页抓取 — 禁止
+使用：`context-mode_ctx_fetch_and_index(url, source)` 然后 `context-mode_ctx_search(queries)`
+
+## 重定向 — 使用沙箱
+
+### Shell（输出超过 20 行）
+Shell 仅用于：`git`、`mkdir`、`rm`、`mv`、`cd`、`ls`、`npm install`、`pip install`。
+其他情况：`context-mode_ctx_batch_execute(commands, queries)` 或 `context-mode_ctx_execute(language: "shell", code: "...")`
+
+### 文件读取（用于分析）
+读取以 **编辑** → 正确。读取以 **分析/探索/总结** → `context-mode_ctx_execute_file(path, language, code)`。
+
+### grep / 搜索（大量结果）
+使用 `context-mode_ctx_execute(language: "shell", code: "grep ...")` 在沙箱中。
+
+## 工具选择
+
+0. **MEMORY**: `context-mode_ctx_search(sort: "timeline")` — 恢复会话后，先查上下文再问用户。
+1. **GATHER**: `context-mode_ctx_batch_execute(commands, queries)` — 运行所有命令，自动索引，返回搜索结果。一次调用替代 30+ 次。每条命令：`{label: "header", command: "..."}`。
+2. **FOLLOW-UP**: `context-mode_ctx_search(queries: ["q1", "q2", ...])` — 所有问题作为数组，一次调用（默认相关性模式）。
+3. **PROCESSING**: `context-mode_ctx_execute(language, code)` | `context-mode_ctx_execute_file(path, language, code)` — 沙箱，只有 stdout 进入上下文。
+4. **WEB**: `context-mode_ctx_fetch_and_index(url, source)` 然后 `context-mode_ctx_search(queries)` — 原始 HTML 永不进入上下文。
+5. **INDEX**: `context-mode_ctx_index(content, source)` — 存入 FTS5 供后续搜索。
+
+## 并行 I/O 批处理
+
+对于多 URL 抓取或多 API 调用，**始终**包含 `concurrency: N`（1-8）：
+
+- `context-mode_ctx_batch_execute(commands: [3+ 网络命令], concurrency: 5)` — gh、curl、dig、docker inspect、多云区域查询
+- `context-mode_ctx_fetch_and_index(requests: [{url, source}, ...], concurrency: 5)` — 多 URL 批量抓取
+
+**I/O 密集型工作使用 concurrency 4-8**（网络调用、API 查询）。**CPU 密集型保持 concurrency 1**（npm test、build、lint）或共享状态命令（端口、锁文件、同仓库写入）。
+
+GitHub API 限速：`gh` 调用上限为 4。
+
+## 输出
+
+产出物写入 **文件** — 永远不要内联。返回：文件路径 + 一行描述。
+使用描述性的源标签用于 `search(source: "label")`。
+
+## 会话连续性
+
+技能、角色和决策在整个会话中持续存在。不要随着对话增长而放弃它们。
+
+## 记忆
+
+会话历史是持久的且可搜索。恢复会话时，先搜索再问用户：
+
+| 需求 | 命令 |
+|------|------|
+| 我们之前决定了什么？ | `context-mode_ctx_search(queries: ["decision"], source: "decision", sort: "timeline")` |
+| 存在哪些约束？ | `context-mode_ctx_search(queries: ["constraint"], source: "constraint")` |
+
+不要问"我们之前在做什么？" — **先搜索**。
+如果搜索返回 0 条结果，作为新会话处理。
+
+## ctx 命令
+
+| 命令 | 操作 |
+|------|------|
+| `ctx stats` | 调用 `stats` MCP 工具，完整显示输出 |
+| `ctx doctor` | 调用 `doctor` MCP 工具，运行返回的 shell 命令，以检查清单显示 |
+| `ctx upgrade` | 调用 `upgrade` MCP 工具，运行返回的 shell 命令，以检查清单显示 |
+| `ctx purge` | 调用 `purge` MCP 工具（confirm: true）。清空知识库前警告。 |
+
+/clear 或 /compact 后：知识库和会话统计保留。使用 `ctx purge` 完全重置。**注意**：本项目中包管理器使用 `bun`，而非 `npm`/`pnpm`。

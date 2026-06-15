@@ -29,7 +29,12 @@ export const config = {
   get uploadMaxBytes(): number { return Number(process.env.UPLOAD_MAX_BYTES ?? 10 * 1024 * 1024) },
   get stickerMaxBytes(): number { return Number(process.env.STICKER_MAX_BYTES ?? 2 * 1024 * 1024) },
 
-  get geoDbPath(): string { return process.env.GEO_DB_PATH ?? resolve(dataDir(), 'geo', 'dbip-city-lite.mmdb') }
+  get geoDbPath(): string { return process.env.GEO_DB_PATH ?? resolve(dataDir(), 'geo', 'dbip-city-lite.mmdb') },
+
+  get smtpHost(): string | undefined { return process.env.SEND_EMAIL },
+  get smtpPort(): number { return Number(process.env.SEND_PORT ?? 465) },
+  get smtpUser(): string | undefined { return process.env.EMAIL },
+  get smtpPass(): string | undefined { return process.env.EMAIL_AUTH_PASSWORD }
 }
 
 export function isProd(): boolean {

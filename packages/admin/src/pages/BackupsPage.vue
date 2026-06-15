@@ -163,29 +163,65 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { Database, Info, Download, RotateCcw, Trash2 } from 'lucide-vue-next'
+import { api } from '@/utils/api'
 
-interface Backup {
+interface BackupItem {
+  id: number
+  filename: string
+  size: number
+  createdAt: string
+}
+
+interface BackupDisplay {
   id: number
   filename: string
   size: string
   createdAt: string
 }
 
-const backups = ref<Backup[]>([
-  { id: 1, filename: 'backup_20240115_120000.db', size: '2.4 MB', createdAt: '2024-01-15 12:00:00' },
-  { id: 2, filename: 'backup_20240120_090000.db', size: '2.6 MB', createdAt: '2024-01-20 09:00:00' },
-  { id: 3, filename: 'backup_20240201_180000.db', size: '2.8 MB', createdAt: '2024-02-01 18:00:00' },
-  { id: 4, filename: 'backup_20240215_100000.db', size: '3.1 MB', createdAt: '2024-02-15 10:00:00' },
-  { id: 5, filename: 'backup_20240301_140000.db', size: '3.3 MB', createdAt: '2024-03-01 14:00:00' },
-])
+const rawBackups = ref<BackupItem[]>([])
+const backups = ref<BackupDisplay[]>([])
 
 const restoreModalVisible = ref(false)
 const deleteModalVisible = ref(false)
-const selectedBackup = ref<Backup | null>(null)
+const selectedBackup = ref<BackupDisplay | null>(null)
 
 const tooltip = reactive({ visible: false, text: '', x: 0, y: 0 })
+
+function formatSize(bytes: number): string {
+  if (bytes === 0) return '0 B'
+  const units = ['B', 'KB', 'MB', 'GB', 'TB']
+  const i = Math.floor(Math.log(bytes) / Math.log(1024))
+  const size = (bytes / Math.pow(1024, i)).toFixed(i > 0 ? 1 : 0)
+  return `${size} ${units[i]}`
+}
+
+function formatDate(iso: string): string {
+  const d = new Date(iso)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+}
+
+function mapBackups(items: BackupItem[]): BackupDisplay[] {
+  return items.map(item => ({
+    id: item.id,
+    filename: item.filename,
+    size: formatSize(item.size),
+    createdAt: formatDate(item.createdAt),
+  }))
+}
+
+async function fetchBackups() {
+  const res = await api.get<{ items: BackupItem[] }>('/admin/backup')
+  if (res.success && res.data) {
+    rawBackups.value = res.data.items
+    backups.value = mapBackups(res.data.items)
+  }
+}
+
+onMounted(fetchBackups)
 
 function showTooltip(e: MouseEvent, text: string) {
   const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
@@ -199,52 +235,41 @@ function hideTooltip() {
   tooltip.visible = false
 }
 
-function createBackup() {
-  const now = new Date()
-  const pad = (n: number) => String(n).padStart(2, '0')
-  const date = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}`
-  const time = `${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`
-  const maxId = Math.max(...backups.value.map((b) => b.id))
-  const size = (Math.random() * 2 + 2).toFixed(1)
-  backups.value.unshift({
-    id: maxId + 1,
-    filename: `backup_${date}_${time}.db`,
-    size: `${size} MB`,
-    createdAt: `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`,
-  })
+async function createBackup() {
+  await api.post('/admin/backup')
+  await fetchBackups()
 }
 
-function downloadBackup(backup: Backup) {
-  const blob = new Blob([`模拟备份文件内容: ${backup.filename}`], { type: 'application/octet-stream' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = backup.filename
-  a.click()
-  URL.revokeObjectURL(url)
+function downloadBackup(backup: BackupDisplay) {
+  window.open(`/api/v1/admin/backup/${backup.id}/download`, '_blank')
 }
 
-function openRestoreModal(backup: Backup) {
+function openRestoreModal(backup: BackupDisplay) {
   selectedBackup.value = backup
   restoreModalVisible.value = true
 }
 
-function confirmRestore() {
-  restoreModalVisible.value = false
-  selectedBackup.value = null
+async function confirmRestore() {
+  if (selectedBackup.value) {
+    await api.post(`/admin/backup/${selectedBackup.value.id}/restore?confirm=yes`)
+    restoreModalVisible.value = false
+    selectedBackup.value = null
+    await fetchBackups()
+  }
 }
 
-function openDeleteModal(backup: Backup) {
+function openDeleteModal(backup: BackupDisplay) {
   selectedBackup.value = backup
   deleteModalVisible.value = true
 }
 
-function confirmDelete() {
+async function confirmDelete() {
   if (selectedBackup.value) {
-    backups.value = backups.value.filter((b) => b.id !== selectedBackup.value!.id)
+    await api.delete(`/admin/backup/${selectedBackup.value.id}`)
+    deleteModalVisible.value = false
+    selectedBackup.value = null
+    await fetchBackups()
   }
-  deleteModalVisible.value = false
-  selectedBackup.value = null
 }
 </script>
 

@@ -47,7 +47,7 @@ describe('sticker upload (admin) — A6 svg ban', () => {
   })
 
   test('non-admin rejected', async () => {
-    const u = await createUser({ role: 'customer' })
+    const u = await createUser({})
     const fd = new FormData()
     const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47])
     fd.append('file', new File([png], 'a.png', { type: 'image/png' }))

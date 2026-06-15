@@ -1,10 +1,10 @@
 export type PermissionCode =
-  | 'product.create' | 'product.read' | 'product.update' | 'product.delete'
+  | 'product.create' | 'product.read' | 'product.update' | 'product.delete' | 'product.hardDelete'
   | 'order.read' | 'order.update_status'
   | 'user.read' | 'user.update' | 'user.disable'
   | 'analytics.read' | 'analytics.export'
   | 'staff.read' | 'staff.create' | 'staff.update' | 'staff.delete'
-  | 'settings.read' | 'settings.update'
+  | 'settings.read' | 'settings.update' | 'settings.test_email'
   | 'category.create' | 'category.update' | 'category.delete'
   | 'sticker.create' | 'sticker.update' | 'sticker.delete'
   | 'backup.create' | 'backup.download' | 'backup.delete'
@@ -28,7 +28,8 @@ export const ALL_PERMISSIONS: Array<{ code: PermissionCode; module: string; desc
   { code: 'product.create', module: 'product', description: '创建商品' },
   { code: 'product.read', module: 'product', description: '查看商品' },
   { code: 'product.update', module: 'product', description: '更新商品' },
-  { code: 'product.delete', module: 'product', description: '删除商品' },
+  { code: 'product.delete', module: 'product', description: '删除商品（移入回收站）' },
+  { code: 'product.hardDelete', module: 'product', description: '彻底删除商品' },
   { code: 'order.read', module: 'order', description: '查看订单' },
   { code: 'order.update_status', module: 'order', description: '更新订单状态' },
   { code: 'user.read', module: 'user', description: '查看用户' },
@@ -42,6 +43,7 @@ export const ALL_PERMISSIONS: Array<{ code: PermissionCode; module: string; desc
   { code: 'staff.delete', module: 'staff', description: '删除员工' },
   { code: 'settings.read', module: 'settings', description: '查看设置' },
   { code: 'settings.update', module: 'settings', description: '更新设置' },
+  { code: 'settings.test_email', module: 'settings', description: '发送测试邮件' },
   { code: 'category.create', module: 'category', description: '创建分类' },
   { code: 'category.update', module: 'category', description: '更新分类' },
   { code: 'category.delete', module: 'category', description: '删除分类' },

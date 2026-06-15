@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { db } from '../db'
 import { cartItems, products, productVariants } from '../db/schema'
-import { eq, and } from 'drizzle-orm'
+import { eq, and, isNull } from 'drizzle-orm'
 import { auth } from '../middleware/auth'
 import { success, fail } from '../utils/response'
 import { validateJson } from '../utils/validate'
@@ -27,9 +27,9 @@ app.post('/', validateJson(cartSchema), async (c) => {
   const data = c.req.valid('json')
 
   const [product] = await db
-    .select({ id: products.id, isActive: products.isActive, stock: products.stock })
+    .select({ id: products.id, isActive: products.isActive, stock: products.stock, deletedAt: products.deletedAt })
     .from(products)
-    .where(eq(products.id, data.productId))
+    .where(and(eq(products.id, data.productId), isNull(products.deletedAt)))
     .limit(1)
   if (!product || !product.isActive) {
     return fail(c, '商品已下架', 400)

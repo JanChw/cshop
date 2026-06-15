@@ -8,7 +8,6 @@ export interface TestUser {
   id: number
   email: string
   name: string
-  role: 'customer' | 'admin'
   accessToken: string
   refreshToken: string
   isStaff?: boolean
@@ -19,7 +18,7 @@ export interface TestUser {
 
 let userCounter = 0
 
-async function buildToken(userId: number, role: 'customer' | 'admin'): Promise<{
+async function buildToken(userId: number): Promise<{
   accessToken: string
   refreshToken: string
   isStaff: boolean
@@ -46,17 +45,16 @@ async function buildToken(userId: number, role: 'customer' | 'admin'): Promise<{
   }
 }
 
-export async function createUser(overrides: Partial<{ email: string; name: string; role: 'customer' | 'admin'; password: string }> = {}): Promise<TestUser> {
+export async function createUser(overrides: Partial<{ email: string; name: string; password: string }> = {}): Promise<TestUser> {
   userCounter++
   const email = overrides.email ?? `user${userCounter}@test.local`
   const name = overrides.name ?? `User ${userCounter}`
-  const role = overrides.role ?? 'customer'
   const password = overrides.password ?? 'password123'
 
   const passwordHash = await Bun.password.hash(password, { algorithm: 'bcrypt', cost: 4 })
-  const [user] = await db.insert(users).values({ email, passwordHash, name, role }).returning()
+  const [user] = await db.insert(users).values({ email, passwordHash, name }).returning()
 
-  const tokens = await buildToken(user.id, role)
+  const tokens = await buildToken(user.id)
   await db.insert(sessions).values({
     userId: user.id,
     refreshToken: tokens.refreshToken,
@@ -67,7 +65,6 @@ export async function createUser(overrides: Partial<{ email: string; name: strin
     id: user.id,
     email,
     name,
-    role,
     accessToken: tokens.accessToken,
     refreshToken: tokens.refreshToken,
     isStaff: tokens.isStaff,
@@ -94,7 +91,7 @@ export async function createStaff(opts: {
   const password = opts.password ?? 'password123'
 
   const passwordHash = await Bun.password.hash(password, { algorithm: 'bcrypt', cost: 4 })
-  const [user] = await db.insert(users).values({ email, passwordHash, name, role: 'admin' }).returning()
+  const [user] = await db.insert(users).values({ email, passwordHash, name }).returning()
 
   const [staffRow] = db.insert(staff).values({
     userId: user.id,
@@ -103,7 +100,7 @@ export async function createStaff(opts: {
     hiredAt: new Date().toISOString()
   }).returning().all()
 
-  const tokens = await buildToken(user.id, 'admin')
+  const tokens = await buildToken(user.id)
   await db.insert(sessions).values({
     userId: user.id,
     refreshToken: tokens.refreshToken,
@@ -114,7 +111,6 @@ export async function createStaff(opts: {
     id: user.id,
     email,
     name,
-    role: 'admin',
     accessToken: tokens.accessToken,
     refreshToken: tokens.refreshToken,
     isStaff: tokens.isStaff,

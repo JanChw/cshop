@@ -81,8 +81,18 @@
 import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import { Download } from 'lucide-vue-next'
 import gsap from 'gsap'
+import { api } from '@/utils/api'
 
-const activeTab = ref('7d')
+interface AnalyticsData {
+  dau: number
+  pv: number
+  topProducts: Array<{ productId: number; productName: string; views: number }>
+  funnel: { productView: number; cartAdd: number; orderCreate: number }
+  trend: Array<{ date: string; pv: number; dau: number }>
+  deviceDistribution: Array<{ deviceType: string; count: number }>
+}
+
+const activeTab = ref('today')
 
 const tabs = [
   { key: 'today', label: '今日' },
@@ -90,75 +100,69 @@ const tabs = [
   { key: '30d', label: '最近30天' },
 ]
 
-const allMetrics: Record<string, Array<{ label: string; value: string; change: string; positive: boolean }>> = {
-  today: [
-    { label: '日活用户 (DAU)', value: '328', change: '+5.1% 较昨日', positive: true },
-    { label: '页面浏览量 (PV)', value: '6,542', change: '+3.8% 较昨日', positive: true },
-    { label: '转化率', value: '2.8%', change: '+0.3% 较昨日', positive: true },
-    { label: '平均停留', value: '3:45', change: '-0.1% 较昨日', positive: false },
-  ],
-  '7d': [
-    { label: '日活用户 (DAU)', value: '1,234', change: '+8.2% 较上周', positive: true },
-    { label: '页面浏览量 (PV)', value: '45,678', change: '+15.3% 较上周', positive: true },
-    { label: '转化率', value: '3.2%', change: '+0.5% 较上周', positive: true },
-    { label: '平均停留', value: '4:32', change: '-0.2% 较上周', positive: false },
-  ],
-  '30d': [
-    { label: '日活用户 (DAU)', value: '5,678', change: '+12.6% 较上月', positive: true },
-    { label: '页面浏览量 (PV)', value: '198,432', change: '+22.1% 较上月', positive: true },
-    { label: '转化率', value: '3.5%', change: '+0.8% 较上月', positive: true },
-    { label: '平均停留', value: '5:12', change: '+0.4% 较上月', positive: true },
-  ],
+const data = ref<Record<string, AnalyticsData | null>>({
+  today: null,
+  '7d': null,
+  '30d': null,
+})
+
+async function fetchData(period: string) {
+  try {
+    const res = await api.get<AnalyticsData>('/admin/analytics/summary', { period })
+    if (res.success) {
+      data.value[period] = res.data
+    }
+  } catch (e) {
+    console.error('Failed to fetch analytics:', e)
+  }
 }
 
-const allTopProducts: Record<string, Array<{ name: string; sales: number; percent: number }>> = {
-  today: [
-    { name: '经典圆领T恤', sales: 42, percent: 100 },
-    { name: '潮流连帽卫衣', sales: 35, percent: 83 },
-    { name: '修身牛仔裤', sales: 28, percent: 67 },
-    { name: '纯棉Polo衫', sales: 21, percent: 50 },
-    { name: '加绒外套', sales: 15, percent: 36 },
-  ],
-  '7d': [
-    { name: '经典圆领T恤', sales: 234, percent: 100 },
-    { name: '潮流连帽卫衣', sales: 189, percent: 81 },
-    { name: '修身牛仔裤', sales: 156, percent: 67 },
-    { name: '纯棉Polo衫', sales: 123, percent: 53 },
-    { name: '加绒外套', sales: 98, percent: 42 },
-  ],
-  '30d': [
-    { name: '经典圆领T恤', sales: 892, percent: 100 },
-    { name: '潮流连帽卫衣', sales: 756, percent: 85 },
-    { name: '修身牛仔裤', sales: 634, percent: 71 },
-    { name: '纯棉Polo衫', sales: 512, percent: 57 },
-    { name: '加绒外套', sales: 423, percent: 47 },
-  ],
-}
+const currentMetrics = computed(() => {
+  const d = data.value[activeTab.value]
+  if (!d) return []
 
-const allFunnel: Record<string, Array<{ label: string; value: string; cls: string }>> = {
-  today: [
-    { label: '商品浏览', value: '6,542', cls: 'bg-primary-dark text-white' },
-    { label: '加入购物车', value: '486', cls: 'bg-primary text-white' },
-    { label: '提交订单', value: '178', cls: 'bg-primary-light text-primary-dark' },
-    { label: '完成支付', value: '128', cls: 'bg-primary-light/70 text-primary-dark' },
-  ],
-  '7d': [
-    { label: '商品浏览', value: '45,678', cls: 'bg-primary-dark text-white' },
-    { label: '加入购物车', value: '3,456', cls: 'bg-primary text-white' },
-    { label: '提交订单', value: '1,234', cls: 'bg-primary-light text-primary-dark' },
-    { label: '完成支付', value: '890', cls: 'bg-primary-light/70 text-primary-dark' },
-  ],
-  '30d': [
-    { label: '商品浏览', value: '198,432', cls: 'bg-primary-dark text-white' },
-    { label: '加入购物车', value: '14,567', cls: 'bg-primary text-white' },
-    { label: '提交订单', value: '5,234', cls: 'bg-primary-light text-primary-dark' },
-    { label: '完成支付', value: '3,890', cls: 'bg-primary-light/70 text-primary-dark' },
-  ],
-}
+  const conversion = d.funnel.productView > 0 ? ((d.funnel.orderCreate / d.funnel.productView) * 100) : 0
 
-const currentMetrics = computed(() => allMetrics[activeTab.value])
-const currentTopProducts = computed(() => allTopProducts[activeTab.value])
-const currentFunnel = computed(() => allFunnel[activeTab.value])
+  return [
+    { label: '日活用户 (DAU)', value: d.dau.toLocaleString(), change: '', positive: true },
+    { label: '页面浏览量 (PV)', value: d.pv.toLocaleString(), change: '', positive: true },
+    { label: '转化率', value: conversion.toFixed(1) + '%', change: '', positive: true },
+    { label: '平均停留', value: '-', change: '', positive: true },
+  ]
+})
+
+const currentTopProducts = computed(() => {
+  const d = data.value[activeTab.value]
+  if (!d || !d.topProducts.length) return []
+
+  const maxViews = Math.max(...d.topProducts.map(p => p.views))
+
+  return d.topProducts.slice(0, 5).map(p => ({
+    name: p.productName,
+    sales: p.views,
+    percent: maxViews > 0 ? Math.round((p.views / maxViews) * 100) : 0,
+  }))
+})
+
+const funnelCls = [
+  'bg-primary-dark text-white',
+  'bg-primary text-white',
+  'bg-primary-light text-primary-dark',
+]
+
+const currentFunnel = computed(() => {
+  const d = data.value[activeTab.value]
+  if (!d) return []
+
+  const funnelLabels = ['商品浏览', '加入购物车', '提交订单']
+  const funnelValues = [d.funnel.productView, d.funnel.cartAdd, d.funnel.orderCreate]
+
+  return funnelLabels.map((label, i) => ({
+    label,
+    value: funnelValues[i].toLocaleString(),
+    cls: funnelCls[i],
+  }))
+})
 
 function animateAnalytics() {
   nextTick(() => {
@@ -179,6 +183,18 @@ function animateAnalytics() {
   })
 }
 
-onMounted(animateAnalytics)
-watch(activeTab, animateAnalytics)
+async function loadAndAnimate() {
+  await fetchData(activeTab.value)
+  animateAnalytics()
+}
+
+onMounted(loadAndAnimate)
+
+watch(activeTab, () => {
+  if (!data.value[activeTab.value]) {
+    loadAndAnimate()
+  } else {
+    animateAnalytics()
+  }
+})
 </script>

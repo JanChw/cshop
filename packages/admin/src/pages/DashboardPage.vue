@@ -54,33 +54,103 @@
 </template>
 
 <script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
 import { Package, Timer, TrendingUp, Users } from 'lucide-vue-next'
+import { api } from '@/utils/api'
 import MetricCard from '@/components/ui/MetricCard.vue'
 import StatusBadge from '@/components/ui/StatusBadge.vue'
 import BarChart from '@/components/ui/BarChart.vue'
 
-const metrics = [
-  { label: '商品总数', value: '128', change: '+5 本月', icon: Package },
-  { label: '待处理订单', value: '23', change: '+3 今日', icon: Timer },
-  { label: '本月营收', value: '¥48,250', change: '+12.5%', icon: TrendingUp },
-  { label: '注册用户', value: '2,543', change: '+126 本月', icon: Users },
-]
+const loading = ref(true)
 
-const chartBars = [
-  { label: '周一', height: 60 },
-  { label: '周二', height: 45 },
-  { label: '周三', height: 80 },
-  { label: '周四', height: 55 },
-  { label: '周五', height: 70 },
-  { label: '周六', height: 90, color: 'var(--color-primary)' },
-  { label: '周日', height: 65 },
-]
+interface DashboardData {
+  productCount: number
+  orderCount: number
+  pendingCount: number
+  totalRevenue: number
+}
 
-const recentOrders: Array<{ id: string; customer: string; amount: string; badge: { label: string; variant: 'warning' | 'primary' | 'success' | 'danger' } }> = [
-  { id: '#1024', customer: '张三', amount: '¥299', badge: { label: '待处理', variant: 'warning' } },
-  { id: '#1023', customer: '李四', amount: '¥599', badge: { label: '已发货', variant: 'primary' } },
-  { id: '#1022', customer: '王五', amount: '¥199', badge: { label: '已完成', variant: 'success' } },
-  { id: '#1021', customer: '赵六', amount: '¥899', badge: { label: '待处理', variant: 'warning' } },
-  { id: '#1020', customer: '钱七', amount: '¥399', badge: { label: '已取消', variant: 'danger' } },
-]
+interface SummaryData {
+  topProducts: Array<{ name: string; sales: number }>
+  funnel: { views: number; addToCart: number; createOrder: number; paid: number }
+  trend: Array<{ date: string; pv: number; orders: number }>
+}
+
+interface OrderItem {
+  id: number
+  orderNo: string
+  userName: string
+  total: number
+  status: string
+  createdAt: string
+}
+
+const dashboardData = ref<DashboardData | null>(null)
+const summaryData = ref<SummaryData | null>(null)
+const ordersData = ref<OrderItem[]>([])
+
+const statusMap: Record<string, { label: string; variant: 'warning' | 'primary' | 'success' | 'danger' }> = {
+  pending: { label: '待处理', variant: 'warning' },
+  paid: { label: '已付款', variant: 'primary' },
+  shipped: { label: '已发货', variant: 'primary' },
+  completed: { label: '已完成', variant: 'success' },
+  cancelled: { label: '已取消', variant: 'danger' },
+  refunding: { label: '退款中', variant: 'warning' },
+  refunded: { label: '已退款', variant: 'danger' },
+}
+
+const metrics = computed(() => {
+  const d = dashboardData.value
+  if (!d) return []
+  return [
+    { label: '商品总数', value: String(d.productCount), change: '', icon: Package },
+    { label: '待处理订单', value: String(d.pendingCount), change: '', icon: Timer },
+    { label: '本月营收', value: `¥${d.totalRevenue.toLocaleString()}`, change: '', icon: TrendingUp },
+    { label: '总订单', value: String(d.orderCount), change: '', icon: Users },
+  ]
+})
+
+const chartBars = computed(() => {
+  const trend = summaryData.value?.trend
+  if (!trend || trend.length === 0) return []
+  const maxPv = Math.max(...trend.map(t => t.pv), 1)
+  const days = ['日', '一', '二', '三', '四', '五', '六']
+  const todayStr = new Date().toISOString().slice(0, 10)
+  return trend.map(t => {
+    const date = new Date(t.date)
+    const isToday = t.date === todayStr
+    return {
+      label: `周${days[date.getDay()]}`,
+      height: Math.round((t.pv / maxPv) * 100),
+      color: isToday ? 'var(--color-primary)' : undefined,
+    }
+  })
+})
+
+const recentOrders = computed(() => {
+  return ordersData.value.map(o => ({
+    id: o.orderNo,
+    customer: o.userName,
+    amount: `¥${o.total.toFixed(2)}`,
+    badge: statusMap[o.status] || { label: o.status, variant: 'warning' as const },
+  }))
+})
+
+onMounted(async () => {
+  const [dashboardRes, summaryRes, ordersRes] = await Promise.all([
+    api.get<DashboardData>('/admin/dashboard'),
+    api.get<SummaryData>('/admin/analytics/summary', { period: '7d' }),
+    api.get<{ items: OrderItem[]; total: number }>('/admin/orders', { page: 1, limit: 5 }),
+  ])
+  if (dashboardRes.success && dashboardRes.data) {
+    dashboardData.value = dashboardRes.data
+  }
+  if (summaryRes.success && summaryRes.data) {
+    summaryData.value = summaryRes.data
+  }
+  if (ordersRes.success && ordersRes.data) {
+    ordersData.value = ordersRes.data.items
+  }
+  loading.value = false
+})
 </script>

@@ -15,9 +15,9 @@
     <nav class="flex flex-col gap-1 flex-1">
       <RouterLink
         v-for="(item, index) in navItems"
-        :key="item.path"
+        :key="item.id ?? item.path"
         :to="item.path"
-        :draggable="!collapsed"
+        :draggable="!collapsed && !!item.id"
         :title="collapsed ? item.label : ''"
         class="flex items-center gap-3 rounded transition-colors select-none"
         :class="[
@@ -38,7 +38,7 @@
         @dragend="!collapsed && onDragEnd"
       >
         <GripVertical v-show="!collapsed" :size="14" class="shrink-0 opacity-40" />
-        <component :is="item.icon" :size="20" class="shrink-0" />
+        <component :is="resolveIcon(item.icon)" :size="20" class="shrink-0" />
         <span v-show="!collapsed" class="text-sm whitespace-nowrap">{{ item.label }}</span>
       </RouterLink>
     </nav>
@@ -70,57 +70,68 @@ import {
   Shield,
   GripVertical,
   ChevronLeft,
+  type LucideIcon
 } from 'lucide-vue-next'
+import { api } from '@/utils/api'
 
 const route = useRoute()
 
-interface NavItem {
+interface MenuItem {
+  id: number
+  name: string
   path: string
-  label: string
-  icon: typeof LayoutDashboard
+  icon: string | null
+  sort: number
+  isVisible: boolean
 }
 
-const defaultNavItems: NavItem[] = [
-  { path: '/', label: '仪表盘', icon: LayoutDashboard },
-  { path: '/products', label: '商品管理', icon: Package },
-  { path: '/orders', label: '订单管理', icon: ShoppingCart },
-  { path: '/categories', label: '分类管理', icon: Folder },
-  { path: '/users', label: '用户管理', icon: Users },
-  { path: '/staff', label: '员工管理', icon: UserCheck },
-  { path: '/roles', label: '角色权限', icon: Shield },
-  { path: '/analytics', label: '数据分析', icon: Activity },
-  { path: '/backups', label: '数据备份', icon: Database },
-  { path: '/settings', label: '系统设置', icon: Settings },
-]
+interface NavItem {
+  id: number | null
+  path: string
+  label: string
+  icon: string | null
+}
+
+const ICON_MAP: Record<string, LucideIcon> = {
+  LayoutDashboard,
+  Package,
+  ShoppingCart,
+  Folder,
+  Users,
+  UserCheck,
+  Activity,
+  Settings,
+  Database,
+  Shield
+}
+
+function resolveIcon(name: string | null) {
+  if (!name) return Folder
+  return ICON_MAP[name] ?? Folder
+}
 
 const navItems = ref<NavItem[]>([])
 const dragIndex = ref<number | null>(null)
 const dragOverIndex = ref<number | null>(null)
 const collapsed = ref(false)
-
-const STORAGE_KEY = 'cshop-nav-order'
 const COLLAPSED_KEY = 'cshop-sidebar-collapsed'
 
-function loadOrder() {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY)
-    if (saved) {
-      const order: string[] = JSON.parse(saved)
-      const sorted = order
-        .map((path) => defaultNavItems.find((item) => item.path === path))
-        .filter((item): item is NavItem => !!item)
-      const newItems = defaultNavItems.filter((item) => !order.includes(item.path))
-      navItems.value = [...sorted, ...newItems]
-      return
+function flattenTree(items: MenuItem[]): NavItem[] {
+  const out: NavItem[] = []
+  const visit = (nodes: MenuItem[]) => {
+    for (const n of nodes) {
+      out.push({ id: n.id, path: n.path, label: n.name, icon: n.icon })
     }
-  } catch {
-    // ignore
   }
-  navItems.value = [...defaultNavItems]
+  visit(items.filter(i => i.isVisible).sort((a, b) => a.sort - b.sort))
+  return out
 }
 
-function saveOrder() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(navItems.value.map((item) => item.path)))
+async function fetchMenus() {
+  const res = await api.get<{ items: MenuItem[] }>('/admin/menus', { type: 'admin' })
+  if (res.success && res.data) {
+    navItems.value = flattenTree(res.data.items || [])
+  }
 }
 
 function loadCollapsed() {
@@ -137,7 +148,7 @@ function toggleCollapsed() {
 }
 
 onMounted(() => {
-  loadOrder()
+  fetchMenus()
   loadCollapsed()
 
   const mq = window.matchMedia('(max-width: 1023px)')
@@ -173,16 +184,33 @@ function onDragLeave() {
   dragOverIndex.value = null
 }
 
-function onDrop(index: number) {
-  if (dragIndex.value === null || dragIndex.value === index) return
-  const item = navItems.value.splice(dragIndex.value, 1)[0]
+async function onDrop(index: number) {
+  if (dragIndex.value === null || dragIndex.value === index) {
+    onDragEnd()
+    return
+  }
+  const from = dragIndex.value
+  const item = navItems.value.splice(from, 1)[0]
   navItems.value.splice(index, 0, item)
-  saveOrder()
+  onDragEnd()
+  await persistOrder()
 }
 
 function onDragEnd() {
   dragIndex.value = null
   dragOverIndex.value = null
+}
+
+async function persistOrder() {
+  const payload = navItems.value
+    .filter((item) => item.id !== null)
+    .map((item, index) => ({ id: item.id as number, parentId: null, sort: index }))
+  if (payload.length === 0) return
+  const res = await api.put('/admin/menus/reorder', payload)
+  if (!res.success) {
+    console.error('保存菜单顺序失败', res.error)
+    await fetchMenus()
+  }
 }
 
 function isActive(path: string) {

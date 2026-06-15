@@ -27,12 +27,13 @@
 
             <div class="flex flex-col gap-5">
               <div class="flex flex-col gap-1.5">
-                <label class="text-sm font-medium text-text-primary">商品数据保留天数</label>
-                <p class="text-xs text-text-muted">超过此天数的商品活动数据将被清理</p>
+                <label class="text-sm font-medium text-text-primary">回收站保留天数</label>
+                <p class="text-xs text-text-muted">超过此天数的回收站商品将被永久删除（0 表示不自动清理）</p>
                 <div class="flex items-center gap-2">
                   <input
-                    v-model="basicForm.retentionDays"
+                    v-model.number="basicForm.retentionDays"
                     type="number"
+                    min="0"
                     class="w-[300px] h-9 rounded border border-border px-3 text-sm text-text-primary font-mono outline-none focus:border-primary transition-colors"
                   />
                   <span class="text-sm text-text-muted">天</span>
@@ -59,11 +60,11 @@
             </div>
 
             <div class="flex items-center gap-3">
-              <button class="rounded h-10 px-4 text-sm font-medium text-white bg-primary flex items-center gap-2 hover:bg-primary/90 transition-colors">
+              <button @click="saveBasicSettings" class="rounded h-10 px-4 text-sm font-medium text-white bg-primary flex items-center gap-2 hover:bg-primary/90 transition-colors">
                 <Check :size="16" />
                 保存设置
               </button>
-              <button class="rounded h-10 px-4 text-sm font-medium text-text-primary border border-border flex items-center gap-2 hover:bg-gray-50 transition-colors">
+              <button @click="resetBasicSettings" class="rounded h-10 px-4 text-sm font-medium text-text-primary border border-border flex items-center gap-2 hover:bg-gray-50 transition-colors">
                 <RotateCcw :size="16" />
                 重置
               </button>
@@ -90,7 +91,7 @@
               <div class="flex items-center justify-between py-3 border-b border-border">
                 <div class="flex flex-col gap-0.5">
                   <span class="text-sm font-medium text-text-primary">登录失败锁定</span>
-                  <span class="text-xs text-text-muted">连续登录失败 5 次后锁定账户 30 分钟</span>
+                  <span class="text-xs text-text-muted">连续登录失败 {{ securityForm.maxAttempts }} 次后锁定账户 {{ securityForm.lockMinutes }} 分钟</span>
                 </div>
                 <div
                   class="w-10 h-6 rounded-full cursor-pointer transition-colors relative"
@@ -104,20 +105,92 @@
                 </div>
               </div>
 
-              <div class="flex items-center justify-between py-3 border-b border-border">
-                <div class="flex flex-col gap-0.5">
+              <div class="flex items-center py-3 border-b border-border gap-6">
+                <div class="flex flex-col gap-0.5 shrink-0 min-w-[240px]">
+                  <span class="text-sm font-medium text-text-primary">最大失败次数</span>
+                  <span class="text-xs text-text-muted">连续登录失败达到此次数后锁定账户</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <input
+                    v-model.number="securityForm.maxAttempts"
+                    type="number"
+                    min="1"
+                    max="20"
+                    :disabled="!securityForm.loginLock || !localLocks.maxAttempts"
+                    class="w-[140px] h-9 rounded border border-border px-3 text-sm text-left text-text-primary font-mono outline-none focus:border-primary transition-colors disabled:bg-gray-50 disabled:text-text-muted"
+                  />
+                  <span class="text-sm text-text-muted">次</span>
+                </div>
+                <div
+                  class="ml-auto w-10 h-6 rounded-full cursor-pointer transition-colors relative"
+                  :class="localLocks.maxAttempts ? 'bg-primary' : 'bg-gray-300'"
+                  :title="localLocks.maxAttempts ? '点击锁定' : '点击解锁以编辑'"
+                  @click="localLocks.maxAttempts = !localLocks.maxAttempts"
+                >
+                  <div
+                    class="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform"
+                    :class="localLocks.maxAttempts ? 'translate-x-4.5' : 'translate-x-0.5'"
+                  />
+                </div>
+              </div>
+
+              <div class="flex items-center py-3 border-b border-border gap-6">
+                <div class="flex flex-col gap-0.5 shrink-0 min-w-[240px]">
+                  <span class="text-sm font-medium text-text-primary">锁定时长</span>
+                  <span class="text-xs text-text-muted">账号锁定后需等待的时间</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <input
+                    v-model.number="securityForm.lockMinutes"
+                    type="number"
+                    min="1"
+                    max="1440"
+                    :disabled="!securityForm.loginLock || !localLocks.lockMinutes"
+                    class="w-[140px] h-9 rounded border border-border px-3 text-sm text-left text-text-primary font-mono outline-none focus:border-primary transition-colors disabled:bg-gray-50 disabled:text-text-muted"
+                  />
+                  <span class="text-sm text-text-muted">分钟</span>
+                </div>
+                <div
+                  class="ml-auto w-10 h-6 rounded-full cursor-pointer transition-colors relative"
+                  :class="localLocks.lockMinutes ? 'bg-primary' : 'bg-gray-300'"
+                  :title="localLocks.lockMinutes ? '点击锁定' : '点击解锁以编辑'"
+                  @click="localLocks.lockMinutes = !localLocks.lockMinutes"
+                >
+                  <div
+                    class="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform"
+                    :class="localLocks.lockMinutes ? 'translate-x-4.5' : 'translate-x-0.5'"
+                  />
+                </div>
+              </div>
+
+              <div class="flex items-center py-3 border-b border-border gap-6">
+                <div class="flex flex-col gap-0.5 shrink-0 min-w-[240px]">
                   <span class="text-sm font-medium text-text-primary">会话超时</span>
                   <span class="text-xs text-text-muted">超过指定时间未操作将自动退出登录</span>
                 </div>
-                <select
-                  v-model="securityForm.sessionTimeout"
-                  class="h-9 rounded border border-border px-3 text-sm text-text-primary bg-white outline-none appearance-none cursor-pointer"
+                <div class="flex items-center gap-2">
+                  <select
+                    v-model="securityForm.sessionTimeout"
+                    :disabled="!localLocks.sessionTimeout"
+                    class="w-[140px] h-9 rounded border border-border px-3 text-sm text-text-primary bg-white outline-none appearance-none cursor-pointer disabled:bg-gray-50 disabled:text-text-muted"
+                  >
+                    <option value="15">15 分钟</option>
+                    <option value="30">30 分钟</option>
+                    <option value="60">1 小时</option>
+                    <option value="120">2 小时</option>
+                  </select>
+                </div>
+                <div
+                  class="ml-auto w-10 h-6 rounded-full cursor-pointer transition-colors relative"
+                  :class="localLocks.sessionTimeout ? 'bg-primary' : 'bg-gray-300'"
+                  :title="localLocks.sessionTimeout ? '点击锁定' : '点击解锁以编辑'"
+                  @click="localLocks.sessionTimeout = !localLocks.sessionTimeout"
                 >
-                  <option value="15">15 分钟</option>
-                  <option value="30">30 分钟</option>
-                  <option value="60">1 小时</option>
-                  <option value="120">2 小时</option>
-                </select>
+                  <div
+                    class="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform"
+                    :class="localLocks.sessionTimeout ? 'translate-x-4.5' : 'translate-x-0.5'"
+                  />
+                </div>
               </div>
 
               <div class="flex items-center justify-between py-3 border-b border-border">
@@ -137,24 +210,38 @@
                 </div>
               </div>
 
-              <div class="flex flex-col gap-1.5">
-                <label class="text-sm font-medium text-text-primary">密码最小长度</label>
-                <p class="text-xs text-text-muted">新密码必须满足此长度要求</p>
+              <div class="flex items-center py-3 border-b border-border gap-6">
+                <div class="flex flex-col gap-0.5 shrink-0 min-w-[240px]">
+                  <span class="text-sm font-medium text-text-primary">密码最小长度</span>
+                  <span class="text-xs text-text-muted">新密码必须满足此长度要求</span>
+                </div>
                 <div class="flex items-center gap-2">
                   <input
-                    v-model="securityForm.minPasswordLength"
+                    v-model.number="securityForm.minPasswordLength"
                     type="number"
                     min="6"
                     max="32"
-                    class="w-[300px] h-9 rounded border border-border px-3 text-sm text-text-primary font-mono outline-none focus:border-primary transition-colors"
+                    :disabled="!localLocks.minPasswordLength"
+                    class="w-[140px] h-9 rounded border border-border px-3 text-sm text-left text-text-primary font-mono outline-none focus:border-primary transition-colors disabled:bg-gray-50 disabled:text-text-muted"
                   />
                   <span class="text-sm text-text-muted">位</span>
+                </div>
+                <div
+                  class="ml-auto w-10 h-6 rounded-full cursor-pointer transition-colors relative"
+                  :class="localLocks.minPasswordLength ? 'bg-primary' : 'bg-gray-300'"
+                  :title="localLocks.minPasswordLength ? '点击锁定' : '点击解锁以编辑'"
+                  @click="localLocks.minPasswordLength = !localLocks.minPasswordLength"
+                >
+                  <div
+                    class="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform"
+                    :class="localLocks.minPasswordLength ? 'translate-x-4.5' : 'translate-x-0.5'"
+                  />
                 </div>
               </div>
             </div>
 
             <div class="flex items-center gap-3">
-              <button class="rounded h-10 px-4 text-sm font-medium text-white bg-primary flex items-center gap-2 hover:bg-primary/90 transition-colors">
+              <button @click="saveSecuritySettings" class="rounded h-10 px-4 text-sm font-medium text-white bg-primary flex items-center gap-2 hover:bg-primary/90 transition-colors">
                 <Check :size="16" />
                 保存设置
               </button>
@@ -222,12 +309,12 @@
               <div class="flex items-center justify-between py-3 border-b border-border">
                 <div class="flex flex-col gap-0.5">
                   <span class="text-sm font-medium text-text-primary">邮件通知</span>
-                  <span class="text-xs text-text-muted">通过邮件发送系统通知</span>
+                  <span class="text-xs text-text-muted">通过邮件发送系统通知（与短信通知互斥，默认邮件）</span>
                 </div>
                 <div
                   class="w-10 h-6 rounded-full cursor-pointer transition-colors relative"
                   :class="notifyForm.emailNotify ? 'bg-primary' : 'bg-gray-300'"
-                  @click="notifyForm.emailNotify = !notifyForm.emailNotify"
+                  @click="toggleEmailNotify"
                 >
                   <div
                     class="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform"
@@ -239,12 +326,12 @@
               <div class="flex items-center justify-between py-3 border-b border-border">
                 <div class="flex flex-col gap-0.5">
                   <span class="text-sm font-medium text-text-primary">短信通知</span>
-                  <span class="text-xs text-text-muted">通过短信发送重要通知</span>
+                  <span class="text-xs text-text-muted">通过短信发送重要通知（与邮件通知互斥，目前为模拟）</span>
                 </div>
                 <div
                   class="w-10 h-6 rounded-full cursor-pointer transition-colors relative"
                   :class="notifyForm.smsNotify ? 'bg-primary' : 'bg-gray-300'"
-                  @click="notifyForm.smsNotify = !notifyForm.smsNotify"
+                  @click="toggleSmsNotify"
                 >
                   <div
                     class="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform"
@@ -265,9 +352,17 @@
             </div>
 
             <div class="flex items-center gap-3">
-              <button class="rounded h-10 px-4 text-sm font-medium text-white bg-primary flex items-center gap-2 hover:bg-primary/90 transition-colors">
+              <button @click="saveNotifySettings" class="rounded h-10 px-4 text-sm font-medium text-white bg-primary flex items-center gap-2 hover:bg-primary/90 transition-colors">
                 <Check :size="16" />
                 保存设置
+              </button>
+              <button
+                @click="sendTestEmail"
+                :disabled="testEmailSending"
+                class="rounded h-10 px-4 text-sm font-medium text-primary border border-primary flex items-center gap-2 hover:bg-primary/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Mail :size="16" />
+                {{ testEmailSending ? '发送中...' : '发送测试邮件' }}
               </button>
             </div>
           </div>
@@ -278,8 +373,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
-import { Check, RotateCcw } from 'lucide-vue-next'
+import { ref, reactive, onMounted } from 'vue'
+import { Check, RotateCcw, Mail } from 'lucide-vue-next'
+import { api } from '@/utils/api'
+import { useToast } from '@/composables/useToast'
+
+const { success: toastSuccess, error: toastError } = useToast()
 
 const activeTab = ref('basic')
 
@@ -297,9 +396,18 @@ const basicForm = reactive({
 
 const securityForm = reactive({
   loginLock: true,
+  maxAttempts: 3,
+  lockMinutes: 30,
   sessionTimeout: '30',
   ipWhitelist: false,
   minPasswordLength: 8,
+})
+
+const localLocks = reactive({
+  maxAttempts: false,
+  lockMinutes: false,
+  sessionTimeout: false,
+  minPasswordLength: false,
 })
 
 const notifyForm = reactive({
@@ -310,6 +418,115 @@ const notifyForm = reactive({
   smsNotify: false,
   notifyEmail: 'admin@cshop.com',
 })
+
+async function fetchSettings() {
+  const res = await api.get<Record<string, string>>('/admin/settings')
+  if (res.success && res.data) {
+    const d = res.data
+    if (d.trash_retention_days !== undefined) {
+      basicForm.retentionDays = Number(d.trash_retention_days)
+    }
+    if (d.site_name !== undefined) basicForm.siteName = d.site_name
+    if (d.contact_email !== undefined) basicForm.email = d.contact_email
+
+    if (d.login_lock !== undefined) securityForm.loginLock = d.login_lock === 'true'
+    if (d.login_max_attempts !== undefined) securityForm.maxAttempts = Number(d.login_max_attempts)
+    if (d.login_lock_minutes !== undefined) securityForm.lockMinutes = Number(d.login_lock_minutes)
+    if (d.session_timeout !== undefined) securityForm.sessionTimeout = d.session_timeout
+    if (d.ip_whitelist !== undefined) securityForm.ipWhitelist = d.ip_whitelist === 'true'
+    if (d.min_password_length !== undefined) securityForm.minPasswordLength = Number(d.min_password_length)
+
+    if (d.notify_new_order !== undefined) notifyForm.newOrder = d.notify_new_order === 'true'
+    if (d.notify_stock_alert !== undefined) notifyForm.stockAlert = d.notify_stock_alert === 'true'
+    if (d.notify_user_register !== undefined) notifyForm.userRegister = d.notify_user_register === 'true'
+    if (d.notify_email !== undefined) notifyForm.emailNotify = d.notify_email === 'true'
+    if (d.notify_sms !== undefined) notifyForm.smsNotify = d.notify_sms === 'true'
+    if (d.notify_receive_email !== undefined) notifyForm.notifyEmail = d.notify_receive_email
+  }
+}
+
+async function saveBasicSettings() {
+  const res = await api.put('/admin/settings', {
+    trash_retention_days: String(basicForm.retentionDays),
+    site_name: basicForm.siteName,
+    contact_email: basicForm.email,
+  })
+  if (res.success) {
+    toastSuccess('保存成功')
+  } else {
+    toastError(res.error || '保存失败')
+  }
+}
+
+async function resetBasicSettings() {
+  await fetchSettings()
+  toastSuccess('已重置')
+}
+
+async function saveSecuritySettings() {
+  const res = await api.put('/admin/settings', {
+    login_lock: String(securityForm.loginLock),
+    login_max_attempts: String(securityForm.maxAttempts),
+    login_lock_minutes: String(securityForm.lockMinutes),
+    session_timeout: securityForm.sessionTimeout,
+    ip_whitelist: String(securityForm.ipWhitelist),
+    min_password_length: String(securityForm.minPasswordLength),
+  })
+  if (res.success) {
+    toastSuccess('保存成功')
+  } else {
+    toastError(res.error || '保存失败')
+  }
+}
+
+async function saveNotifySettings() {
+  const res = await api.put('/admin/settings', {
+    notify_new_order: String(notifyForm.newOrder),
+    notify_stock_alert: String(notifyForm.stockAlert),
+    notify_user_register: String(notifyForm.userRegister),
+    notify_email: String(notifyForm.emailNotify),
+    notify_sms: String(notifyForm.smsNotify),
+    notify_receive_email: notifyForm.notifyEmail,
+  })
+  if (res.success) {
+    toastSuccess('保存成功')
+  } else {
+    toastError(res.error || '保存失败')
+  }
+}
+
+const testEmailSending = ref(false)
+
+async function sendTestEmail() {
+  testEmailSending.value = true
+  const res = await api.post<{ sent: boolean; to: string }>('/admin/settings/test-email', {})
+  testEmailSending.value = false
+  if (res.success) {
+    toastSuccess(`已发送至 ${res.data?.to}`)
+  } else {
+    toastError(res.error || '发送失败')
+  }
+}
+
+onMounted(fetchSettings)
+
+function toggleEmailNotify() {
+  if (!notifyForm.emailNotify) {
+    notifyForm.emailNotify = true
+    notifyForm.smsNotify = false
+  } else {
+    notifyForm.emailNotify = false
+  }
+}
+
+function toggleSmsNotify() {
+  if (!notifyForm.smsNotify) {
+    notifyForm.smsNotify = true
+    notifyForm.emailNotify = false
+  } else {
+    notifyForm.smsNotify = false
+  }
+}
 </script>
 
 <style scoped>

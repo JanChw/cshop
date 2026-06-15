@@ -315,15 +315,46 @@ Authorization: {{adminToken}}
 # 权限: product.update
 # formData: file（jpg/png/webp），走 sharp 生成4变体，写入 uploads 表并更新 products.image
 
-### 下架商品
+### 移入回收站（软删除）
 DELETE {{baseUrl}}/admin/products/1
 Authorization: {{adminToken}}
-# 权限: product.delete（软删除，设 isActive=false）
+# 权限: product.delete（设 deletedAt=now()，商品从前后台正常列表隐藏，可在回收站恢复）
 
 ### 恢复商品
 POST {{baseUrl}}/admin/products/1/restore
 Authorization: {{adminToken}}
-# 权限: product.update（设 isActive=true）
+# 权限: product.update（清空 deletedAt，恢复到正常列表）
+
+### 彻底删除商品
+POST {{baseUrl}}/admin/products/1/permanent
+Authorization: {{adminToken}}
+# 权限: product.hardDelete
+# 若商品被 order_items/cart_items/designs 引用，返回 409 拒绝
+
+### 批量移入回收站
+POST {{baseUrl}}/admin/products/batch-delete
+Authorization: {{adminToken}}
+Content-Type: application/json
+
+{
+  "ids": [1, 2, 3]
+}
+# 权限: product.delete，ids 数组 1-100 项
+
+### 批量彻底删除
+POST {{baseUrl}}/admin/products/batch-permanent
+Authorization: {{adminToken}}
+Content-Type: application/json
+
+{
+  "ids": [1, 2, 3]
+}
+# 权限: product.hardDelete，ids 数组 1-100 项，若任一被引用则整批 409 拒绝
+
+### 查看回收站
+GET {{baseUrl}}/admin/products?onlyDeleted=true&page=1&limit=20&q=T恤
+Authorization: {{adminToken}}
+# 权限: product.read，返回 deletedAt IS NOT NULL 的商品
 
 ### 获取商品规格列表
 GET {{baseUrl}}/admin/products/1/variants
@@ -358,6 +389,64 @@ Authorization: {{adminToken}}
 DELETE {{baseUrl}}/admin/products/1/variants/1
 Authorization: {{adminToken}}
 # 权限: product.delete（有订单/购物车/设计引用时拒绝）
+
+### 批量删除商品规格
+POST {{baseUrl}}/admin/products/1/variants/batch-delete
+Content-Type: application/json
+Authorization: {{adminToken}}
+# 权限: product.delete，已被引用的规格会跳过；返回 { deleted, skipped }
+{
+  "ids": [1, 2, 3]
+}
+
+### 批量更新商品规格
+POST {{baseUrl}}/admin/products/1/variants/batch-update
+Content-Type: application/json
+Authorization: {{adminToken}}
+# 权限: product.update，data 内可包含 stock / priceAdjustment
+{
+  "ids": [1, 2, 3],
+  "data": { "stock": 100, "priceAdjustment": 10 }
+}
+
+### ============================
+### 商品级规格选项（每商品独立）
+### ============================
+
+### 获取商品的规格选项（公开）
+GET {{baseUrl}}/products/1/variant-options?type=size
+# 无需登录，返回该商品自己的尺寸选项；不带 type 返回全部
+
+### 获取商品的规格选项（管理端）
+GET {{baseUrl}}/admin/products/1/variant-options?type=color
+Authorization: {{adminToken}}
+# 权限: product.read
+
+### 新增商品级规格选项
+POST {{baseUrl}}/admin/products/1/variant-options
+Content-Type: application/json
+Authorization: {{adminToken}}
+# 权限: product.update
+{
+  "type": "size",
+  "value": "X",
+  "sort": 100
+}
+
+### 更新商品级规格选项
+PUT {{baseUrl}}/admin/products/1/variant-options/1
+Content-Type: application/json
+Authorization: {{adminToken}}
+# 权限: product.update
+{
+  "value": "XL",
+  "sort": 200
+}
+
+### 删除商品级规格选项
+DELETE {{baseUrl}}/admin/products/1/variant-options/1
+Authorization: {{adminToken}}
+# 权限: product.update
 
 ### ============================
 ### 订单管理
@@ -434,10 +523,31 @@ Authorization: {{adminToken}}
   "slug": "short-sleeve-tshirt"
 }
 
-### 删除分类
+### 删除分类（无商品时直接删）
 DELETE {{baseUrl}}/admin/categories/1
 Authorization: {{adminToken}}
-# 权限: category.delete（有商品引用时拒绝）
+# 权限: category.delete
+# 分类下若还有商品（未软删），返回 409；前端需用下一条「迁移商品后删除」
+
+### 删除分类（迁移商品后删除）
+DELETE {{baseUrl}}/admin/categories/4?reassignTo=1
+Authorization: {{adminToken}}
+# 权限: category.delete
+# 将 categoryId=4 的未软删商品 categoryId 改为 1，事务内完成，再删分类
+# 校验：reassignTo 必须存在，且不能与 id 相同；返回 {reassigned: N}
+
+### 分类拖拽排序
+PUT {{baseUrl}}/admin/categories/reorder
+Authorization: {{adminToken}}
+Content-Type: application/json
+
+[
+  {"id": 5, "sort": 0},
+  {"id": 6, "sort": 1},
+  {"id": 7, "sort": 2}
+]
+# 权限: category.update
+# 数组至少 1 项，事务内更新每条分类的 sort；公开 GET /categories 按 sort 升序返回
 
 ### ============================
 ### 员工管理
@@ -472,10 +582,20 @@ Authorization: {{adminToken}}
   "status": "active"
 }
 
-### 删除员工
+### 设为离职（软删）
+POST {{baseUrl}}/admin/staff/1/resign
+Authorization: {{adminToken}}
+# 权限: staff.delete
+# 将 status 改为 resigned，员工记录保留但账号无法登录
+# 已是 resigned → 409；不能停用自己 → 400
+
+### 永久删除员工
 DELETE {{baseUrl}}/admin/staff/1
 Authorization: {{adminToken}}
-# 权限: staff.delete，软删除（标记 resigned），不能删自己
+# 权限: staff.delete
+# 事务内删 staff + users（cascade 清 cart_items/designs/sessions/uploads）
+# 校验：staff.userId 在 orders 表有引用 → 409 拒绝；不能删自己 → 400
+# 返回 {id, hardDeleted: true}
 
 ### ============================
 ### 角色管理
@@ -706,3 +826,54 @@ Authorization: {{adminToken}}
 DELETE {{baseUrl}}/admin/uploads/1
 Authorization: {{adminToken}}
 # 权限: settings.update，删除任意用户上传记录及文件
+
+### ============================
+### 规格选项（材质/重量）
+### ============================
+
+### 获取材质列表（公开）
+GET {{baseUrl}}/variant-options?type=material
+# 无需登录，返回所有材质选项，按 sort 升序
+
+### 获取重量列表（公开）
+GET {{baseUrl}}/variant-options?type=weight
+# 无需登录，返回所有重量选项（单位 g），按 sort 升序
+
+### 获取尺寸列表（公开）
+GET {{baseUrl}}/variant-options?type=size
+# 无需登录，返回所有尺寸选项（XS/S/M/L/XL/XXL 等），按 sort 升序
+
+### 获取颜色列表（公开）
+GET {{baseUrl}}/variant-options?type=color
+# 无需登录，返回所有颜色选项，按 sort 升序
+
+### 获取全部规格选项（管理端）
+GET {{baseUrl}}/admin/variant-options
+Authorization: {{adminToken}}
+# 权限: settings.read，返回全部材质+重量+尺寸+颜色选项
+
+### 新增规格选项
+POST {{baseUrl}}/admin/variant-options
+Content-Type: application/json
+Authorization: {{adminToken}}
+# 权限: settings.update，type 可选: material / weight / size / color
+{
+  "type": "size",
+  "value": "XXXL",
+  "sort": 700
+}
+
+### 更新规格选项
+PUT {{baseUrl}}/admin/variant-options/1
+Content-Type: application/json
+Authorization: {{adminToken}}
+# 权限: settings.update
+{
+  "value": "100% 纯棉",
+  "sort": 100
+}
+
+### 删除规格选项
+DELETE {{baseUrl}}/admin/variant-options/1
+Authorization: {{adminToken}}
+# 权限: settings.update

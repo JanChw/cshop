@@ -6,12 +6,25 @@ export const users = sqliteTable('users', {
   email: text('email').notNull().unique(),
   passwordHash: text('password_hash').notNull(),
   name: text('name').notNull(),
-  role: text('role', { enum: ['customer', 'admin'] }).notNull().default('customer'),
-  disabled: integer('disabled', { mode: 'boolean' }).notNull().default(false),
+  status: text('status', { enum: ['active', 'disabled', 'deactivated'] }).notNull().default('active'),
   lastLoginAt: text('last_login_at'),
   emailVerifiedAt: text('email_verified_at'),
+  failedAttempts: integer('failed_attempts').notNull().default(0),
+  lockedUntil: text('locked_until'),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`)
 })
+
+export const loginAttempts = sqliteTable('login_attempts', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  email: text('email').notNull(),
+  ip: text('ip'),
+  success: integer('success', { mode: 'boolean' }).notNull(),
+  userAgent: text('user_agent'),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`)
+}, (t) => ({
+  emailIdx: index('login_attempts_email_idx').on(t.email, t.createdAt),
+  ipIdx: index('login_attempts_ip_idx').on(t.ip, t.createdAt)
+}))
 
 export const roles = sqliteTable('roles', {
   id: integer('id').primaryKey({ autoIncrement: true }),
@@ -56,8 +69,11 @@ export const staff = sqliteTable('staff', {
 export const categories = sqliteTable('categories', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   name: text('name').notNull(),
-  slug: text('slug').notNull().unique()
-})
+  slug: text('slug').notNull().unique(),
+  sort: integer('sort').notNull().default(0)
+}, (t) => ({
+  sortIdx: index('categories_sort_idx').on(t.sort)
+}))
 
 export const products = sqliteTable('products', {
   id: integer('id').primaryKey({ autoIncrement: true }),
@@ -68,10 +84,12 @@ export const products = sqliteTable('products', {
   image: text('image'),
   stock: integer('stock').notNull().default(0),
   isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
-  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`)
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+  deletedAt: text('deleted_at')
 }, (t) => ({
   categoryIdx: index('products_category_idx').on(t.categoryId),
-  activeIdx: index('products_active_idx').on(t.isActive)
+  activeIdx: index('products_active_idx').on(t.isActive),
+  deletedIdx: index('products_deleted_idx').on(t.deletedAt)
 }))
 
 export const productVariants = sqliteTable('product_variants', {
@@ -251,4 +269,25 @@ export const menus = sqliteTable('menus', {
 }, (t) => ({
   parentIdx: index('menus_parent_idx').on(t.parentId),
   sortIdx: index('menus_sort_idx').on(t.sort)
+}))
+
+export const variantOptions = sqliteTable('variant_options', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  type: text('type', { enum: ['material', 'weight', 'size', 'color'] }).notNull(),
+  value: text('value').notNull(),
+  sort: integer('sort').notNull().default(0),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`)
+}, (t) => ({
+  typeIdx: index('variant_options_type_idx').on(t.type, t.sort)
+}))
+
+export const productVariantOptions = sqliteTable('product_variant_options', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  productId: integer('product_id').references(() => products.id, { onDelete: 'cascade' }).notNull(),
+  type: text('type', { enum: ['material', 'weight', 'size', 'color'] }).notNull(),
+  value: text('value').notNull(),
+  sort: integer('sort').notNull().default(0),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`)
+}, (t) => ({
+  productTypeIdx: index('product_variant_options_product_type_idx').on(t.productId, t.type, t.sort)
 }))

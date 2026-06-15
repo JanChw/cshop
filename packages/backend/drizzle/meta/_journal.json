@@ -57,6 +57,62 @@
       "when": 1780977574165,
       "tag": "0007_next_lilith",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1781504686069,
+      "tag": "0008_outstanding_wild_pack",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1781506886516,
+      "tag": "0009_damp_boomerang",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1781513101932,
+      "tag": "0010_mixed_sauron",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1781516573939,
+      "tag": "0011_nifty_lady_mastermind",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1781518349644,
+      "tag": "0012_boring_luckman",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "6",
+      "when": 1781518500000,
+      "tag": "0014_settings_trash_retention",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "6",
+      "when": 1781518600000,
+      "tag": "0015_login_attempts",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "6",
+      "when": 1781518700000,
+      "tag": "0016_user_lock",
+      "breakpoints": true
     }
   ]
 }

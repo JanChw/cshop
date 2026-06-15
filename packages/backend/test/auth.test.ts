@@ -135,7 +135,7 @@ describe('JWT token typ separation (A2)', () => {
     const jwt = (await import('jsonwebtoken')).default
     const user = await createUser()
     const legacyAccessToken = jwt.sign(
-      { userId: user.id, role: user.role },
+      { userId: user.id, isStaff: user.isStaff, roleId: user.roleId, roleName: user.roleName, permissions: user.permissions },
       'test-secret',
       { expiresIn: '15m' }
     )
@@ -249,7 +249,7 @@ describe('JWT secret enforcement (A1)', () => {
     // that signing works and that a token signed with the old hardcoded
     // dev secret would fail to verify.
     const jwt = require('jsonwebtoken') as typeof import('jsonwebtoken')
-    const t = signAccessToken({ userId: 1, role: 'customer' })
+    const t = signAccessToken({ userId: 1, isStaff: false, roleId: null, roleName: null, permissions: [] })
     expect(jwt.verify(t, 'test-secret')).toBeDefined()
     expect(() => jwt.verify(t, 'cshop-dev-secret')).toThrow()
     // signRefreshToken used to make sure import works

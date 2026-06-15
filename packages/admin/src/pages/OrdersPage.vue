@@ -100,9 +100,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { Search, Eye, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import gsap from 'gsap'
+import { api } from '@/utils/api'
 import StatusBadge from '@/components/ui/StatusBadge.vue'
 
 const searchQuery = ref('')
@@ -119,19 +120,6 @@ const statusTabs = [
   { key: 'cancelled', label: '已取消' },
 ]
 
-const statusVariantMap: Record<string, string> = {
-  '待处理': 'warning',
-  '已付款': 'info',
-  '处理中': 'primary-light',
-  '已发货': 'primary',
-  '已完成': 'success',
-  '已取消': 'danger',
-}
-
-function statusVariant(status: string) {
-  return (statusVariantMap[status] ?? 'inactive') as 'warning' | 'info' | 'primary-light' | 'primary' | 'success' | 'danger' | 'inactive'
-}
-
 const statusKeyMap: Record<string, string> = {
   '待处理': 'pending',
   '已付款': 'paid',
@@ -139,6 +127,20 @@ const statusKeyMap: Record<string, string> = {
   '已发货': 'shipped',
   '已完成': 'completed',
   '已取消': 'cancelled',
+}
+
+const statusVariantMap: Record<string, string> = {
+  pending: 'warning',
+  paid: 'info',
+  processing: 'primary-light',
+  shipped: 'primary',
+  completed: 'success',
+  cancelled: 'danger',
+}
+
+function statusVariant(status: string) {
+  const key = statusKeyMap[status] ?? ''
+  return (statusVariantMap[key] ?? 'inactive') as 'warning' | 'info' | 'primary-light' | 'primary' | 'success' | 'danger' | 'inactive'
 }
 
 interface Order {
@@ -151,43 +153,74 @@ interface Order {
   date: string
 }
 
-const orders = ref<Order[]>([
-  { id: 1, orderNo: 'ORD-1024', customer: '张三', product: '经典圆领T恤 x2', amount: '¥198', status: '待处理', date: '2024-01-15' },
-  { id: 2, orderNo: 'ORD-1023', customer: '李四', product: '潮流连帽卫衣 x1', amount: '¥399', status: '已付款', date: '2024-01-15' },
-  { id: 3, orderNo: 'ORD-1022', customer: '王五', product: '修身牛仔裤 x1, 配饰 x3', amount: '¥567', status: '处理中', date: '2024-01-14' },
-  { id: 4, orderNo: 'ORD-1021', customer: '赵六', product: '加绒外套 x1', amount: '¥299', status: '已发货', date: '2024-01-14' },
-  { id: 5, orderNo: 'ORD-1020', customer: '孙七', product: '纯棉Polo衫 x3', amount: '¥447', status: '已完成', date: '2024-01-13' },
-  { id: 6, orderNo: 'ORD-1019', customer: '周八', product: '经典圆领T恤 x1', amount: '¥99', status: '已取消', date: '2024-01-13' },
-  { id: 7, orderNo: 'ORD-1018', customer: '吴九', product: '潮流连帽卫衣 x2, 裤子 x1', amount: '¥997', status: '待处理', date: '2024-01-12' },
-  { id: 8, orderNo: 'ORD-1017', customer: '郑十', product: '连衣裙 x1', amount: '¥259', status: '已付款', date: '2024-01-12' },
-  { id: 9, orderNo: 'ORD-1016', customer: '钱一', product: '配饰 x5', amount: '¥175', status: '处理中', date: '2024-01-11' },
-  { id: 10, orderNo: 'ORD-1015', customer: '冯二', product: '修身牛仔裤 x2', amount: '¥398', status: '已发货', date: '2024-01-11' },
-  { id: 11, orderNo: 'ORD-1014', customer: '陈西', product: '加绒外套 x1, T恤 x2', amount: '¥497', status: '已完成', date: '2024-01-10' },
-  { id: 12, orderNo: 'ORD-1013', customer: '林美', product: '潮流连帽卫衣 x1', amount: '¥399', status: '待处理', date: '2024-01-10' },
-])
+const orders = ref<Order[]>([])
+const total = ref(0)
 
-const filteredOrders = computed(() => {
-  return orders.value.filter((order) => {
-    const matchSearch = !searchQuery.value ||
-      order.orderNo.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      order.customer.toLowerCase().includes(searchQuery.value.toLowerCase())
-    const matchStatus = activeStatus.value === 'all' ||
-      statusKeyMap[order.status] === activeStatus.value
-    return matchSearch && matchStatus
-  })
-})
+const filteredOrders = computed(() => orders.value)
 
-const totalPages = computed(() => Math.ceil(filteredOrders.value.length / 8) || 1)
+const totalPages = computed(() => Math.ceil(total.value / 8) || 1)
 
-const startItem = computed(() => (currentPage.value - 1) * 8 + 1)
-const endItem = computed(() => Math.min(currentPage.value * 8, filteredOrders.value.length))
+const startItem = computed(() => total.value > 0 ? (currentPage.value - 1) * 8 + 1 : 0)
+const endItem = computed(() => Math.min(currentPage.value * 8, total.value))
 
-const paginatedOrders = computed(() => {
-  const start = (currentPage.value - 1) * 8
-  return filteredOrders.value.slice(start, start + 8)
-})
+const paginatedOrders = computed(() => orders.value)
 
 const tableBodyRef = ref<HTMLElement | null>(null)
+
+const apiStatusToChinese: Record<string, string> = {
+  pending: '待处理',
+  paid: '已付款',
+  processing: '处理中',
+  shipped: '已发货',
+  completed: '已完成',
+  cancelled: '已取消',
+}
+
+async function fetchOrders() {
+  const params: Record<string, unknown> = {
+    page: currentPage.value,
+    limit: 8,
+  }
+  if (activeStatus.value !== 'all') {
+    params.status = activeStatus.value
+  }
+  if (searchQuery.value.trim()) {
+    params.q = searchQuery.value.trim()
+  }
+  const res = await api.get<{ items: any[]; total: number }>('/admin/orders', params)
+  if (res.success && res.data) {
+    orders.value = (res.data.items ?? []).map((item) => ({
+      id: item.id,
+      orderNo: item.orderNo ?? `ORD-${item.id}`,
+      customer: item.userName ?? '',
+      product: item.itemCount != null ? `${item.itemCount}件商品` : '',
+      amount: item.total != null ? `¥${Number(item.total)}` : '',
+      status: apiStatusToChinese[item.status] ?? item.status,
+      date: item.createdAt ? item.createdAt.slice(0, 10) : '',
+    }))
+    total.value = res.data.total ?? 0
+  } else {
+    orders.value = []
+    total.value = 0
+  }
+}
+
+onMounted(fetchOrders)
+
+watch(activeStatus, () => {
+  currentPage.value = 1
+})
+
+watch([activeStatus, currentPage], fetchOrders)
+
+let searchTimer: ReturnType<typeof setTimeout>
+watch(searchQuery, () => {
+  clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => {
+    currentPage.value = 1
+    fetchOrders()
+  }, 300)
+})
 
 watch([searchQuery, activeStatus, currentPage], () => {
   nextTick(() => {

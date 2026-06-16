@@ -35,7 +35,7 @@ export default function DesignWorkshop() {
   const [tshirtColor, setTshirtColor] = createSignal(TSHIRT_COLORS[0].hex)
   const [bgColor] = createSignal('transparent')
   const [drawingColor, setDrawingColor] = createSignal('#0052FF')
-  const [drawingSize, setDrawingSize] = createSignal(5)
+  const [drawingSize, setDrawingSize] = createSignal(1)
   const [drawingMode, setDrawingMode] = createSignal<'brush' | 'move'>('brush')
   const [drawingStyle, setDrawingStyle] = createSignal<BrushStyle>('pencil')
 

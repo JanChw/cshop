@@ -367,64 +367,47 @@ export default function DesignWorkshop() {
 
       <main class="px-4 max-w-md mx-auto pb-28">
         <Show when={product()}>
-          <div class="sticky top-16 z-[55] -mx-4 px-4 py-3 bg-background/95 backdrop-blur border-b border-outline-variant/30 space-y-3">
-            <div class="flex items-center justify-between gap-3">
+          <div class="sticky top-16 z-[55] -mx-4 px-4 py-2 bg-background/95 backdrop-blur border-b border-outline-variant/30">
+            <div class="flex items-center justify-between gap-2">
               <div class="min-w-0">
                 <p class="text-[10px] text-on-surface-variant truncate">{product()?.name}</p>
-                <p class="text-xl font-bold text-primary leading-tight">
+                <p class="text-lg font-bold text-primary leading-tight">
                   ¥ {totalPrice().toFixed(2)}
                 </p>
               </div>
               <div class="flex items-center gap-2 shrink-0">
+                <select
+                  value={selectedSize()}
+                  onChange={(e) => setSelectedSize(e.currentTarget.value)}
+                  class="h-8 pl-2 pr-6 rounded-lg bg-surface border border-outline-variant text-xs font-bold text-on-surface focus:outline-none focus:border-primary"
+                >
+                  <For each={variantSizes()}>
+                    {(s) => <option value={s}>{s}</option>}
+                  </For>
+                </select>
+                <div class="flex items-center gap-1">
+                  <button
+                    class="w-7 h-7 rounded-lg border border-outline-variant flex items-center justify-center text-on-surface hover:bg-surface-container transition-colors"
+                    onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                    aria-label="减少数量"
+                  >
+                    <span class="material-symbols-outlined text-sm">remove</span>
+                  </button>
+                  <span class="w-5 text-center text-xs font-bold text-on-surface">{quantity()}</span>
+                  <button
+                    class="w-7 h-7 rounded-lg border border-outline-variant flex items-center justify-center text-on-surface hover:bg-surface-container transition-colors"
+                    onClick={() => setQuantity(q => q + 1)}
+                    aria-label="增加数量"
+                  >
+                    <span class="material-symbols-outlined text-sm">add</span>
+                  </button>
+                </div>
                 <button
-                  class="px-3 py-2 rounded-xl border border-primary text-primary font-bold text-xs hover:bg-primary-container/20 transition-colors disabled:opacity-50"
+                  class="h-8 px-3 rounded-lg bg-primary text-on-primary font-bold text-xs hover:bg-primary/90 transition-colors disabled:opacity-50 whitespace-nowrap"
                   onClick={() => handleAddToCart(false)}
                   disabled={addingCart()}
                 >
                   加入购物车
-                </button>
-                <button
-                  class="px-3 py-2 rounded-xl bg-primary text-on-primary font-bold text-xs hover:bg-primary/90 transition-colors disabled:opacity-50"
-                  onClick={() => handleAddToCart(true)}
-                  disabled={addingCart()}
-                >
-                  立即购买
-                </button>
-              </div>
-            </div>
-
-            <div class="flex items-center justify-between gap-3">
-              <div class="flex flex-wrap gap-1.5">
-                <For each={variantSizes()}>
-                  {(s) => (
-                    <button
-                      class={`px-3 py-1 rounded-lg text-xs font-bold border transition-all ${
-                        selectedSize() === s
-                          ? 'border-primary bg-primary text-on-primary'
-                          : 'border-outline-variant text-on-surface hover:border-primary/60'
-                      }`}
-                      onClick={() => setSelectedSize(s)}
-                    >
-                      {s}
-                    </button>
-                  )}
-                </For>
-              </div>
-              <div class="flex items-center gap-1.5 shrink-0">
-                <button
-                  class="w-7 h-7 rounded-lg border border-outline-variant flex items-center justify-center text-on-surface hover:bg-surface-container transition-colors"
-                  onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                  aria-label="减少数量"
-                >
-                  <span class="material-symbols-outlined text-sm">remove</span>
-                </button>
-                <span class="w-6 text-center text-sm font-bold text-on-surface">{quantity()}</span>
-                <button
-                  class="w-7 h-7 rounded-lg border border-outline-variant flex items-center justify-center text-on-surface hover:bg-surface-container transition-colors"
-                  onClick={() => setQuantity(q => q + 1)}
-                  aria-label="增加数量"
-                >
-                  <span class="material-symbols-outlined text-sm">add</span>
                 </button>
               </div>
             </div>

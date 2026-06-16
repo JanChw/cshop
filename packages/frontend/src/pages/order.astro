@@ -1,12 +1,19 @@
 ---
 import MainLayout from '../layouts/MainLayout.astro'
+import OrderCard from '../components/ui/OrderCard.tsx'
+
+const orders = [
+  { orderNumber: '202310248892', status: 'pending', items: [{ product: { name: '定制创意印花 T恤', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCaC72ba8f08_URhorLNkgefycLVXdsAebkKb0DWM9R0x2jjZYcJDI1TXOwwJLarKElSVbCF-GK_IfS2hmBidgIfIYYpSDc1OykAz1uDQ2idOblKQy5gbdPENF6zsj8uALWgAi94K4ElNBkYHVL0NEgRfNO4YIaSSWMeq6ey56ES9OixPyyAo4RJaJ-DZ0b6EibFuW8AY68D68LgigYK1b4eGoudqIeTDWFbK-eR5S55FBXiBn_9_InIEpLZQFXK3A01x9dm6rUNE8' }, quantity: 1, size: 'L', color: '极简黑' }], total: 199, createdAt: '2023-10-24', designer: 'Jordan.Design' },
+  { orderNumber: '202310224510', status: 'shipping', items: [{ product: { name: '重磅插肩袖 连帽衫', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCTmTCGjOaxXei0_M2G9RjDCYMAhNPqnivR7yy-aH_UxzutfFVNt58liP5KpuKYmwtGHTDddLf5-qdVVdoA-t0c8yQY7F3q4_E2K_H9Ze9gI81N9hXYMaZhjPlDnaQ10ADP4fGa4KXi54o0Zaw_esGv4vZmyIGxXrrG1sRk7bxFOI9CYpB1MKdBDAaFdUFRcjbti-4o8QBU4cByL0JCXQJPxgXXO2gfesw7CciasXyc7NEggiJiGYj_ctFTstbzYH6Eoejdq6PNVJ8' }, quantity: 1, size: 'XL', color: '霜灰色' }], total: 459, createdAt: '2023-10-22', designer: 'Studio_99' },
+  { orderNumber: '202309153321', status: 'completed', items: [{ product: { name: '自然系列 线条插画 T恤', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBz3uIsvYz2iBLdX8a_yZxhSpphxxn4nFBKNe5rdrMz841oHVwjmFoZ7N_7p_mnBZJgRkVWF-4X3P_x6Tr-PDy-cd_yV5hBAYkSdykm4G-_PMITLmEEXoeLLsKMM8f53HM8ASn5ezWrCgaD_5juexO4waMlHDONquPuKePoD048IRn_y1nTBpp_Nr8utEjszNeybVnnAirsNGN7IkBh5QPjDnF2eqfpYq75caqj5x9FEmMg0TW0WSYBXgdRsqd3by_kIEJdljDh77E' }, quantity: 1, size: 'M', color: '珍珠白' }], total: 229, createdAt: '2023-09-15' }
+]
 ---
 
 <MainLayout title="订单管理">
 <!-- Top App Bar -->
 <header class="w-full top-0 sticky z-40 bg-surface/90 backdrop-blur-md border-b border-outline-variant flex justify-between items-center px-container-margin py-stack-sm h-16">
 <div class="flex items-center gap-4">
-<button class="material-symbols-outlined text-on-surface hover:bg-surface-container transition-colors p-2 rounded-full active:scale-95 duration-150">arrow_back</button>
+<button onclick="history.back()" class="material-symbols-outlined text-on-surface hover:bg-surface-container transition-colors p-2 rounded-full active:scale-95 duration-150">arrow_back</button>
 <h1 class="text-headline-lg-mobile font-bold text-on-surface">订单管理</h1>
 </div>
 <div class="flex items-center gap-2">
@@ -30,116 +37,20 @@ import MainLayout from '../layouts/MainLayout.astro'
 
 <!-- Main Content -->
 <main class="px-container-margin py-stack-lg space-y-6 max-w-[1200px] mx-auto pb-32">
-<!-- Order Card 1: Pending Payment -->
-<div class="bg-surface-container-lowest rounded-lg border border-outline-variant overflow-hidden group shadow-sm hover:shadow-elevated transition-shadow">
-<div class="px-4 py-3 flex justify-between items-center border-b border-outline-variant bg-surface-container-low">
-<div class="flex items-center gap-2">
-<span class="material-symbols-outlined text-body-sm text-outline">receipt_long</span>
-<span class="text-label-md text-on-surface-variant">订单号: 202310248892</span>
-</div>
-<span class="text-label-md text-primary font-bold">待付款</span>
-</div>
-<div class="p-4 flex gap-4">
-<div class="w-24 h-32 bg-surface-container rounded-lg overflow-hidden flex-shrink-0">
-<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCaC72ba8f08_URhorLNkgefycLVXdsAebkKb0DWM9R0x2jjZYcJDI1TXOwwJLarKElSVbCF-GK_IfS2hmBidgIfIYYpSDc1OykAz1uDQ2idOblKQy5gbdPENF6zsj8uALWgAi94K4ElNBkYHVL0NEgRfNO4YIaSSWMeq6ey56ES9OixPyyAo4RJaJ-DZ0b6EibFuW8AY68D68LgigYK1b4eGoudqIeTDWFbK-eR5S55FBXiBn_9_InIEpLZQFXK3A01x9dm6rUNE8" alt="定制创意印花 T恤"/>
-</div>
-<div class="flex-grow flex flex-col justify-between">
-<div>
-<h3 class="text-title-md text-on-surface mb-1">定制创意印花 T恤</h3>
-<p class="text-body-sm text-on-surface-variant">尺码: L / 颜色: 极简黑</p>
-<div class="flex items-center gap-2 mt-2">
-<img alt="Artist" class="w-5 h-5 rounded-full border border-outline-variant" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAuEY2Unn4gSgIAjEUE8zpTNCoJe-apBKi56q3nHTvEnYev4484J2lx77WuCffL_9OntyadOTTT-bhgdYK3AWFjNmfbS23XdwzyeGhc2X1-qXnxc5DMOuB9WaIHDdwJUrcP-Iq7TLfBO_qRQqcfTNwxMF3XDtlfDfgR4AZB6BP8XetPRLCxpm2AnvwGzTZJo0p8u-hq3-kqzPUzfDTNYUyMdPvAIPhyImapAzHtK2-TFP5YAfoyyXwyJv7wVWMuWtURTyYNqLEWKsg"/>
-<span class="text-label-md text-outline">设计者: Jordan.Design</span>
-</div>
-</div>
-<div class="flex justify-between items-end">
-<span class="text-body-sm text-on-surface-variant">共 1 件</span>
-<div class="text-right">
-<span class="text-label-md text-outline mr-1">合计:</span>
-<span class="text-title-md text-on-surface font-bold">¥199.00</span>
-</div>
-</div>
-</div>
-</div>
-<div class="px-4 py-4 flex justify-end gap-3 border-t border-outline-variant">
-<button class="px-6 py-2 rounded-lg border border-outline text-on-surface-variant text-label-md hover:bg-surface-container transition-colors active:scale-95">取消订单</button>
-<button class="px-6 py-2 rounded-lg bg-primary text-on-primary text-label-md hover:opacity-90 transition-opacity shadow-sm active:scale-95">去付款</button>
-</div>
-</div>
-
-<!-- Order Card 2: To Receive -->
-<div class="bg-surface-container-lowest rounded-lg border border-outline-variant overflow-hidden group shadow-sm hover:shadow-elevated transition-shadow">
-<div class="px-4 py-3 flex justify-between items-center border-b border-outline-variant bg-surface-container-low">
-<div class="flex items-center gap-2">
-<span class="material-symbols-outlined text-body-sm text-outline">receipt_long</span>
-<span class="text-label-md text-on-surface-variant">订单号: 202310224510</span>
-</div>
-<span class="text-label-md text-on-surface-variant">待收货</span>
-</div>
-<div class="p-4 flex gap-4">
-<div class="w-24 h-32 bg-surface-container rounded-lg overflow-hidden flex-shrink-0">
-<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCTmTCGjOaxXei0_M2G9RjDCYMAhNPqnivR7yy-aH_UxzutfFVNt58liP5KpuKYmwtGHTDddLf5-qdVVdoA-t0c8yQY7F3q4_E2K_H9Ze9gI81N9hXYMaZhjPlDnaQ10ADP4fGa4KXi54o0Zaw_esGv4vZmyIGxXrrG1sRk7bxFOI9CYpB1MKdBDAaFdUFRcjbti-4o8QBU4cByL0JCXQJPxgXXO2gfesw7CciasXyc7NEggiJiGYj_ctFTstbzYH6Eoejdq6PNVJ8" alt="重磅插肩袖 连帽衫"/>
-</div>
-<div class="flex-grow flex flex-col justify-between">
-<div>
-<h3 class="text-title-md text-on-surface mb-1">重磅插肩袖 连帽衫</h3>
-<p class="text-body-sm text-on-surface-variant">尺码: XL / 颜色: 霜灰色</p>
-<div class="flex items-center gap-2 mt-2">
-<img alt="Artist" class="w-5 h-5 rounded-full border border-outline-variant" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAceiOYQEZvEFa8E5VMCzvPaCJgzmuafR7dxlg6Vnl6l08P3I2ZdYxP7AADiitJWPkdYlMLqOC5Xdq_fErm1FeDywCTf6yLLoi0BvQSVYIR3ZEYo_47t0iUc8AwGZCrw_ylAlsttta5Ti-SG6ljk-M5p7epPDoJn-pEnUh79wRHV9Jhs2lnyUQ6HACNZ96w1DODM1dtrgsvp7TqpuIMHlNvT4md4lTWMMD_FWdhH03jTAqZ1PeXZyed4qY4tWhfHdbu1ULmwS7ZLfI"/>
-<span class="text-label-md text-outline">设计者: Studio_99</span>
-</div>
-</div>
-<div class="flex justify-between items-end">
-<span class="text-body-sm text-on-surface-variant">共 1 件</span>
-<div class="text-right">
-<span class="text-label-md text-outline mr-1">合计:</span>
-<span class="text-title-md text-on-surface font-bold">¥459.00</span>
-</div>
-</div>
-</div>
-</div>
-<div class="px-4 py-4 flex justify-end gap-3 border-t border-outline-variant">
-<button class="px-6 py-2 rounded-lg border border-outline text-on-surface-variant text-label-md hover:bg-surface-container transition-colors active:scale-95">查看物流</button>
-<button class="px-6 py-2 rounded-lg bg-primary text-on-primary text-label-md hover:opacity-90 transition-opacity shadow-sm active:scale-95">确认收货</button>
-</div>
-</div>
-
-<!-- Order Card 3: Completed -->
-<div class="bg-surface-container-lowest rounded-lg border border-outline-variant overflow-hidden group shadow-sm hover:shadow-elevated transition-shadow opacity-95">
-<div class="px-4 py-3 flex justify-between items-center border-b border-outline-variant bg-surface-container-low">
-<div class="flex items-center gap-2">
-<span class="material-symbols-outlined text-body-sm text-outline">receipt_long</span>
-<span class="text-label-md text-on-surface-variant">订单号: 202309153321</span>
-</div>
-<span class="text-label-md text-outline">已完成</span>
-</div>
-<div class="p-4 flex gap-4">
-<div class="w-24 h-32 bg-surface-container rounded-lg overflow-hidden flex-shrink-0 grayscale-[15%]">
-<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBz3uIsvYz2iBLdX8a_yZxhSpphxxn4nFBKNe5rdrMz841oHVwjmFoZ7N_7p_mnBZJgRkVWF-4X3P_x6Tr-PDy-cd_yV5hBAYkSdykm4G-_PMITLmEEXoeLLsKMM8f53HM8ASn5ezWrCgaD_5juexO4waMlHDONquPuKePoD048IRn_y1nTBpp_Nr8utEjszNeybVnnAirsNGN7IkBh5QPjDnF2eqfpYq75caqj5x9FEmMg0TW0WSYBXgdRsqd3by_kIEJdljDh77E" alt="自然系列 线条插画 T恤"/>
-</div>
-<div class="flex-grow flex flex-col justify-between">
-<div>
-<h3 class="text-title-md text-on-surface mb-1">自然系列 线条插画 T恤</h3>
-<p class="text-body-sm text-on-surface-variant">尺码: M / 颜色: 珍珠白</p>
-</div>
-<div class="flex justify-between items-end">
-<span class="text-body-sm text-on-surface-variant">共 1 件</span>
-<div class="text-right">
-<span class="text-label-md text-outline mr-1">合计:</span>
-<span class="text-title-md text-on-surface font-bold">¥229.00</span>
-</div>
-</div>
-</div>
-</div>
-<div class="px-4 py-4 flex justify-end gap-3 border-t border-outline-variant">
-<button class="px-6 py-2 rounded-lg border border-outline text-on-surface-variant text-label-md hover:bg-surface-container transition-colors active:scale-95">查看详情</button>
-<button class="px-6 py-2 rounded-lg border border-primary text-primary text-label-md hover:bg-primary/5 transition-colors active:scale-95">再次购买</button>
-</div>
-</div>
+{orders.map((order) => (
+  <OrderCard
+    orderNumber={order.orderNumber}
+    status={order.status}
+    items={order.items}
+    total={order.total}
+    designer={order.designer}
+    createdAt={order.createdAt}
+  />
+))}
 </main>
 
 <!-- Bottom Navigation Bar (Mobile) -->
-<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center bg-surface px-2 py-3 z-50 border-t border-outline-variant md:hidden shadow-[0_-2px_10px_rgba(0,0,0,0.02)]">
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center bg-surface px-2 py-3 z-50 border-t border-outline-variant shadow-[0_-2px_10px_rgba(0,0,0,0.02)]">
 <a class="flex flex-col items-center justify-center text-on-surface-variant px-3 py-1 hover:bg-surface-container-low transition-colors active:scale-90 duration-100" href="/">
 <span class="material-symbols-outlined mb-1">home</span>
 <span class="text-label-md">Home</span>
@@ -167,12 +78,16 @@ const tabs = document.querySelectorAll('nav:not(.fixed) a');
 tabs.forEach(tab => {
     tab.addEventListener('click', (e) => {
         e.preventDefault();
-        tabs.forEach(t => {
-            t.classList.remove('text-primary', 'border-primary', 'border-b-2');
-            t.classList.add('text-on-surface-variant');
-        });
+        tabs.forEach(t => { t.classList.remove('text-primary', 'border-primary', 'border-b-2'); t.classList.add('text-on-surface-variant'); });
         tab.classList.add('text-primary', 'border-primary', 'border-b-2');
         tab.classList.remove('text-on-surface-variant');
+        const status = tab.textContent.trim();
+        document.querySelectorAll('.space-y-6 > div').forEach(card => {
+            const statusEl = card.querySelector('.border-b .text-label-md:last-child');
+            if (!statusEl) return;
+            const cardStatus = statusEl.textContent.trim();
+            card.style.display = (status === '全部' || cardStatus === status) ? '' : 'none';
+        });
     });
 });
 </script>

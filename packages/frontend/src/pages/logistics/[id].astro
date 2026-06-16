@@ -88,4 +88,27 @@ export function getStaticPaths() {
 <button class="flex-1 py-4 px-6 rounded-lg bg-primary text-white font-medium hover:opacity-90 transition-all active:scale-95 duration-150 shadow-sm">确认收货</button>
 </div>
 </main>
+<script>
+document.querySelector('header button:first-child')?.addEventListener('click', () => history.back());
+document.querySelector('.flex.gap-4.pb-12 button:first-child')?.addEventListener('click', () => { showToast('正在连接在线客服...'); });
+document.querySelector('.flex.gap-4.pb-12 button:last-child')?.addEventListener('click', function() {
+    if (confirm('确认已收到商品？确认后订单将标记为已完成。')) {
+        this.innerHTML = '<span class="material-symbols-outlined">progress_activity</span> 确认中...';
+        this.disabled = true;
+        setTimeout(() => {
+            this.innerHTML = '<span class="material-symbols-outlined">check_circle</span> 已确认收货';
+            this.classList.remove('bg-primary');
+            this.classList.add('bg-green-600');
+            showToast('已确认收货，感谢您的购买！');
+        }, 1200);
+    }
+});
+document.querySelector('header button:last-child')?.addEventListener('click', () => { showToast('暂无新消息'); });
+function showToast(msg) {
+    let t=document.createElement('div'); t.textContent=msg;
+    t.style.cssText='position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:12px 24px;border-radius:8px;z-index:999;font-size:14px;opacity:0;transition:opacity 0.3s';
+    document.body.appendChild(t); requestAnimationFrame(()=>t.style.opacity='1');
+    setTimeout(()=>{t.style.opacity='0'; setTimeout(()=>t.remove(),300);}, 2000);
+}
+</script>
 </MainLayout>

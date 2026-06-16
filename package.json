@@ -12,6 +12,8 @@
     "typecheck:frontend": "bun --filter '@cshop/frontend' typecheck",
     "test": "bun --filter '@cshop/backend' test",
     "db:generate": "bun --filter backend db:generate",
-    "db:migrate": "bun --filter backend db:migrate"
+    "db:migrate": "bun --filter backend db:migrate",
+    "tshirt:gen": "node scripts/generate-tshirt-clean.mjs",
+    "mask:gen": "node scripts/generate-tshirt-mask.mjs"
   }
 }

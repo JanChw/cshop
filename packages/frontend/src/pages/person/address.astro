@@ -1,56 +1,8 @@
 ---
 import MainLayout from '../../layouts/MainLayout.astro'
+import AddressManager from '../../components/person/AddressManager.tsx'
 ---
 
 <MainLayout title="收货地址">
-<header class="fixed top-0 w-full z-50 bg-surface shadow-sm h-16 flex justify-between items-center px-6">
-<button class="text-on-surface hover:opacity-80 transition-opacity active:scale-95"><span class="material-symbols-outlined">arrow_back_ios_new</span></button>
-<h1 class="font-headline text-2xl font-bold text-primary">收货地址</h1>
-<button class="text-on-surface hover:opacity-80 transition-opacity active:scale-95"><span class="material-symbols-outlined">help_outline</span></button>
-</header>
-<main class="mt-16 mb-24 px-5 py-8 max-w-2xl mx-auto w-full">
-<div class="space-y-4">
-<div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/30 flex flex-col gap-4 shadow-card">
-<div class="flex justify-between items-start">
-<div class="flex items-center gap-3">
-<span class="font-bold text-lg text-on-surface">陈小木</span>
-<span class="text-on-surface-variant font-medium">138 **** 8888</span>
-<span class="px-2 py-0.5 bg-primary text-white text-[10px] rounded-md font-bold tracking-wider">默认</span>
-</div>
-</div>
-<p class="text-on-surface-variant leading-relaxed text-sm">上海市浦东新区陆家嘴环路 1233 号汇丰大厦 18 层</p>
-<div class="pt-4 border-t border-outline-variant/40 flex justify-end gap-6 text-sm font-semibold">
-<button class="flex items-center gap-1.5 text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-[18px]">edit_square</span>编辑</button>
-<button class="flex items-center gap-1.5 text-on-surface-variant hover:text-error transition-colors"><span class="material-symbols-outlined text-[18px]">delete</span>删除</button>
-</div>
-</div>
-<div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/30 flex flex-col gap-4 shadow-card opacity-90 hover:opacity-100">
-<div class="flex justify-between items-start">
-<div class="flex items-center gap-3">
-<span class="font-bold text-lg text-on-surface">林屿</span>
-<span class="text-on-surface-variant font-medium">159 **** 0012</span>
-</div>
-</div>
-<p class="text-on-surface-variant leading-relaxed text-sm">浙江省杭州市西湖区灵隐街道 法云弄 22 号 隐逸山庄</p>
-<div class="pt-4 border-t border-outline-variant/40 flex justify-between items-center">
-<button class="text-[12px] text-primary font-bold hover:underline">设为默认</button>
-<div class="flex gap-6 text-sm font-semibold">
-<button class="flex items-center gap-1.5 text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-[18px]">edit_square</span>编辑</button>
-<button class="flex items-center gap-1.5 text-on-surface-variant hover:text-error transition-colors"><span class="material-symbols-outlined text-[18px]">delete</span>删除</button>
-</div>
-</div>
-</div>
-</div>
-</main>
-<div class="fixed bottom-0 left-0 w-full p-5 bg-gradient-to-t from-surface via-surface to-transparent z-50">
-<button class="w-full h-14 bg-primary hover:opacity-90 active:scale-95 transition-all rounded-xl flex items-center justify-center gap-2 text-white shadow-lg"><span class="material-symbols-outlined">add</span><span class="font-bold tracking-widest">添加新地址</span></button>
-</div>
-<script>
-document.querySelectorAll('.address-card')?.forEach(card => {
-    const deleteBtn = card.querySelector('button:last-child');
-    deleteBtn?.addEventListener('click', () => {
-        if(confirm('确定要删除这个地址吗？')) { card.style.opacity='0'; card.style.transform='translateY(10px)'; setTimeout(()=>card.remove(),300); }
-    });
-});
-</script>
+  <AddressManager client:load />
 </MainLayout>

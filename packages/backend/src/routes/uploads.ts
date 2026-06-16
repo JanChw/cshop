@@ -115,6 +115,7 @@ protectedApp.get('/', async (c) => {
         height: uploads.height,
         thumbUrl: uploads.thumbPath,
         smallUrl: uploads.smallPath,
+        mediumUrl: uploads.mediumPath,
         createdAt: uploads.createdAt
       })
       .from(uploads)
@@ -133,6 +134,8 @@ protectedApp.get('/', async (c) => {
       width: i.width,
       height: i.height,
       thumbUrl: `/api/v1/uploads/${i.thumbUrl}`,
+      smallUrl: `/api/v1/uploads/${i.smallUrl}`,
+      mediumUrl: `/api/v1/uploads/${i.mediumUrl}`,
       createdAt: i.createdAt
     })),
     total,

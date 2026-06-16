@@ -11,10 +11,10 @@ import MainLayout from '../layouts/MainLayout.astro'
 <main class="flex-grow flex items-center justify-center px-6 py-24 pb-32">
 <div class="w-full max-w-md">
 <div class="text-center mb-10 space-y-2">
-<h2 class="font-headline text-4xl md:text-5xl text-on-surface font-semibold">欢迎回来</h2>
+<h2 class="font-headline text-4xl text-on-surface font-semibold">欢迎回来</h2>
 <p class="text-on-surface-variant text-sm tracking-wide">登录以继续您的创意之旅</p>
 </div>
-<div class="bg-surface-container-low p-8 md:p-10 rounded-lg shadow-card border border-outline-variant/60">
+<div class="bg-surface-container-low p-8 rounded-lg shadow-card border border-outline-variant/60">
 <form class="space-y-6" id="loginForm">
 <div class="space-y-2">
 <label class="block text-xs font-bold uppercase tracking-widest text-secondary ml-1" for="identifier">邮箱 / 手机号</label>
@@ -75,27 +75,68 @@ import MainLayout from '../layouts/MainLayout.astro'
 
 <script>
 function togglePassword() {
-    const passwordInput = document.getElementById('password');
-    const toggleIcon = document.getElementById('password-toggle-icon');
-    if (passwordInput.type === 'password') {
-        passwordInput.type = 'text';
-        toggleIcon.innerText = 'visibility_off';
-    } else {
-        passwordInput.type = 'password';
-        toggleIcon.innerText = 'visibility';
-    }
+    const pwd = document.getElementById('password');
+    const icon = document.getElementById('password-toggle-icon');
+    if (pwd.type === 'password') { pwd.type = 'text'; icon.innerText = 'visibility_off'; }
+    else { pwd.type = 'password'; icon.innerText = 'visibility'; }
 }
 
 document.getElementById('loginForm').addEventListener('submit', function(e) {
     e.preventDefault();
+    const identifier = document.getElementById('identifier');
+    const password = document.getElementById('password');
     const btn = this.querySelector('button[type="submit"]');
-    const originalContent = btn.innerHTML;
+    let valid = true;
+    
+    document.querySelectorAll('.error-msg').forEach(el => el.remove());
+    [identifier, password].forEach(el => el.classList.remove('border-error'));
+    
+    if (!identifier.value.trim()) {
+        showError(identifier, '请输入邮箱或手机号');
+        valid = false;
+    } else if (identifier.value.includes('@')) {
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier.value)) {
+            showError(identifier, '邮箱格式不正确');
+            valid = false;
+        }
+    }
+    
+    if (!password.value) {
+        showError(password, '请输入密码');
+        valid = false;
+    } else if (password.value.length < 6) {
+        showError(password, '密码至少 6 位');
+        valid = false;
+    }
+    
+    if (!valid) return;
+    
+    const orig = btn.innerHTML;
     btn.disabled = true;
     btn.innerHTML = '<span class="inline-block animate-spin material-symbols-outlined">progress_activity</span>';
     setTimeout(() => {
-        btn.innerHTML = '<span class="material-symbols-outlined">check_circle</span> <span>成功</span>';
-        btn.classList.add('bg-on-surface-variant');
+        btn.innerHTML = '<span class="material-symbols-outlined">check_circle</span> <span>登录成功</span>';
+        btn.classList.add('bg-green-600');
+        setTimeout(() => { window.location.href = '/'; }, 800);
     }, 1200);
+});
+
+function showError(el, msg) {
+    el.classList.add('border-error');
+    const err = document.createElement('p');
+    err.className = 'error-msg text-error text-xs mt-1 ml-1';
+    err.textContent = msg;
+    el.closest('.space-y-2').appendChild(err);
+}
+
+// Third-party login feedback
+document.querySelectorAll('.grid-cols-2.gap-4 button').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const orig = this.innerHTML;
+        this.innerHTML = '<span class="material-symbols-outlined">progress_activity</span> 跳转中...';
+        this.disabled = true;
+        setTimeout(() => { this.innerHTML = orig; this.disabled = false; }, 1500);
+    });
 });
 </script>
 </MainLayout>

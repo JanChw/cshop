@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+
+<html class="light" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ByChooow - 设计工坊 (文字引擎)</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700;800&amp;family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed": "#2e1515",
+                        "surface": "#faf5ee",
+                        "secondary": "#78706a",
+                        "secondary-fixed-dim": "#cec6be",
+                        "tertiary-fixed-dim": "#e8a0a0",
+                        "tertiary-fixed": "#fce0e0",
+                        "surface-container-highest": "#e6e0d6",
+                        "on-surface-variant": "#605850",
+                        "surface-container-low": "#f6f0e8",
+                        "on-error": "#ffffff",
+                        "background": "#faf5ee",
+                        "on-secondary-fixed": "#2a2420",
+                        "on-primary-fixed": "#401a08",
+                        "secondary-container": "#eae2da",
+                        "inverse-surface": "#3a302a",
+                        "inverse-primary": "#f0a878",
+                        "on-primary-container": "#fbe8d8",
+                        "surface-tint": "#c2652a",
+                        "surface-bright": "#faf5ee",
+                        "primary": "#c2652a",
+                        "tertiary": "#8c3c3c",
+                        "on-tertiary-container": "#3a2020",
+                        "on-secondary-fixed-variant": "#504840",
+                        "primary-container": "#e08850",
+                        "outline": "#9a9088",
+                        "on-background": "#3a302a",
+                        "on-tertiary": "#ffffff",
+                        "surface-dim": "#dcd6cc",
+                        "surface-container-lowest": "#ffffff",
+                        "on-error-container": "#7a1a10",
+                        "on-primary": "#ffffff",
+                        "tertiary-container": "#d47070",
+                        "surface-container-high": "#ece6dc",
+                        "inverse-on-surface": "#faf5ee",
+                        "surface-container": "#f2ece4",
+                        "on-secondary": "#ffffff",
+                        "surface-variant": "#ece6dc",
+                        "secondary-fixed": "#eae2da",
+                        "on-surface": "#3a302a",
+                        "error-container": "#fce4e0",
+                        "primary-fixed": "#fbe8d8",
+                        "on-secondary-container": "#605850",
+                        "primary-fixed-dim": "#f0a878",
+                        "on-primary-fixed-variant": "#8a4518",
+                        "error": "#c0392b",
+                        "outline-variant": "#d8d0c8",
+                        "on-tertiary-fixed-variant": "#6e3030",
+                        "custom-workshop-bg": "#fdfcfb"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "8px",
+                        "xl": "12px",
+                        "full": "9999px"
+                    },
+                    "spacing": {},
+                    "fontFamily": {
+                        "headline": ["EB Garamond", "serif"],
+                        "display": ["EB Garamond", "serif"],
+                        "body": ["Manrope", "sans-serif"],
+                        "label": ["Manrope", "sans-serif"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Manrope', sans-serif; background-color: #faf5ee; color: #3a302a; }
+        .font-headline { font-family: 'EB Garamond', serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .custom-shadow { box-shadow: 0 4px 20px rgba(194, 101, 42, 0.08); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        input[type="range"] { 
+            accent-color: #c2652a; 
+            -webkit-appearance: none;
+            background: #eae2da;
+            height: 4px;
+            border-radius: 2px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 18px;
+            width: 18px;
+            border-radius: 50%;
+            background: #c2652a;
+            cursor: pointer;
+            border: 2px solid #ffffff;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col overflow-x-hidden">
+<!-- TopAppBar -->
+<header class="bg-surface sticky top-0 z-[60] flex justify-between items-center px-4 h-16 w-full border-b border-outline-variant">
+<div class="flex items-center gap-3">
+<button class="p-2 hover:bg-surface-container-high rounded-full transition-colors active:scale-95 duration-100" id="menu-toggle">
+<span class="material-symbols-outlined text-primary">menu</span>
+</button>
+<h1 class="font-headline text-2xl font-bold tracking-tight text-primary">ByChooow</h1>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 hover:bg-surface-container-high rounded-full transition-colors active:scale-95 duration-100">
+<span class="material-symbols-outlined text-primary">notifications</span>
+</button>
+</div>
+</header>
+<main class="flex-grow flex flex-col overflow-y-auto no-scrollbar pb-24">
+<!-- 3D Preview Section (Mobile optimized view) -->
+<section class="relative w-full aspect-[4/3] bg-surface-container-low overflow-hidden">
+<!-- Warm Gold Background Overlay -->
+<div class="absolute inset-0 bg-[#c2652a]/5"></div>
+<img class="w-full h-full object-cover mix-blend-multiply" id="tshirt-preview" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCtBBd2hMDQ_Au-vxw65fPazYZbHKssh6ma29qtPQBoCxb1xHq0U0CBpZH6wTOOY4F_R1jKTGz1uD97SqVw8i9dOQjxc4AIrBOB2LlZCaye4t2rQJr3iMe7dYoeH0E3vjP5R6zW1M-JH9y9vp4FNkjFhHiNg6OoFzJ-cVvagqJ_cLeKGuA-b6kk6UDNqWSaY88GWdgrrZ9TPDqkNDQ1CJISU-6iVWCV5sFVJVRXNbdeafekmXGayav0oMScYO6MJyCHcby6Iq7zvmo"/>
+<!-- Dynamic Text Overlay -->
+<div class="absolute top-1/3 left-1/2 -translate-x-1/2 text-center pointer-events-none z-10 w-full px-8">
+<p class="text-primary font-headline text-3xl font-semibold italic opacity-80 uppercase tracking-widest break-words" id="preview-text">SAHARA</p>
+</div>
+<!-- 3D Badge -->
+<div class="absolute top-4 left-4 bg-primary text-on-primary px-3 py-1.5 rounded-full text-[10px] font-bold flex items-center gap-1.5 shadow-lg z-20 uppercase tracking-wider">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">3d_rotation</span>
+                3D 实时预览
+            </div>
+<!-- Interaction Controls -->
+<div class="absolute top-4 right-4 flex flex-col gap-2 z-20">
+<button class="bg-white/90 backdrop-blur p-2 rounded-full shadow-md hover:bg-white transition-colors active:scale-90">
+<span class="material-symbols-outlined text-primary text-lg">zoom_in</span>
+</button>
+<button class="bg-white/90 backdrop-blur p-2 rounded-full shadow-md hover:bg-white transition-colors active:scale-90">
+<span class="material-symbols-outlined text-primary text-lg">pan_tool</span>
+</button>
+<button class="bg-white/90 backdrop-blur p-2 rounded-full shadow-md hover:bg-white transition-colors active:scale-90">
+<span class="material-symbols-outlined text-primary text-lg">refresh</span>
+</button>
+</div>
+</section>
+<!-- Sticky Navigation Tabs -->
+<div class="sticky top-0 z-[50] bg-surface/95 backdrop-blur-md border-b border-outline-variant shadow-sm overflow-x-auto no-scrollbar">
+<div class="flex px-2 min-w-max">
+<button class="px-5 py-4 text-sm font-medium text-on-surface-variant hover:text-primary transition-colors whitespace-nowrap">基础颜色</button>
+<button class="px-5 py-4 text-sm font-bold text-primary border-b-2 border-primary whitespace-nowrap">文字引擎</button>
+<button class="px-5 py-4 text-sm font-medium text-on-surface-variant hover:text-primary transition-colors whitespace-nowrap">图形库</button>
+<button class="px-5 py-4 text-sm font-medium text-on-surface-variant hover:text-primary transition-colors whitespace-nowrap">上传素材</button>
+<button class="px-5 py-4 text-sm font-medium text-on-surface-variant hover:text-primary transition-colors whitespace-nowrap">手绘</button>
+</div>
+</div>
+<!-- Text Engine Controls Container -->
+<div class="p-6 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+<!-- Content Input -->
+<div class="space-y-3">
+<div class="flex justify-between items-center">
+<label class="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">内容输入</label>
+</div>
+<div class="relative">
+<textarea class="w-full p-4 bg-white border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none min-h-[120px] text-lg resize-none transition-shadow placeholder:text-outline-variant/60" id="text-input" oninput="document.getElementById('preview-text').innerText = this.value || 'SAHARA'" placeholder="输入文字..."></textarea>
+<button class="absolute bottom-3 right-3 p-2 bg-surface-container-high rounded-lg text-primary">
+<span class="material-symbols-outlined text-xl">auto_fix_high</span>
+</button>
+</div>
+</div>
+<!-- Font Selection -->
+<div class="space-y-3">
+<label class="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">字体选择</label>
+<div class="grid grid-cols-2 gap-3">
+<button class="flex flex-col items-start p-4 bg-primary-container/20 border-2 border-primary rounded-xl transition-all relative overflow-hidden group">
+<span class="font-bold text-sm mb-2">Manrope</span>
+<span class="text-xs text-on-surface-variant/70">Modern Sans</span>
+<span class="absolute top-2 right-2 material-symbols-outlined text-primary text-xl" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</button>
+<button class="flex flex-col items-start p-4 bg-white border border-outline-variant rounded-xl hover:border-primary/40 transition-all">
+<span class="font-headline font-semibold text-base mb-2">EB Garamond</span>
+<span class="text-xs text-on-surface-variant/70">Classic Serif</span>
+</button>
+<button class="flex flex-col items-start p-4 bg-white border border-outline-variant rounded-xl hover:border-primary/40 transition-all">
+<span class="font-serif text-base mb-2" style="font-family: 'Playfair Display', serif;">Playfair</span>
+<span class="text-xs text-on-surface-variant/70">Elegant Editorial</span>
+</button>
+<button class="flex flex-col items-start p-4 bg-white border border-outline-variant rounded-xl hover:border-primary/40 transition-all">
+<span class="font-mono text-sm mb-2">Space Mono</span>
+<span class="text-xs text-on-surface-variant/70">Technical Look</span>
+</button>
+</div>
+</div>
+<!-- Text Color Picker -->
+<div class="space-y-3">
+<label class="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">文字颜色</label>
+<div class="flex gap-3 overflow-x-auto no-scrollbar py-1">
+<button class="w-10 h-10 rounded-full border-2 border-primary bg-primary shrink-0 ring-offset-2 ring-primary/20 ring-2"></button>
+<button class="w-10 h-10 rounded-full border border-outline-variant bg-[#3a302a] shrink-0"></button>
+<button class="w-10 h-10 rounded-full border border-outline-variant bg-[#8c3c3c] shrink-0"></button>
+<button class="w-10 h-10 rounded-full border border-outline-variant bg-[#ffffff] shrink-0"></button>
+<button class="w-10 h-10 rounded-full border border-outline-variant bg-[#f0a878] shrink-0"></button>
+<button class="w-10 h-10 rounded-full border border-outline-variant bg-gradient-to-tr from-primary to-tertiary shrink-0 flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-lg">add</span>
+</button>
+</div>
+</div>
+<!-- Size & Spacing -->
+<div class="grid grid-cols-1 gap-6">
+<!-- Font Size -->
+<div class="space-y-4">
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-on-surface-variant text-lg">format_size</span>
+<label class="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">字体大小</label>
+</div>
+<span class="text-primary font-bold text-sm" id="font-size-display">24px</span>
+</div>
+<input class="w-full" max="120" min="12" oninput="document.getElementById('font-size-display').innerText = this.value + 'px'; document.getElementById('preview-text').style.fontSize = (this.value/16) + 'rem'" type="range" value="24"/>
+</div>
+<!-- Letter Spacing -->
+<div class="space-y-4">
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-on-surface-variant text-lg">format_letter_spacing</span>
+<label class="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">字间距</label>
+</div>
+<span class="text-primary font-bold text-sm" id="letter-spacing-display">0.1em</span>
+</div>
+<input class="w-full" max="1" min="0" oninput="document.getElementById('letter-spacing-display').innerText = this.value + 'em'; document.getElementById('preview-text').style.letterSpacing = this.value + 'em'" step="0.01" type="range" value="0.1"/>
+</div>
+</div>
+<!-- Apply Button -->
+<div class="pt-4">
+<button class="w-full bg-primary text-on-primary py-4 rounded-xl font-bold text-lg hover:bg-primary/90 transition-all custom-shadow active:scale-[0.98] shadow-lg shadow-primary/20">
+                    应用到设计
+                </button>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-[60] flex justify-around items-center px-4 py-2 bg-surface border-t border-outline-variant h-20">
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-3 py-1 hover:text-primary transition-all active:scale-90 duration-150">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-medium mt-0.5">首页</span>
+</button>
+<button class="flex flex-col items-center justify-center relative px-4 py-1.5 active:scale-90 duration-150">
+<div class="bg-primary-container absolute inset-0 rounded-2xl opacity-100"></div>
+<span class="material-symbols-outlined relative z-10 text-on-primary-container" style="font-variation-settings: 'FILL' 1;">draw</span>
+<span class="text-[10px] font-bold mt-0.5 relative z-10 text-on-primary-container">设计</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-3 py-1 hover:text-primary transition-all active:scale-90 duration-150">
+<span class="material-symbols-outlined">shopping_cart</span>
+<span class="text-[10px] font-medium mt-0.5">购物车</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-3 py-1 hover:text-primary transition-all active:scale-90 duration-150">
+<span class="material-symbols-outlined">storefront</span>
+<span class="text-[10px] font-medium mt-0.5">商店</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-3 py-1 hover:text-primary transition-all active:scale-90 duration-150">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-medium mt-0.5">我的</span>
+</button>
+</nav>
+<!-- Drawer (Mobile) -->
+<div class="fixed inset-y-0 left-0 z-[70] w-72 bg-surface border-r border-outline-variant transform -translate-x-full transition-transform duration-300 ease-in-out" id="drawer">
+<div class="p-6 flex flex-col h-full">
+<div class="flex items-center gap-4 mb-8">
+<div class="w-12 h-12 rounded-full bg-primary-container/30 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">person</span>
+</div>
+<div>
+<h3 class="font-bold text-on-surface">ByChooow 用户</h3>
+<p class="text-xs text-on-surface-variant">设计师</p>
+</div>
+</div>
+<nav class="space-y-1">
+<a class="flex items-center gap-4 p-4 text-on-surface-variant hover:bg-surface-container-high rounded-xl transition-colors" href="#"><span class="material-symbols-outlined">palette</span> 我的设计</a>
+<a class="flex items-center gap-4 p-4 text-on-surface-variant hover:bg-surface-container-high rounded-xl transition-colors" href="#"><span class="material-symbols-outlined">package_2</span> 订单查询</a>
+<a class="flex items-center gap-4 p-4 text-on-surface-variant hover:bg-surface-container-high rounded-xl transition-colors" href="#"><span class="material-symbols-outlined">favorite</span> 收藏夾</a>
+<a class="flex items-center gap-4 p-4 text-on-surface-variant hover:bg-surface-container-high rounded-xl transition-colors" href="#"><span class="material-symbols-outlined">settings</span> 设置</a>
+</nav>
+</div>
+</div>
+<!-- Overlay -->
+<div class="fixed inset-0 bg-black/40 z-[65] hidden" id="drawer-overlay"></div>
+<script>
+        const menuBtn = document.getElementById('menu-toggle');
+        const drawer = document.getElementById('drawer');
+        const overlay = document.getElementById('drawer-overlay');
+
+        menuBtn.addEventListener('click', () => {
+            drawer.classList.remove('-translate-x-full');
+            overlay.classList.remove('hidden');
+        });
+
+        overlay.addEventListener('click', () => {
+            drawer.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+        });
+
+        // Tab selection visual update
+        const tabButtons = document.querySelectorAll('.sticky button');
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                tabButtons.forEach(btn => {
+                    btn.classList.remove('text-primary', 'font-bold', 'border-primary', 'border-b-2');
+                    btn.classList.add('text-on-surface-variant', 'font-medium');
+                });
+                button.classList.add('text-primary', 'font-bold', 'border-primary', 'border-b-2');
+                button.classList.remove('text-on-surface-variant', 'font-medium');
+            });
+        });
+    </script>
+</body></html>

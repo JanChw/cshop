@@ -8,7 +8,7 @@ export function getStaticPaths() {
 
 <MainLayout title="定制创意印花 T恤">
 <!-- Top App Bar -->
-<header class="bg-surface border-b border-outline-variant fixed top-0 w-full z-50 h-14 flex justify-between items-center px-container-margin max-w-7xl mx-auto left-1/2 -translate-x-1/2">
+<header class="bg-surface border-b border-outline-variant fixed top-0 w-full z-50 h-14 flex justify-between items-center px-container-margin left-1/2 -translate-x-1/2">
 <button class="text-on-surface hover:opacity-80 transition-opacity active:scale-95 duration-150" onclick="history.back()">
 <span class="material-symbols-outlined">arrow_back</span>
 </button>
@@ -107,7 +107,7 @@ export function getStaticPaths() {
 </section>
 </main>
 <div class="fixed bottom-0 left-0 w-full bg-white border-t border-outline-variant z-[60]">
-<div class="flex items-center gap-stack-md px-container-margin py-stack-md max-w-7xl mx-auto">
+<div class="flex items-center gap-stack-md px-container-margin py-stack-md">
 <div class="flex flex-col items-center justify-center text-secondary px-2">
 <span class="material-symbols-outlined">chat_bubble</span>
 <span class="text-[10px]">咨询</span>
@@ -153,6 +153,67 @@ colorButtons.forEach(btn => {
         btn.classList.remove('border', 'border-outline-variant');
     });
 });
+
+// Favorite toggle in bottom bar
+document.querySelectorAll('.text-secondary').forEach(el => {
+    if (el.querySelector('.material-symbols-outlined')?.textContent === 'favorite') {
+        el.addEventListener('click', function() {
+            const icon = this.querySelector('.material-symbols-outlined');
+            if (icon.style.fontVariationSettings.includes("'FILL' 1")) {
+                icon.style.fontVariationSettings = "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24";
+            } else {
+                icon.style.fontVariationSettings = "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24";
+            }
+        });
+    }
+});
+
+// Add to cart feedback
+const addCartBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('加入购物车'));
+if (addCartBtn) {
+    addCartBtn.addEventListener('click', function() {
+        const orig = this.innerHTML;
+        this.innerHTML = '<span class="material-symbols-outlined">check_circle</span> 已加入';
+        this.classList.remove('border-primary', 'text-primary', 'bg-white');
+        this.classList.add('bg-green-600', 'text-white', 'border-green-600');
+        showToast('商品已加入购物车');
+        setTimeout(() => { this.innerHTML = orig; this.classList.remove('bg-green-600', 'text-white', 'border-green-600'); this.classList.add('border-primary', 'text-primary', 'bg-white'); }, 2000);
+    });
+}
+
+// Buy now
+const buyBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('立即购买'));
+if (buyBtn) {
+    buyBtn.addEventListener('click', function() {
+        this.textContent = '跳转中...';
+        this.disabled = true;
+        setTimeout(() => { window.location.href = '/cart'; }, 600);
+    });
+}
+
+// Share button
+const shareBtn = document.querySelector('header button:last-child');
+if (shareBtn) {
+    shareBtn.addEventListener('click', () => showToast('链接已复制到剪贴板'));
+}
+
+// Size chart
+const sizeChartBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('尺码表'));
+if (sizeChartBtn) {
+    sizeChartBtn.addEventListener('click', () => {
+        alert('尺码表\n\nS - 胸围 88cm / 衣长 62cm\nM - 胸围 92cm / 衣长 64cm\nL - 胸围 96cm / 衣长 66cm\nXL - 胸围 100cm / 衣长 68cm\nXXL - 胸围 104cm / 衣长 70cm');
+    });
+}
+
+// Toast helper
+function showToast(msg) {
+    let toast = document.createElement('div');
+    toast.textContent = msg;
+    toast.style.cssText = 'position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:12px 24px;border-radius:8px;z-index:999;font-size:14px;opacity:0;transition:opacity 0.3s';
+    document.body.appendChild(toast);
+    requestAnimationFrame(() => toast.style.opacity = '1');
+    setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 2000);
+}
 </script>
 <style>.no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{-ms-overflow-style:none;scrollbar-width:none}</style>
 </MainLayout>

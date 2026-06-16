@@ -9,8 +9,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "astro": "^6.4.4",
     "@astrojs/solid-js": "^6.0.1",
+    "astro": "^6.4.4",
+    "fabric": "^6.9.1",
     "solid-js": "^1.9.5"
   },
   "devDependencies": {

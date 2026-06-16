@@ -21,6 +21,7 @@ export const config = {
   get uploadDir(): string { return process.env.UPLOAD_DIR ?? resolve(dataDir(), 'uploads') },
   get stickerDir(): string { return process.env.STICKER_DIR ?? resolve(dataDir(), 'stickers') },
   get backupDir(): string { return process.env.BACKUP_DIR ?? resolve(dataDir(), 'backups') },
+  get designDir(): string { return process.env.DESIGN_DIR ?? resolve(dataDir(), 'designs') },
 
   get corsOrigins(): string[] { return process.env.CORS_ORIGINS?.split(',').map(s => s.trim()) ?? ['*'] },
 

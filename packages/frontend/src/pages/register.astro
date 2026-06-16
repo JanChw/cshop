@@ -6,7 +6,7 @@ import MainLayout from '../layouts/MainLayout.astro'
 <!-- Top Navigation -->
 <header class="fixed top-0 w-full z-50 bg-surface flex justify-between items-center px-6 h-16 shadow-sm">
 <div class="flex items-center">
-<button class="text-on-surface-variant hover:opacity-80 transition-opacity active:scale-95">
+<button onclick="history.back()" class="text-on-surface-variant hover:opacity-80 transition-opacity active:scale-95">
 <span class="material-symbols-outlined">close</span>
 </button>
 </div>
@@ -86,18 +86,82 @@ import MainLayout from '../layouts/MainLayout.astro'
 <div class="fixed bottom-[-10%] right-[-10%] w-[30%] h-[30%] bg-tertiary/5 rounded-full blur-[80px] -z-10 pointer-events-none"></div>
 
 <script>
-const inputs = document.querySelectorAll('input');
-inputs.forEach(input => {
+// Password visibility toggle
+document.querySelectorAll('.material-symbols-outlined.text-\\[20px\\]').forEach(icon => {
+    if (icon.textContent.trim() === 'visibility') {
+        icon.parentElement.addEventListener('click', function() {
+            const input = this.closest('.space-y-1\\.5').querySelector('input');
+            if (input.type === 'password') { input.type = 'text'; this.querySelector('.material-symbols-outlined').textContent = 'visibility_off'; }
+            else { input.type = 'password'; this.querySelector('.material-symbols-outlined').textContent = 'visibility'; }
+        });
+    }
+});
+
+// Focus label effect
+document.querySelectorAll('input, textarea').forEach(input => {
     input.addEventListener('focus', () => {
-        if (input.parentElement.querySelector('label')) {
-            input.parentElement.querySelector('label').classList.add('text-primary');
-        }
+        const label = input.closest('.space-y-1\\.5')?.querySelector('label');
+        if (label) label.classList.add('text-primary');
     });
     input.addEventListener('blur', () => {
-        if (input.parentElement.querySelector('label')) {
-            input.parentElement.querySelector('label').classList.remove('text-primary');
-        }
+        const label = input.closest('.space-y-1\\.5')?.querySelector('label');
+        if (label) label.classList.remove('text-primary');
     });
+});
+
+// Form submission
+document.querySelector('form')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    document.querySelectorAll('.error-msg').forEach(el => el.remove());
+    const inputs = this.querySelectorAll('input:not([type="checkbox"])');
+    inputs.forEach(el => el.classList.remove('border-error'));
+    
+    const name = inputs[0];
+    const email = inputs[1];
+    const pwd = inputs[2];
+    const confirmPwd = inputs[3];
+    const terms = document.getElementById('terms');
+    let valid = true;
+    
+    if (!name.value.trim()) { showError(name, '请输入姓名'); valid = false; }
+    if (!email.value.trim()) { showError(email, '请输入邮箱或手机号'); valid = false; }
+    if (!pwd.value) { showError(pwd, '请输入密码'); valid = false; }
+    else if (pwd.value.length < 8) { showError(pwd, '密码至少 8 位'); valid = false; }
+    if (pwd.value !== confirmPwd.value) { showError(confirmPwd, '两次密码不一致'); valid = false; }
+    if (!terms.checked) {
+        terms.classList.add('border-error');
+        const err = document.createElement('p');
+        err.className = 'error-msg text-error text-xs mt-1';
+        err.textContent = '请先同意用户协议';
+        terms.closest('.flex.items-start').appendChild(err);
+        valid = false;
+    }
+    
+    if (!valid) return;
+    
+    const btn = this.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="inline-block animate-spin material-symbols-outlined">progress_activity</span> 注册中...';
+    setTimeout(() => {
+        btn.innerHTML = '<span class="material-symbols-outlined">check_circle</span> 注册成功';
+        btn.classList.remove('bg-primary');
+        btn.classList.add('bg-green-600');
+        setTimeout(() => { window.location.href = '/login'; }, 1000);
+    }, 1500);
+});
+
+function showError(el, msg) {
+    el.classList.add('border-error');
+    const err = document.createElement('p');
+    err.className = 'error-msg text-error text-xs mt-1 ml-1';
+    err.textContent = msg;
+    el.closest('.space-y-1\\.5')?.appendChild(err);
+}
+
+// Touch active effect for buttons
+document.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('touchstart', function() { this.style.transform = 'scale(0.97)'; });
+    btn.addEventListener('touchend', function() { this.style.transform = 'scale(1)'; });
 });
 </script>
 </MainLayout>

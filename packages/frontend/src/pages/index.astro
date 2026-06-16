@@ -1,11 +1,19 @@
 ---
 import MainLayout from '../layouts/MainLayout.astro'
+import ProductCard from '../components/ui/ProductCard.tsx'
+
+const basicProducts = [
+  { id: 'p2', name: '重磅廓形圆领衫', price: 199, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAIhzLzAmSg7tIVqz1NRb2UC1ThtwDrTvmbXuwTf4e90dRROxxIYgM9yLcLVYw-m_1FbGpJgYmZCErL4xkaVI7grMWcmxi5ihCv3V-c3to5HBOzbQQO1-vLVrX7c7QozTA_qDDn3_Tc_CBpHeAMCU_WWgpU_AmBTFrUayJr1DINoQhb0NUqIW2lh8DBSAfS8HviVNAU2m9tBbAoRw5ROMBmVWKtdwDbaO8FNxZ-DNJ-vz5JDGSumieTybJprExQlQqWsDGzHi5YyeU', category: '基础系列', tags: ['Canvas Ready'] },
+  { id: 'p3', name: '极简连帽卫衣', price: 399, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDIsef-278svTdwey7G-NT7fIg-9RWYm5SMggeQw4SNb6gCWypvMF2J272nYbplsxPA9NFnj6vnGpvHz525IK1p2ZyMfxxCjevTOBU29k6Hs5q1mdRgdTm7QlNdHRkgj0JWejti_qw0vRCay2CGhJ_GSYsgUOl6h3AtF8wQ5antejfTtubb6NcPPRNIyw_3223UZokC7mv0haJgJrnpRmtDQhlQHdRWLJiZvT5mn9itgmSV5ZNEpLtazpnLoV53flRiUQvMC1Im9_8', category: '基础系列' },
+  { id: 'p4', name: '阔腿束口短裤', price: 159, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDYT0hrOuPkQJk7o3T466tR8B78FKGFuUJfsWMhYacVinNF2muf9LQIkmglCm9RmlVgzgdXkFcTIy4CMnnd0jk2Je5UGO1uqOhByskjWPlKJuB4KBcsLvPQxIMUKvWWtzEe1sAe9sLGqoRxlgIldMTG4eAlMBszrIpy0qhER46RAj5uka9HpypxIAT7oG_Y5GMriyJf6oGnfhVl9EI7dgAkJjnBuf_iPo_k-9_ERM0sioukh5_hQbok_gyp8zLs4Pa0SRjGivwUnH8', category: '基础系列' },
+  { id: 'p5', name: '精梳棉长袖', price: 249, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC30_KKxDv8V2Lt2IbvSC1AV61u5SyN56iBUOUGChoxOHDOnMNfyDGHB9_uhaeAczMf78tbZ_wPy1SFudV3xtajvj5kXfN8glhCEdi2GdtDgYPz-te3ltSqc3U4RK86PNTucAkyyObOmrZ4pAOyR1FN16ebfwnQipgrK6c5Ruxs_qUEqK13O_FO8KUkufG-8c2YifV3hBX_7TlWDdVLzly4Qr-uFzYnqW0PhXCmxGXWEMEXbM-kj5rL3lkg-3fItVSbjYAvUiu4Csc', category: '基础系列' }
+]
 ---
 
 <MainLayout title="创作者的服装工坊">
 <!-- TopAppBar -->
 <header class="bg-surface/80 backdrop-blur-md border-b border-outline-variant sticky top-0 z-50">
-<div class="flex justify-between items-center px-container-margin h-16 w-full max-w-7xl mx-auto">
+<div class="flex justify-between items-center px-container-margin h-16 w-full">
 <div class="flex items-center gap-4">
 <button class="text-on-surface hover:opacity-80 transition-opacity active:scale-95 transition-transform duration-150">
 <span class="material-symbols-outlined">menu</span>
@@ -13,7 +21,7 @@ import MainLayout from '../layouts/MainLayout.astro'
 <h1 class="text-title-md font-bold tracking-tight text-on-surface">ByChooow</h1>
 </div>
 <div class="flex items-center gap-4">
-<span class="text-label-md text-on-surface-variant hidden md:block uppercase tracking-widest">设计师社区</span>
+<span class="text-label-md text-on-surface-variant block uppercase tracking-widest">设计师社区</span>
 <div class="w-9 h-9 rounded-full bg-surface-container-high overflow-hidden border border-outline-variant">
 <img alt="User Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDzw4VvJ5vAn5LD5GvjHHl3XK2h6shVtVUqDgCUhnfTEUWq-9yGIQRQOLFwIn_ahMeMEFHGIBICFZH3SBpNv_ZBTjkMOjnkGm-xeUQE3lrhC5DoK7a0khhKnd5RULyLke3uJtOuooGWaLMQ5JDbItDt-schzNEq70FmgRkVaouuOWZj0ffYF_iaNKj8oTQtU1OsrFzVSabAaf9XKzWzXA0x8tUksD2BYA_C0J_ewDAGhQ58ZA2zfHz_Ah9XJTUs_H1qs4juDONSKRM"/>
 </div>
@@ -21,16 +29,16 @@ import MainLayout from '../layouts/MainLayout.astro'
 </div>
 </header>
 
-<main class="pb-24 max-w-7xl mx-auto">
+<main class="pb-24">
 <!-- Hero Banner: Creator to Creator -->
-<section class="relative w-full h-[75vh] md:h-[85vh] overflow-hidden">
+<section class="relative w-full h-[75vh] overflow-hidden">
 <div class="absolute inset-0">
 <img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBdlkT1mvTM5BG2cmMr5qcQr_ow6R2lfy59czmbYL9yG_7XJIvFvhCGTIoAOXB-qt8K9mjulSviiejKKyJ5cGqLSTbxrf7M7ma5jLlYIP1p9aZQHFgGIahJIYEF3_IB7D4RlvegsUuJFqnfSioPwOqnmuBZwwhWjnh2CiLf-se5bD43uXgiCrpsTcvDpnhNxg6THYOMaIM4Oukp4JWxqUwghwm07hm5BtCJb_Ih5Gr17l5Ak9pXTjyU_dajWs4F98X9D5MIgDHEtCw"/>
 <div class="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent"></div>
 </div>
-<div class="absolute bottom-0 left-0 p-container-margin md:p-16 w-full md:w-3/4">
+<div class="absolute bottom-0 left-0 p-container-margin w-full">
 <p class="text-label-md text-primary uppercase tracking-[0.2em] mb-4">创作者 · 连接 · 创作者</p>
-<h2 class="font-serif text-display-lg-mobile md:text-display-lg text-on-surface mb-8 leading-[1.1] italic">
+<h2 class="font-serif text-display-lg-mobile text-on-surface mb-8 leading-[1.1] italic">
             将你的创意，<br/>转化为高级成衣。
             </h2>
 <div class="flex flex-wrap gap-stack-md">
@@ -48,13 +56,13 @@ import MainLayout from '../layouts/MainLayout.astro'
 <section class="mt-stack-lg px-container-margin">
 <div class="flex justify-between items-end mb-stack-md">
 <div>
-<h3 class="font-serif text-headline-lg-mobile md:text-headline-lg text-on-surface">教学视频</h3>
+<h3 class="font-serif text-headline-lg-mobile text-on-surface">教学视频</h3>
 <p class="text-body-sm text-on-surface-variant mt-1">掌握设计技巧，开启创作之旅</p>
 </div>
 </div>
 <div class="flex overflow-x-auto hide-scrollbar gap-gutter snap-x">
 <!-- Video Card 1 -->
-<div class="flex-none w-72 md:w-96 snap-start group cursor-pointer">
+<div class="flex-none w-72 snap-start group cursor-pointer">
 <div class="aspect-video bg-surface-container-low rounded-lg overflow-hidden mb-stack-sm relative">
 <img alt="DIY教程" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida/AP1WRLsdqlijKxVE6Nfc60kryKOLLcc25GZFjukjQ0NjyTs06v2CVmLYuABRNNeJdEqyx4ygSXDUCSSlI8iKO7QFu3JUw9xDrl0wcho17khuUZNvgWup__dDoB5kwFaGdWRIEALktu_3dIqCMwfE3AB-64rvt4hhTCcKwMyrZsYnsKxp6TJ9GTRLrRptuC_YrYRZ1ZLydZtaCsKKdinmEu_kmQTf8FuBRTHHnupP4ZsYrr05cf-UY2AjM6cScsU"/>
 <div class="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/10 transition-colors">
@@ -65,7 +73,7 @@ import MainLayout from '../layouts/MainLayout.astro'
 <p class="font-label-md text-primary uppercase tracking-widest mt-1">立即观看</p>
 </div>
 <!-- Video Card 2 -->
-<div class="flex-none w-72 md:w-96 snap-start group cursor-pointer">
+<div class="flex-none w-72 snap-start group cursor-pointer">
 <div class="aspect-video bg-surface-container-low rounded-lg overflow-hidden mb-stack-sm relative">
 <img alt="手绘模式教程" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida/AP1WRLtqh7oDVcb66iNySbs4p-Z4tE66pezoDV0C6_tthxPEAixZvQSlxgAZaqtb76wANyU7cm-SJVnrDEn2UdMGqiMrb3TpWwQ9gN2vxzKCYheAP2z4qobY9XkPkf6_1Q5hKJVYFu97CRF8Lkuz4OU9AKkfCeDaKva-0kQ1UBPq2hHbG4lb8_KCET-qZJB1bS4bDa5QQgXNMwMyqLVy-Dpaswjfr2RiNn4MKMDbjn8laYwp_Gn07bXa69JIfw"/>
 <div class="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/10 transition-colors">
@@ -82,89 +90,59 @@ import MainLayout from '../layouts/MainLayout.astro'
 <section class="mt-stack-lg px-container-margin">
 <div class="flex justify-between items-end mb-stack-md">
 <div>
-<h3 class="font-serif text-headline-lg-mobile md:text-headline-lg text-on-surface">基础系列</h3>
+<h3 class="font-serif text-headline-lg-mobile text-on-surface">基础系列</h3>
 <p class="text-body-sm text-on-surface-variant mt-1">专为二次创作优化的极简底衫</p>
 </div>
-<button class="text-primary font-bold flex items-center gap-1 hover:gap-2 transition-all">
+<a href="/shop?category=Basics" class="text-primary font-bold flex items-center gap-1 hover:gap-2 transition-all">
             全部 <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
-</button>
+</a>
 </div>
-<div class="grid grid-cols-2 md:grid-cols-4 gap-gutter">
-<!-- Product Card 1 -->
-<div class="group cursor-pointer">
-<div class="aspect-[3/4] bg-surface-container-low rounded-lg overflow-hidden mb-stack-sm relative">
-<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAIhzLzAmSg7tIVqz1NRb2UC1ThtwDrTvmbXuwTf4e90dRROxxIYgM9yLcLVYw-m_1FbGpJgYmZCErL4xkaVI7grMWcmxi5ihCv3V-c3to5HBOzbQQO1-vLVrX7c7QozTA_qDDn3_Tc_CBpHeAMCU_WWgpU_AmBTFrUayJr1DINoQhb0NUqIW2lh8DBSAfS8HviVNAU2m9tBbAoRw5ROMBmVWKtdwDbaO8FNxZ-DNJ-vz5JDGSumieTybJprExQlQqWsDGzHi5YyeU"/>
-<div class="absolute top-4 left-4 px-2.5 py-1 bg-surface/90 backdrop-blur rounded text-label-md text-[10px] uppercase tracking-wider text-primary border border-primary/20">Canvas Ready</div>
+<div class="grid grid-cols-2 gap-gutter">
+{basicProducts.map((p) => (
+  <div class="flex-none">
+    <ProductCard product={p} variant="home" />
+  </div>
+))}
 </div>
-<h4 class="text-body-lg text-on-surface">重磅廓形圆领衫</h4>
-<p class="text-body-sm text-secondary font-semibold">¥199</p>
-</div>
-<!-- Product Card 2 -->
-<div class="group cursor-pointer">
-<div class="aspect-[3/4] bg-surface-container-low rounded-lg overflow-hidden mb-stack-sm relative">
-<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDIsef-278svTdwey7G-NT7fIg-9RWYm5SMggeQw4SNb6gCWypvMF2J272nYbplsxPA9NFnj6vnGpvHz525IK1p2ZyMfxxCjevTOBU29k6Hs5q1mdRgdTm7QlNdHRkgj0JWejti_qw0vRCay2CGhJ_GSYsgUOl6h3AtF8wQ5antejfTtubb6NcPPRNIyw_3223UZokC7mv0haJgJrnpRmtDQhlQHdRWLJiZvT5mn9itgmSV5ZNEpLtazpnLoV53flRiUQvMC1Im9_8"/>
-</div>
-<h4 class="text-body-lg text-on-surface">极简连帽卫衣</h4>
-<p class="text-body-sm text-secondary font-semibold">¥399</p>
-</div>
-<!-- Product Card 3 -->
-<div class="group cursor-pointer hidden md:block">
-<div class="aspect-[3/4] bg-surface-container-low rounded-lg overflow-hidden mb-stack-sm relative">
-<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYT0hrOuPkQJk7o3T466tR8B78FKGFuUJfsWMhYacVinNF2muf9LQIkmglCm9RmlVgzgdXkFcTIy4CMnnd0jk2Je5UGO1uqOhByskjWPlKJuB4KBcsLvPQxIMUKvWWtzEe1sAe9sLGqoRxlgIldMTG4eAlMBszrIpy0qhER46RAj5uka9HpypxIAT7oG_Y5GMriyJf6oGnfhVl9EI7dgAkJjnBuf_iPo_k-9_ERM0sioukh5_hQbok_gyp8zLs4Pa0SRjGivwUnH8"/>
-</div>
-<h4 class="text-body-lg text-on-surface">阔腿束口短裤</h4>
-<p class="text-body-sm text-secondary font-semibold">¥159</p>
-</div>
-<!-- Product Card 4 -->
-<div class="group cursor-pointer hidden md:block">
-<div class="aspect-[3/4] bg-surface-container-low rounded-lg overflow-hidden mb-stack-sm relative">
-<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC30_KKxDv8V2Lt2IbvSC1AV61u5SyN56iBUOUGChoxOHDOnMNfyDGHB9_uhaeAczMf78tbZ_wPy1SFudV3xtajvj5kXfN8glhCEdi2GdtDgYPz-te3ltSqc3U4RK86PNTucAkyyObOmrZ4pAOyR1FN16ebfwnQipgrK6c5Ruxs_qUEqK13O_FO8KUkufG-8c2YifV3hBX_7TlWDdVLzly4Qr-uFzYnqW0PhXCmxGXWEMEXbM-kj5rL3lkg-3fItVSbjYAvUiu4Csc"/>
-</div>
-<h4 class="text-body-lg text-on-surface">精梳棉长袖</h4>
-<p class="text-body-sm text-secondary font-semibold">¥249</p>
-</div>
-</div>
-</section>
 
 <!-- 必备单品 -->
 <section class="mt-stack-lg px-container-margin">
-<h3 class="font-serif text-headline-lg-mobile md:text-headline-lg text-on-surface mb-stack-md">必备单品</h3>
-<div class="grid grid-cols-1 md:grid-cols-3 grid-rows-2 gap-gutter h-auto md:h-[650px]">
-<div class="md:col-span-2 md:row-span-2 relative rounded-lg overflow-hidden group">
+<h3 class="font-serif text-headline-lg-mobile text-on-surface mb-stack-md">必备单品</h3>
+<div class="grid grid-cols-1 grid-rows-2 gap-gutter h-auto">
+<a href="/shop?category=Essentials" class="md:col-span-2 relative rounded-lg overflow-hidden group">
 <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBCaCh3bXZ3bXVYpbEeV0Qhv6uv4TTVr9yMYzOORk2u1Mm5sAlQW1Vw6eATvvEteLJG_V7iBykbPLhoFsx1oOns-n21RrgG9EXQfWFzPWIs_AT4G156Wm48Y0VCoB39QKma65BmrAKadimR9S7p9pnaLUaLblEtq_hnchN63URNsdMLWv68FcR6UC_Bj-e2e2QaI3jHqyURQqSJoHFVsuHdosqFDVlb_-5Ytw3X5GDj3LNdDpCQeHHFflh_zwj0HTEAPwgR7bqKzkM"/>
 <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex flex-col justify-end p-10">
 <span class="text-white/90 text-label-md uppercase tracking-widest mb-3">Editor's Choice</span>
 <h4 class="text-white font-serif text-headline-lg mb-6">全季胶囊衣橱</h4>
-<button class="bg-primary text-on-primary w-fit px-10 py-3 rounded-lg font-bold hover:scale-105 transition-transform shadow-xl shadow-black/20">立即选购</button>
 </div>
-</div>
-<div class="relative rounded-lg overflow-hidden group">
+</a>
+<a href="/shop?category=Essentials" class="relative rounded-lg overflow-hidden group">
 <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC2YemZvpEV3v_FRRnsWu6dm9lM0asu2wFeCJohWQBys6-Ozqw84Q3WSBehMaSkNiytT7NuOrYjr_bB16veniOTh709O8JZ7emoipquzw5j3WSlydhWL8PLydBcB9xIY2bbb33eeokgpc8RSM6s3owCX8AY8OcTf59xCwkHcwtpN8rNu8q6p7j8YddiidwN1omO2BsOJBsOiMpy99Mj3JKi2p3K2WqD1vPCYrRWASKzAblpYLnPniUvSJFh4V74kZNGmsVwcOos3BE"/>
 <div class="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-colors flex flex-col justify-end p-8">
 <h4 class="text-white font-serif text-title-md">创意配饰</h4>
 </div>
-</div>
-<div class="relative rounded-lg overflow-hidden group">
+</a>
+<a href="/shop?category=Essentials" class="relative rounded-lg overflow-hidden group">
 <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA4lpqfkqCPg0J36jBbEnm3MUING2rlasbcNih1iAZAZN1eKdb_t8P9vWO5pewgHJYUHw3fGKHYjlpZIS5NwTIE4nFwqt5OvThAu1jTiFS2YnrVxDW2A16mY_y6FvldYfxWXp1O5y4WEvld7gA6GPz0LuTalZgiMW6KAVxg6nOOpad1pAT3JXk9mYSMsL5kQuGsWnxQrwMUxFX2hnl430ziSiX6gOIlqf3oPuECnidcgDEZfRi765uh5LIbwLfswhw5B32-i_rU-QE"/>
 <div class="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-colors flex flex-col justify-end p-8">
 <h4 class="text-white font-serif text-title-md">色彩灵感</h4>
 </div>
-</div>
+</a>
 </div>
 </section>
 
 <!-- 联名工坊 -->
 <section class="mt-stack-lg mb-stack-lg">
 <div class="px-container-margin mb-stack-md">
-<h3 class="font-serif text-headline-lg-mobile md:text-headline-lg text-on-surface">联名工坊</h3>
+<h3 class="font-serif text-headline-lg-mobile text-on-surface">联名工坊</h3>
 <p class="text-body-sm text-on-surface-variant">来自顶级独立设计师的限定创意</p>
 </div>
 <div class="flex overflow-x-auto hide-scrollbar gap-gutter px-container-margin snap-x">
 <!-- Collab 1 -->
 <div class="flex-none w-72 snap-start">
-<div class="aspect-square rounded-full overflow-hidden mb-6 border-8 border-surface-container-high shadow-lg group">
+<a href="/shop?category=Designer" class="aspect-square rounded-full overflow-hidden mb-6 border-8 border-surface-container-high shadow-lg group block">
 <img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAGsayy_x1B5UEJofP3wYF8xphtrsiVYEQwlMfPfudsSroK2mnLalOk-kl8k7doL-0pIASUWImX-k6AWYFho4Ng9xNzpLcGrBTKOTt8LSzHn1mBtM5MQxq3uKa_ukpnPw_K6ovIDv5roOEV5lJ50iHdpodaVdbpTdK-Eg94KogJwjZ6UW4S38krKORjIkBCm8fuz2SZNUt4OnN556YN_5JgpXy6fCA54vuWr65AnvAxQQae30XNGWt753ndycbprh89x5cGmDGxGzM"/>
-</div>
+</a>
 <div class="text-center">
 <h5 class="font-serif text-title-md text-on-surface">Alex Chen x ByChooow</h5>
 <p class="text-label-md text-primary uppercase tracking-widest mt-2">未来主义系列</p>
@@ -172,9 +150,9 @@ import MainLayout from '../layouts/MainLayout.astro'
 </div>
 <!-- Collab 2 -->
 <div class="flex-none w-72 snap-start">
-<div class="aspect-square rounded-full overflow-hidden mb-6 border-8 border-surface-container-high shadow-lg group">
+<a href="/shop?category=Designer" class="aspect-square rounded-full overflow-hidden mb-6 border-8 border-surface-container-high shadow-lg group block">
 <img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqscGVR044aoTZMmBAW--CyuAA_uHdT9ci5IczWizGnVzfJGaiCDnZJ03zo52tMeqAECh5CFGVxmnLEOuXe6DqSzD13YeM7ZeWwcuB5Udq4JYrkE_gdSJjZSL-PeGUm-vStGNd0o-0rplbPlp5rO6HGhWE11OXkDpfdPJ4WiyO3ocpXp7MV6upBCCDHzPEVrys689i9hha5d27boDZCK9FWHJ_oSzJQ9_5hLt2OjAFKaxuKlsvyR3jUCooXl2IbQDPYn6v4GfoSXQ"/>
-</div>
+</a>
 <div class="text-center">
 <h5 class="font-serif text-title-md text-on-surface">Li Wei x ByChooow</h5>
 <p class="text-label-md text-primary uppercase tracking-widest mt-2">极简几何</p>
@@ -182,9 +160,9 @@ import MainLayout from '../layouts/MainLayout.astro'
 </div>
 <!-- Collab 3 -->
 <div class="flex-none w-72 snap-start">
-<div class="aspect-square rounded-full overflow-hidden mb-6 border-8 border-surface-container-high shadow-lg group">
+<a href="/shop?category=Designer" class="aspect-square rounded-full overflow-hidden mb-6 border-8 border-surface-container-high shadow-lg group block">
 <img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBB3iz_VZBn3pEW-zJq9-BpJXwzEEmvZldPWHEOM4tHUwtnPEBiozlHGppJlE9EeNtuFNEMSpgPdheFpPKZ4B01v5Wrr8bs3q1dFp6mnK4YpM7gh3s7s8KFBHwFkzd-CadQDAC8FnM-mAEiYfYkBYdIBWedm6Gta0TDY6aQhKJa0iCem2EV5Vykpg1PDcHNN-HzcExpMTcAy0tWvpq2MYY_FCeRbP5OnBoWQeDitmmUNH2aog4hFgE5Q2AEXjn3q3_tUP5e-rYYo0"/>
-</div>
+</a>
 <div class="text-center">
 <h5 class="font-serif text-title-md text-on-surface">Studio Z x ByChooow</h5>
 <p class="text-label-md text-primary uppercase tracking-widest mt-2">光影实验</p>
@@ -195,7 +173,7 @@ import MainLayout from '../layouts/MainLayout.astro'
 </main>
 
 <!-- BottomNavBar -->
-<nav class="bg-surface/90 backdrop-blur-lg border-t border-outline-variant fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-3 z-50 md:hidden">
+<nav class="bg-surface/90 backdrop-blur-lg border-t border-outline-variant fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-3 z-50">
 <a class="flex flex-col items-center justify-center text-primary px-4 py-1" href="/">
 <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
 <span class="text-label-md font-bold mt-0.5">首页</span>
@@ -219,17 +197,40 @@ import MainLayout from '../layouts/MainLayout.astro'
 </nav>
 
 <!-- Floating Action Button -->
-<button class="fixed bottom-28 right-6 w-14 h-14 bg-primary text-on-primary rounded-full shadow-2xl flex items-center justify-center z-40 hover:scale-110 active:scale-95 transition-transform md:bottom-12 md:right-12">
+<button class="fixed bottom-28 right-6 w-14 h-14 bg-primary text-on-primary rounded-full shadow-2xl flex items-center justify-center z-40 hover:scale-110 active:scale-95 transition-transform">
 <span class="material-symbols-outlined text-3xl">add</span>
 </button>
 
 <script>
-const scrollContainer = document.querySelector('.hide-scrollbar');
-if (scrollContainer) {
-    scrollContainer.addEventListener('wheel', (evt) => {
+// Horizontal scroll for all hide-scrollbar containers
+document.querySelectorAll('.hide-scrollbar').forEach(el => {
+    el.addEventListener('wheel', (evt) => {
         evt.preventDefault();
-        scrollContainer.scrollLeft += evt.deltaY;
+        el.scrollLeft += evt.deltaY;
     });
+});
+
+// Hero buttons
+document.querySelector('.bg-primary.text-on-primary.px-10')?.addEventListener('click', () => {
+    window.location.href = '/design';
+});
+document.querySelector('.bg-surface-container-lowest\\/80')?.addEventListener('click', () => {
+    window.location.href = '/shop';
+});
+
+// FAB click
+document.querySelector('.fixed.bottom-28.right-6')?.addEventListener('click', function() {
+    this.style.transition = 'all 0.3s';
+    this.style.transform = 'rotate(45deg)';
+    showToast('开始新的创作');
+    setTimeout(() => this.style.transform = 'rotate(0deg)', 1000);
+});
+
+function showToast(msg) {
+    let t=document.createElement('div'); t.textContent=msg;
+    t.style.cssText='position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:12px 24px;border-radius:8px;z-index:999;font-size:14px;opacity:0;transition:opacity 0.3s';
+    document.body.appendChild(t); requestAnimationFrame(()=>t.style.opacity='1');
+    setTimeout(()=>{t.style.opacity='0'; setTimeout(()=>t.remove(),300);}, 2000);
 }
 </script>
 </MainLayout>

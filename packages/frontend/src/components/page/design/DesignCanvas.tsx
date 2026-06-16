@@ -257,7 +257,24 @@ export default function DesignCanvas(props: Props) {
       </Show>
 
       <Show when={hasSelection() && !selectedText()}>
-        <div class="absolute bottom-20 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-surface/95 backdrop-blur px-4 py-2 rounded-full shadow-lg border border-outline-variant/30 z-10">
+        <div class="absolute bottom-20 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-surface/95 backdrop-blur px-3 py-2 rounded-full shadow-lg border border-outline-variant/30 z-10">
+          <button
+            class="flex items-center gap-1 text-sm font-bold text-on-surface px-2 py-1 rounded-lg hover:bg-surface-container transition-colors"
+            onClick={() => canvasAPI?.bringToFront()}
+            aria-label="置顶"
+          >
+            <span class="material-symbols-outlined">vertical_align_top</span>
+            置顶
+          </button>
+          <button
+            class="flex items-center gap-1 text-sm font-bold text-on-surface px-2 py-1 rounded-lg hover:bg-surface-container transition-colors"
+            onClick={() => canvasAPI?.sendToBack()}
+            aria-label="置底"
+          >
+            <span class="material-symbols-outlined">vertical_align_bottom</span>
+            置底
+          </button>
+          <div class="w-px h-5 bg-outline-variant mx-1" />
           <button
             class="flex items-center gap-1.5 text-sm font-bold text-error px-2 py-1 rounded-lg hover:bg-error/10 transition-colors"
             onClick={() => canvasAPI?.removeSelected()}

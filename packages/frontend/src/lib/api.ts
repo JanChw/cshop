@@ -74,6 +74,8 @@ export const api = {
     list: () => request<{ success: boolean; data: any[] }>('/cart'),
     add: (productId: string, quantity: number, size: string, color: string) =>
       request('/cart', { method: 'POST', body: JSON.stringify({ productId, quantity, size, color }) }),
+    addDesign: (productId: number, variantId: number, designId: number, quantity: number) =>
+      request('/cart', { method: 'POST', body: JSON.stringify({ productId, variantId, designId, quantity }) }),
     update: (itemId: string, quantity: number) =>
       request(`/cart/${itemId}`, { method: 'PATCH', body: JSON.stringify({ quantity }) }),
     remove: (itemId: string) =>

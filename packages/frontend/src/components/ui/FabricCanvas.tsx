@@ -46,6 +46,8 @@ export interface CanvasAPI {
   setTextBold: (bold: boolean) => void
   setTextItalic: (italic: boolean) => void
   setTextLetterSpacing: (delta: number) => void
+  bringToFront: () => void
+  sendToBack: () => void
 }
 
 interface Props {
@@ -463,6 +465,30 @@ export default function FabricCanvas(props: Props) {
         const current = (t.charSpacing || 0) / 1000
         const newSpacing = Math.max(0, Math.min(0.5, current + delta))
         t.set({ charSpacing: Math.round(newSpacing * 1000) })
+        fabricCanvas.renderAll()
+        fireChange()
+      },
+      bringToFront: () => {
+        if (!fabricCanvas) return
+        const active = fabricCanvas.getActiveObject()
+        if (!active || isTshirtLayer(active)) return
+        fabricCanvas.bringObjectToFront(active)
+        ensureTextOnTop()
+        fabricCanvas.renderAll()
+        fireChange()
+      },
+      sendToBack: () => {
+        if (!fabricCanvas) return
+        const active = fabricCanvas.getActiveObject()
+        if (!active || isTshirtLayer(active)) return
+        const objects = fabricCanvas.getObjects()
+        let lastTshirtIndex = -1
+        for (let i = 0; i < objects.length; i++) {
+          if ((objects[i] as any).data?.kind === TSHIRT_LAYER_KEY) {
+            lastTshirtIndex = i
+          }
+        }
+        fabricCanvas.moveObjectTo(active, lastTshirtIndex >= 0 ? lastTshirtIndex + 1 : 0)
         fabricCanvas.renderAll()
         fireChange()
       }

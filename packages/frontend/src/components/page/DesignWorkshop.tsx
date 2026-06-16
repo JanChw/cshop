@@ -2,6 +2,7 @@ import {
   createSignal,
   createMemo,
   Show,
+  For,
   onMount,
   onCleanup,
   createEffect
@@ -54,8 +55,26 @@ export default function DesignWorkshop() {
   const [canUndo, setCanUndo] = createSignal(false)
   const [ready, setReady] = createSignal(false)
   const [editingText, setEditingText] = createSignal<{ text: string } | null>(null)
+  const [editingName, setEditingName] = createSignal(false)
+  const [nameDraft, setNameDraft] = createSignal('')
+
+  const [product, setProduct] = createSignal<any>(null)
+  const [selectedSize, setSelectedSize] = createSignal('M')
+  const [selectedVariantColor, setSelectedVariantColor] = createSignal('白色')
+  const [quantity, setQuantity] = createSignal(1)
+  const [addingCart, setAddingCart] = createSignal(false)
+
+  const colorToName: Record<string, string> = {
+    '#ffffff': '白色',
+    '#1a1a1a': '黑色',
+    '#b5b5b5': '灰色',
+    '#c2652a': '棕色',
+    '#2d4a3e': '绿色',
+    '#8c3c3c': '红色'
+  }
 
   let canvasAPI: CanvasAPI | null = null
+  let nameInputRef: HTMLInputElement | undefined
   let saveToken = 0
 
   const handleColorChange = (hex: string) => {
@@ -197,6 +216,21 @@ export default function DesignWorkshop() {
     onCleanup(() => {
       window.removeEventListener('pagehide', onHide)
     })
+
+    void api.products.get(String(DEFAULT_PRODUCT_ID)).then((res) => {
+      const p = res.data
+      setProduct(p)
+      const allSizes = [...new Set((p.variants?.map((v: any) => v.size) || []) as string[])].sort()
+      const allColors = [...new Set((p.variants?.map((v: any) => v.color).filter(Boolean) || []) as string[])]
+      if (allSizes.length) setSelectedSize(allSizes[0])
+      if (allColors.length) {
+        const mapped = colorToName[tshirtColor()]?.toLowerCase()
+        const matched = allColors.find((c: string) => c.toLowerCase() === mapped)
+        setSelectedVariantColor(matched || allColors[0])
+      }
+    }).catch(() => {
+      showToast('加载商品信息失败')
+    })
   })
 
   createEffect(() => {
@@ -217,6 +251,62 @@ export default function DesignWorkshop() {
     return { text: '已保存', color: 'text-primary' }
   }
 
+  const startEditName = () => {
+    setNameDraft(designName())
+    setEditingName(true)
+  }
+
+  const commitName = async () => {
+    const trimmed = nameDraft().trim()
+    if (trimmed) {
+      setDesignName(trimmed)
+      if (ready() && canvasAPI) {
+        setDirty(true)
+        await save()
+      }
+    }
+    setEditingName(false)
+  }
+
+  const cancelEditName = () => setEditingName(false)
+
+  const variantSizes = () => [...new Set((product()?.variants?.map((v: any) => v.size) || []) as string[])].sort()
+  const variantColors = () => [...new Set((product()?.variants?.map((v: any) => v.color).filter(Boolean) || []) as string[])]
+  const selectedVariant = createMemo(() =>
+    product()?.variants?.find((v: any) => v.size === selectedSize() && v.color === selectedVariantColor())
+  )
+  const totalPrice = createMemo(() => {
+    const base = product()?.basePrice ?? 0
+    const adj = selectedVariant()?.priceAdjustment ?? 0
+    return (base + adj) * quantity()
+  })
+
+  const handleAddToCart = async (buyNow: boolean) => {
+    if (!canvasAPI) return
+    const variant = selectedVariant()
+    if (!variant) {
+      showToast('所选规格不存在')
+      return
+    }
+    setAddingCart(true)
+    try {
+      const saved = await save()
+      if (!saved) {
+        showToast('保存设计失败，请重试')
+        return
+      }
+      await api.cart.addDesign(DEFAULT_PRODUCT_ID, variant.id, saved.id, quantity())
+      showToast(buyNow ? '已保存，正在跳转购物车' : '已加入购物车')
+      if (buyNow) {
+        window.location.href = '/cart'
+      }
+    } catch (err: any) {
+      showToast(err.message || '操作失败')
+    } finally {
+      setAddingCart(false)
+    }
+  }
+
   return (
     <div class="bg-background min-h-screen pb-24 text-on-surface" style="font-family: 'Manrope', sans-serif">
       <header class="bg-surface sticky top-0 z-[60] flex justify-between items-center px-4 h-16 w-full border-b border-outline-variant">
@@ -228,9 +318,32 @@ export default function DesignWorkshop() {
           <span class="material-symbols-outlined text-primary">menu</span>
         </button>
         <div class="flex flex-col items-center">
-          <h1 class="font-headline text-xl font-bold tracking-tight text-primary leading-tight">
-            {designName()}
-          </h1>
+          <Show
+            when={editingName()}
+            fallback={(
+              <button
+                class="font-headline text-xl font-bold tracking-tight text-primary leading-tight flex items-center gap-1"
+                onClick={startEditName}
+                aria-label="编辑设计名称"
+              >
+                {designName()}
+                <span class="material-symbols-outlined text-base text-secondary">edit</span>
+              </button>
+            )}
+          >
+            <input
+              ref={(el) => { nameInputRef = el; if (el) el.focus() }}
+              class="font-headline text-xl font-bold tracking-tight text-primary leading-tight text-center bg-transparent border-b-2 border-primary outline-none min-w-[160px] max-w-[200px]"
+              value={nameDraft()}
+              onInput={(e) => setNameDraft(e.currentTarget.value)}
+              onBlur={commitName}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') commitName()
+                if (e.key === 'Escape') cancelEditName()
+              }}
+              maxLength={40}
+            />
+          </Show>
           <div class="flex items-center gap-1.5 leading-none">
             <Show when={dirtyDot()}>
               <span class="w-1.5 h-1.5 rounded-full bg-error"></span>
@@ -330,6 +443,99 @@ export default function DesignWorkshop() {
             hasDrawing={hasDrawing()}
           />
         </Show>
+
+        <section class="mt-8 mb-12 space-y-4">
+          <h2 class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">购买选项</h2>
+          <Show when={product()} fallback={
+            <div class="text-center py-6 text-secondary text-sm">加载商品信息...</div>
+          }>
+            <div class="bg-surface-container-low rounded-xl border border-outline-variant p-4 space-y-4">
+              <div>
+                <span class="text-xs text-on-surface-variant">尺码</span>
+                <div class="flex flex-wrap gap-2 mt-1.5">
+                  <For each={variantSizes()}>
+                    {(s) => (
+                      <button
+                        class={`px-4 py-2 rounded-lg text-sm font-bold border transition-all ${
+                          selectedSize() === s
+                            ? 'border-primary bg-primary text-on-primary'
+                            : 'border-outline-variant text-on-surface hover:border-primary/60'
+                        }`}
+                        onClick={() => setSelectedSize(s)}
+                      >
+                        {s}
+                      </button>
+                    )}
+                  </For>
+                </div>
+              </div>
+
+              <div>
+                <span class="text-xs text-on-surface-variant">颜色</span>
+                <div class="flex flex-wrap gap-2 mt-1.5">
+                  <For each={variantColors()}>
+                    {(c) => (
+                      <button
+                        class={`px-4 py-2 rounded-lg text-sm font-bold border transition-all ${
+                          selectedVariantColor() === c
+                            ? 'border-primary bg-primary text-on-primary'
+                            : 'border-outline-variant text-on-surface hover:border-primary/60'
+                        }`}
+                        onClick={() => setSelectedVariantColor(c)}
+                      >
+                        {c}
+                      </button>
+                    )}
+                  </For>
+                </div>
+              </div>
+
+              <div>
+                <span class="text-xs text-on-surface-variant">数量</span>
+                <div class="flex items-center gap-3 mt-1.5">
+                  <button
+                    class="w-9 h-9 rounded-lg border border-outline-variant flex items-center justify-center text-on-surface hover:bg-surface-container transition-colors"
+                    onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                    aria-label="减少数量"
+                  >
+                    <span class="material-symbols-outlined text-sm">remove</span>
+                  </button>
+                  <span class="w-8 text-center font-bold text-on-surface">{quantity()}</span>
+                  <button
+                    class="w-9 h-9 rounded-lg border border-outline-variant flex items-center justify-center text-on-surface hover:bg-surface-container transition-colors"
+                    onClick={() => setQuantity(q => q + 1)}
+                    aria-label="增加数量"
+                  >
+                    <span class="material-symbols-outlined text-sm">add</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between pt-3 border-t border-outline-variant">
+                <div>
+                  <p class="text-xs text-on-surface-variant">合计</p>
+                  <p class="text-2xl font-bold text-primary">¥ {totalPrice().toFixed(2)}</p>
+                </div>
+                <div class="flex gap-2">
+                  <button
+                    class="px-4 py-2.5 rounded-xl border border-primary text-primary font-bold text-sm hover:bg-primary-container/20 transition-colors disabled:opacity-50"
+                    onClick={() => handleAddToCart(false)}
+                    disabled={addingCart()}
+                  >
+                    加入购物车
+                  </button>
+                  <button
+                    class="px-4 py-2.5 rounded-xl bg-primary text-on-primary font-bold text-sm hover:bg-primary/90 transition-colors disabled:opacity-50"
+                    onClick={() => handleAddToCart(true)}
+                    disabled={addingCart()}
+                  >
+                    立即购买
+                  </button>
+                </div>
+              </div>
+            </div>
+          </Show>
+        </section>
       </main>
 
       <nav class="fixed bottom-0 w-full z-[60] flex justify-around items-center px-4 py-2 bg-surface border-t border-outline-variant h-20">

@@ -62,7 +62,6 @@ export default function DesignWorkshop() {
   const [selectedSize, setSelectedSize] = createSignal('M')
   const [quantity, setQuantity] = createSignal(1)
   const [addingCart, setAddingCart] = createSignal(false)
-  const [checkoutOpen, setCheckoutOpen] = createSignal(false)
 
   const colorToName: Record<string, string> = {
     '#ffffff': '白色',
@@ -299,7 +298,6 @@ export default function DesignWorkshop() {
         return
       }
       await api.cart.addDesign(DEFAULT_PRODUCT_ID, variant.id, saved.id, quantity())
-      setCheckoutOpen(false)
       showToast(buyNow ? '已保存，正在跳转购物车' : '已加入购物车')
       if (buyNow) {
         window.location.href = '/cart'
@@ -369,12 +367,10 @@ export default function DesignWorkshop() {
 
       <main class="px-4 max-w-md mx-auto pb-28">
         <Show when={product()}>
-          <div class="sticky top-16 z-[55] -mx-4 px-4 py-3 bg-background/95 backdrop-blur border-b border-outline-variant/30">
+          <div class="sticky top-16 z-[55] -mx-4 px-4 py-3 bg-background/95 backdrop-blur border-b border-outline-variant/30 space-y-3">
             <div class="flex items-center justify-between gap-3">
               <div class="min-w-0">
-                <p class="text-[10px] text-on-surface-variant truncate">
-                  {product()?.name} · {selectedSize()} / {quantity()}件
-                </p>
+                <p class="text-[10px] text-on-surface-variant truncate">{product()?.name}</p>
                 <p class="text-xl font-bold text-primary leading-tight">
                   ¥ {totalPrice().toFixed(2)}
                 </p>
@@ -382,17 +378,53 @@ export default function DesignWorkshop() {
               <div class="flex items-center gap-2 shrink-0">
                 <button
                   class="px-3 py-2 rounded-xl border border-primary text-primary font-bold text-xs hover:bg-primary-container/20 transition-colors disabled:opacity-50"
-                  onClick={() => setCheckoutOpen(true)}
+                  onClick={() => handleAddToCart(false)}
                   disabled={addingCart()}
                 >
                   加入购物车
                 </button>
                 <button
                   class="px-3 py-2 rounded-xl bg-primary text-on-primary font-bold text-xs hover:bg-primary/90 transition-colors disabled:opacity-50"
-                  onClick={() => setCheckoutOpen(true)}
+                  onClick={() => handleAddToCart(true)}
                   disabled={addingCart()}
                 >
                   立即购买
+                </button>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between gap-3">
+              <div class="flex flex-wrap gap-1.5">
+                <For each={variantSizes()}>
+                  {(s) => (
+                    <button
+                      class={`px-3 py-1 rounded-lg text-xs font-bold border transition-all ${
+                        selectedSize() === s
+                          ? 'border-primary bg-primary text-on-primary'
+                          : 'border-outline-variant text-on-surface hover:border-primary/60'
+                      }`}
+                      onClick={() => setSelectedSize(s)}
+                    >
+                      {s}
+                    </button>
+                  )}
+                </For>
+              </div>
+              <div class="flex items-center gap-1.5 shrink-0">
+                <button
+                  class="w-7 h-7 rounded-lg border border-outline-variant flex items-center justify-center text-on-surface hover:bg-surface-container transition-colors"
+                  onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                  aria-label="减少数量"
+                >
+                  <span class="material-symbols-outlined text-sm">remove</span>
+                </button>
+                <span class="w-6 text-center text-sm font-bold text-on-surface">{quantity()}</span>
+                <button
+                  class="w-7 h-7 rounded-lg border border-outline-variant flex items-center justify-center text-on-surface hover:bg-surface-container transition-colors"
+                  onClick={() => setQuantity(q => q + 1)}
+                  aria-label="增加数量"
+                >
+                  <span class="material-symbols-outlined text-sm">add</span>
                 </button>
               </div>
             </div>
@@ -504,91 +536,6 @@ export default function DesignWorkshop() {
           <span class="text-[10px] font-medium mt-0.5">我的</span>
         </a>
       </nav>
-
-      <Show when={checkoutOpen()}>
-        <div
-          class="fixed inset-0 bg-black/40 z-[75]"
-          onClick={() => setCheckoutOpen(false)}
-        />
-        <div class="fixed bottom-0 left-0 right-0 z-[80] bg-surface rounded-t-2xl p-4 pb-8 max-w-md mx-auto shadow-[0_-4px_24px_rgba(0,0,0,0.08)]">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="font-bold text-on-surface">选择规格</h3>
-            <button
-              class="p-1 rounded-full hover:bg-surface-container-high text-on-surface-variant"
-              onClick={() => setCheckoutOpen(false)}
-              aria-label="关闭"
-            >
-              <span class="material-symbols-outlined">close</span>
-            </button>
-          </div>
-
-          <div class="space-y-4">
-            <div>
-              <span class="text-xs text-on-surface-variant">尺码</span>
-              <div class="flex flex-wrap gap-2 mt-1.5">
-                <For each={variantSizes()}>
-                  {(s) => (
-                    <button
-                      class={`px-4 py-2 rounded-lg text-sm font-bold border transition-all ${
-                        selectedSize() === s
-                          ? 'border-primary bg-primary text-on-primary'
-                          : 'border-outline-variant text-on-surface hover:border-primary/60'
-                      }`}
-                      onClick={() => setSelectedSize(s)}
-                    >
-                      {s}
-                    </button>
-                  )}
-                </For>
-              </div>
-            </div>
-
-            <div>
-              <span class="text-xs text-on-surface-variant">数量</span>
-              <div class="flex items-center gap-3 mt-1.5">
-                <button
-                  class="w-9 h-9 rounded-lg border border-outline-variant flex items-center justify-center text-on-surface hover:bg-surface-container transition-colors"
-                  onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                  aria-label="减少数量"
-                >
-                  <span class="material-symbols-outlined text-sm">remove</span>
-                </button>
-                <span class="w-8 text-center font-bold text-on-surface">{quantity()}</span>
-                <button
-                  class="w-9 h-9 rounded-lg border border-outline-variant flex items-center justify-center text-on-surface hover:bg-surface-container transition-colors"
-                  onClick={() => setQuantity(q => q + 1)}
-                  aria-label="增加数量"
-                >
-                  <span class="material-symbols-outlined text-sm">add</span>
-                </button>
-              </div>
-            </div>
-
-            <div class="flex items-center justify-between pt-3 border-t border-outline-variant">
-              <div>
-                <p class="text-xs text-on-surface-variant">合计</p>
-                <p class="text-2xl font-bold text-primary">¥ {totalPrice().toFixed(2)}</p>
-              </div>
-              <div class="flex gap-2">
-                <button
-                  class="px-4 py-2.5 rounded-xl border border-primary text-primary font-bold text-sm hover:bg-primary-container/20 transition-colors disabled:opacity-50"
-                  onClick={() => handleAddToCart(false)}
-                  disabled={addingCart()}
-                >
-                  加入购物车
-                </button>
-                <button
-                  class="px-4 py-2.5 rounded-xl bg-primary text-on-primary font-bold text-sm hover:bg-primary/90 transition-colors disabled:opacity-50"
-                  onClick={() => handleAddToCart(true)}
-                  disabled={addingCart()}
-                >
-                  立即购买
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </Show>
 
       <div class={`fixed inset-y-0 left-0 z-[70] w-72 bg-surface border-r border-outline-variant transform transition-transform duration-300 ease-in-out ${drawerOpen() ? 'translate-x-0' : '-translate-x-full'}`}>
         <div class="p-6 flex flex-col h-full">

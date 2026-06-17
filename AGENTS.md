@@ -22,17 +22,17 @@ packages/
 ## 常用命令
 
 ```bash
-bun install                     # 安装所有依赖
+bun install                            # 安装所有依赖
 
-bun --filter frontend dev       # 前端开发服务器
-bun --filter admin dev          # 后台开发服务器
-bun --filter backend dev        # 后端开发服务器 (Bun)
+bun --filter @cshop/frontend dev       # 前端开发服务器
+bun --filter @cshop/admin dev          # 后台开发服务器
+bun --filter @cshop/backend dev        # 后端开发服务器 (Bun)
 
-bun run lint                    # StandardJS 检查
-bun run typecheck               # 类型检查
-bun --filter <pkg> test         # 运行单个包的测试
-bun run build                   # 构建所有包
-bun run mask:gen                # 从 tshirt.png 生成 tshirt-mask.png（设计页换色依赖）
+bun run lint                           # StandardJS 检查
+bun run typecheck                      # 类型检查
+bun --filter @cshop/<pkg> test         # 运行单个包的测试
+bun run build                          # 构建所有包
+bun run mask:gen                       # 从 tshirt.png 生成 tshirt-mask.png（设计页换色依赖）
 ```
 
 ## 技术栈铁律

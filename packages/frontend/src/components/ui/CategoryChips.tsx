@@ -1,4 +1,4 @@
-import { createSignal } from 'solid-js'
+import { createSignal, createEffect } from 'solid-js'
 
 interface Chip {
   zh: string
@@ -15,6 +15,10 @@ interface Props {
 export default function CategoryChips(props: Props) {
   const [active, setActive] = createSignal(props.active || '全部')
 
+  createEffect(() => {
+    if (props.active) setActive(props.active)
+  })
+
   const handleClick = (zh: string) => {
     setActive(zh)
     props.onChange?.(zh)
@@ -23,11 +27,11 @@ export default function CategoryChips(props: Props) {
   const radius = props.variant === 'rounded-full' ? 'rounded-full' : 'rounded-lg'
 
   return (
-    <div class="flex overflow-x-auto gap-2 pb-2" style={{ '-ms-overflow-style': 'none', 'scrollbar-width': 'none' }}>
-      <style>{`.hide-scrollbar::-webkit-scrollbar { display: none; }`}</style>
+    <div class="flex overflow-x-auto gap-2 pb-2 hide-scrollbar">
       {props.items.map((chip) => (
         <button
-          class={`flex-shrink-0 px-4 py-2 ${radius} text-label-md transition-all active:scale-95 ${
+          type="button"
+          class={`flex-shrink-0 px-4 py-2 ${radius} text-label-md transition-all active:scale-95 tap-target ${
             active() === chip.zh
               ? 'bg-primary text-on-primary'
               : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-variant'

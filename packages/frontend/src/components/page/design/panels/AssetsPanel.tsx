@@ -1,4 +1,5 @@
 import { createSignal, For, Show, onMount } from 'solid-js'
+import ProductImage from '../../../ui/ProductImage'
 import { api, type UploadItem } from '../../../../lib/api'
 import { showToast } from '../../../../lib/toast'
 
@@ -7,7 +8,7 @@ interface Props {
 }
 
 const svgUrl = (content: string) =>
-  `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">${content}</svg>`)}`
+  `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">${content}</svg>`)}`
 
 const STICKER_CATEGORIES = [
   { key: 'recommend', label: '推荐' },
@@ -131,7 +132,7 @@ export default function AssetsPanel(props: Props) {
             {(sticker) => (
               <button
                 class="aspect-square bg-surface-container-low rounded-lg overflow-hidden border border-outline-variant hover:border-primary hover:scale-[1.02] active:scale-95 transition-all p-2"
-                onClick={() => props.onAddImage({ url: sticker.url, maxWidth: 40, maxHeight: 40 })}
+                onClick={() => props.onAddImage({ url: sticker.url, maxWidth: 120, maxHeight: 120 })}
                 title={sticker.name}
               >
                 <img
@@ -231,11 +232,14 @@ export default function AssetsPanel(props: Props) {
                         onClick={() => addToCanvas(item)}
                         title={item.originalName}
                       >
-                        <img
-                          class="w-full h-full object-contain"
+                        <ProductImage
                           src={item.thumbUrl}
                           alt={item.originalName}
-                          loading="lazy"
+                          aspect="aspect-square"
+                          rounded="rounded-none"
+                          fallbackLabel={item.originalName}
+                          objectFit="contain"
+                          class="w-full h-full p-2"
                         />
                       </button>
                     )}
@@ -253,11 +257,14 @@ export default function AssetsPanel(props: Props) {
                       onClick={() => addToCanvas(item)}
                       title={item.originalName}
                     >
-                      <img
-                        class="w-full h-full object-contain"
+                      <ProductImage
                         src={item.thumbUrl}
                         alt={item.originalName}
-                        loading="lazy"
+                        aspect="aspect-square"
+                        rounded="rounded-none"
+                        fallbackLabel={item.originalName}
+                        objectFit="contain"
+                        class="w-full h-full p-2"
                       />
                     </button>
                   )}

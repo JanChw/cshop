@@ -46,7 +46,7 @@ export default function DrawingPanel(props: Props) {
 
       <div class="space-y-4 p-4 bg-surface-container-low rounded-xl border border-outline-variant">
         <div class="flex justify-between items-center">
-          <h3 class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">
+          <h3 class="text-label-md font-medium text-on-surface-variant">
             手绘工具
           </h3>
           <span class="material-symbols-outlined text-primary text-xl">brush</span>

@@ -3,74 +3,20 @@ import MainLayout from '../layouts/MainLayout.astro'
 import ShopContent from '../components/page/ShopContent.tsx'
 
 const products = [
-  { id: 'p6', name: '重磅基础圆领T恤', price: 299, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBcxIOEDbuvm6JLHMJfWZm5Xw2gobOffrSP8fYAedNZBy0mQoJa4JeRax-IgFJHtFi-bdYHnzNUVyIwNLd5dr8nDLF9fHZTOyVlfj8Ynv0m3YyLW8U_LFQnY6JQ_So2sDETtiXAF8qOsNY0lwrvoQ8FApBAdAdAvhwfuMr0b1dDPzTpgOWVjDhzQuxbc8pyKA1SuZ9IlJLOkELEU_hfGCI2FQKXlNSVKwKzpboiUmn2FCwUBCeIZFq3WlabWC6l_w_h6wrR1YSEQpg', category: '核心系列' },
-  { id: 'p7', name: '全棉连帽卫衣', price: 589, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDtLq-C1TDSMoNwcHnn-eVcvKG5bW9qcDnSLkENuOUd4p63l9lIRGw6y7Wf2lHWQL5XUCi9oK2vNCP--Ic_P2z6G166x5hIOuYFR4TwWQvHA1WGCHgWCP6CBhQwnn9plpjCKuhrAmD3_JxM1YiUhe7GNScFK9wDxoZT_y41Na-WAQ9fFQ8M2AcvwJT9miQidD1BomvhU3bNKvMPn9kk2EGUlH6ezxfZOkKtwVYWP-j2SyoLx-rYb25fUEFO8mEc59lqo3w6xO8scPo', category: '核心系列' },
-  { id: 'p8', name: '艺术家合作款短袖', price: 899, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAIcHDcQdljht2z6gQ41gLuV1ojUjxwy4bWFh89z7xckp-OdCE8P_WwuiQDxwhven813Q6WUo6kkIS1OpvtrkCUZkxmPNxNXm7vCbJSm-Js7LuoQbcbXDvW6N947AlmRD_8-BEEPZKVskrV82GLkj2iAb2ijj__zUOlsa6-Av40EiCaJ6cxj2CVCJIIGXbZYI3XnmGpoK2-s5C0ZSuoyH5IcqMe7yLP9eJ_fJRib-sEsZz7RbxZH9OX9bFhe2S4t2Corz34yCM0x-Q', category: '设计师款', designer: 'Alex Chen' },
-  { id: 'p9', name: '手工水洗丹宁夹克', price: 1299, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBMSwZyZ4zLPPjxJ1sMCKcHLY9aFmf7BNfeLbsA0brfMz-guyQOf_bLuoTAn8aFg1f942gafBVLPDrHa8xeMmsUUnbXzRnpcMSIHLu2ebCGI5eOifptXsd8GWVoq9U6ZF3wl9vH1YRiQxU7HFs4hMdJXsBV0hpsBhPTK1idjNh2EcM0gnyNb7HDsOWC0sJ0oyNDFNbusKmIm4ZEIIlpniis74rgbyxxI2SgM_90nWNG7S-fijzaHI66htva8j7ZbPPpf7EXIWIqxrY', category: '定制款', tags: ['New'] },
-  { id: 'p10', name: '莫代尔混纺T恤', price: 349, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCpuaD8FazEBJOA0_62jqtProQd1eCNt-azH7UUcjreol2d57cYmNiSGD8VIwJ4e8NLrA4kZAEKJgzKDbOi4dVB8ZYN_DDKnqTdNAmq3dFZj_-FOlRhh3Q0SD0_uFMDaohyalYYLLuE6b_k9Iev9MBbc-0hd7xDqs8m8HnBI00hon-AMqPR4fDvtFE3BKFCmR_qS6eQTMVdngHgHmHka0A64QV5ECRqrSdGucWF4elY0uLveyOahqeBvA4QzXdjXdTMMdWFaQ7d4_c', category: '核心系列' },
-  { id: 'p11', name: '廓形立领衬衫', price: 749, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuA0A3aMuC4cizuVAd7icLzj9LidBydEL6nDBh0YmU2Du4OBFwbETf59UNSN2MpWy4KsYb_pCHNVzSdqD7u_zqt3wX-PLYuplbYw4BfehrC8IHaOIyH7zWaiM4gCzhMnRjKYy2Cy-DviIo_RALbHLGO2EfksZlQ4KWCCOy0ikRmoqkqVtTR_gBCIG9TjATmU16zSbb6_k2_69KTgcPHywTI53AAD-FTCwG9fa6vOwUklgcasGfxkXJOMXmIJjoxolnKjpD6H7vDtnWU', category: '设计师款', designer: 'Li Wei' },
-  { id: 'p1', name: '定制创意印花 T恤', price: 199, originalPrice: 299, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAIhzLzAmSg7tIVqz1NRb2UC1ThtwDrTvmbXuwTf4e90dRROxxIYgM9yLcLVYw-m_1FbGpJgYmZCErL4xkaVI7grMWcmxi5ihCv3V-c3to5HBOzbQQO1-vLVrX7c7QozTA_qDDn3_Tc_CBpHeAMCU_WWgpU_AmBTFrUayJr1DINoQhb0NUqIW2lh8DBSAfS8HviVNAU2m9tBbAoRw5ROMBmVWKtdwDbaO8FNxZ-DNJ-vz5JDGSumieTybJprExQlQqWsDGzHi5YyeU', category: '基础系列', tags: ['Canvas Ready'], designer: 'Jordan.Design' },
-  { id: 'p2', name: '重磅廓形圆领衫', price: 199, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAIhzLzAmSg7tIVqz1NRb2UC1ThtwDrTvmbXuwTf4e90dRROxxIYgM9yLcLVYw-m_1FbGpJgYmZCErL4xkaVI7grMWcmxi5ihCv3V-c3to5HBOzbQQO1-vLVrX7c7QozTA_qDDn3_Tc_CBpHeAMCU_WWgpU_AmBTFrUayJr1DINoQhb0NUqIW2lh8DBSAfS8HviVNAU2m9tBbAoRw5ROMBmVWKtdwDbaO8FNxZ-DNJ-vz5JDGSumieTybJprExQlQqWsDGzHi5YyeU', category: '基础系列' },
-  { id: 'p3', name: '极简连帽卫衣', price: 399, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDIsef-278svTdwey7G-NT7fIg-9RWYm5SMggeQw4SNb6gCWypvMF2J272nYbplsxPA9NFnj6vnGpvHz525IK1p2ZyMfxxCjevTOBU29k6Hs5q1mdRgdTm7QlNdHRkgj0JWejti_qw0vRCay2CGhJ_GSYsgUOl6h3AtF8wQ5antejfTtubb6NcPPRNIyw_3223UZokC7mv0haJgJrnpRmtDQhlQHdRWLJiZvT5mn9itgmSV5ZNEpLtazpnLoV53flRiUQvMC1Im9_8', category: '基础系列' },
-  { id: 'p4', name: '阔腿束口短裤', price: 159, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDYT0hrOuPkQJk7o3T466tR8B78FKGFuUJfsWMhYacVinNF2muf9LQIkmglCm9RmlVgzgdXkFcTIy4CMnnd0jk2Je5UGO1uqOhByskjWPlKJuB4KBcsLvPQxIMUKvWWtzEe1sAe9sLGqoRxlgIldMTG4eAlMBszrIpy0qhER46RAj5uka9HpypxIAT7oG_Y5GMriyJf6oGnfhVl9EI7dgAkJjnBuf_iPo_k-9_ERM0sioukh5_hQbok_gyp8zLs4Pa0SRjGivwUnH8', category: '基础系列' },
-  { id: 'p5', name: '精梳棉长袖', price: 249, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC30_KKxDv8V2Lt2IbvSC1AV61u5SyN56iBUOUGChoxOHDOnMNfyDGHB9_uhaeAczMf78tbZ_wPy1SFudV3xtajvj5kXfN8glhCEdi2GdtDgYPz-te3ltSqc3U4RK86PNTucAkyyObOmrZ4pAOyR1FN16ebfwnQipgrK6c5Ruxs_qUEqK13O_FO8KUkufG-8c2YifV3hBX_7TlWDdVLzly4Qr-uFzYnqW0PhXCmxGXWEMEXbM-kj5rL3lkg-3fItVSbjYAvUiu4Csc', category: '基础系列' }
+  { id: 'p6', name: '重磅基础圆领T恤', price: 299, image: 'https://picsum.photos/seed/5c97e3382aae/400/500', category: '核心系列' },
+  { id: 'p7', name: '全棉连帽卫衣', price: 589, image: 'https://picsum.photos/seed/cc1602a6ae6c/400/500', category: '核心系列' },
+  { id: 'p8', name: '艺术家合作款短袖', price: 899, image: 'https://picsum.photos/seed/18b9254c6303/400/500', category: '设计师款', designer: 'Alex Chen' },
+  { id: 'p9', name: '手工水洗丹宁夹克', price: 1299, image: 'https://picsum.photos/seed/ebbd34802107/400/500', category: '定制款', tags: ['New'] },
+  { id: 'p10', name: '莫代尔混纺T恤', price: 349, image: 'https://picsum.photos/seed/91c83495b360/400/500', category: '核心系列' },
+  { id: 'p11', name: '廓形立领衬衫', price: 749, image: 'https://picsum.photos/seed/d6148e3dc9b7/400/500', category: '设计师款', designer: 'Li Wei' },
+  { id: 'p1', name: '定制创意印花 T恤', price: 199, originalPrice: 299, image: 'https://picsum.photos/seed/3c604c9a1e87/400/500', category: '基础系列', tags: ['Canvas Ready'], designer: 'Jordan.Design' },
+  { id: 'p2', name: '重磅廓形圆领衫', price: 199, image: 'https://picsum.photos/seed/3c604c9a1e87/400/500', category: '基础系列' },
+  { id: 'p3', name: '极简连帽卫衣', price: 399, image: 'https://picsum.photos/seed/8a17ad401514/400/500', category: '基础系列' },
+  { id: 'p4', name: '阔腿束口短裤', price: 159, image: 'https://picsum.photos/seed/ef2c5fff6450/400/500', category: '基础系列' },
+  { id: 'p5', name: '精梳棉长袖', price: 249, image: 'https://picsum.photos/seed/c8d4d08aa439/400/500', category: '基础系列' }
 ]
 ---
 
 <MainLayout title="商店">
-<!-- Shop page overrides for cool palette -->
-<style>
-:root {
-  --color-background: #f9f9ff;
-  --color-on-background: #151c27;
-  --color-surface: #f9f9ff;
-  --color-on-surface: #151c27;
-  --color-surface-variant: #dce2f3;
-  --color-on-surface-variant: #434656;
-  --color-surface-container: #e7eefe;
-  --color-surface-container-low: #f0f3ff;
-  --color-surface-container-high: #e2e8f8;
-  --color-surface-container-highest: #dce2f3;
-  --color-secondary: #5c5f61;
-  --color-secondary-container: #e0e3e5;
-  --color-outline: #737688;
-  --color-outline-variant: #c3c5d9;
-  --color-primary: #c2652a;
-  --color-on-primary: #ffffff;
-  --color-primary-container: #c2652a;
-  --color-on-primary-container: #ffffff;
-}
-</style>
-
-<!-- TopAppBar -->
-<header class="bg-surface border-b border-outline-variant sticky top-0 z-50">
-<div class="flex justify-between items-center px-container-margin h-12 w-full">
-<div class="flex items-center gap-4">
-<button class="material-symbols-outlined text-primary hover:opacity-80 transition-opacity active:scale-95 duration-150">menu</button>
-<span class="text-title-md font-bold text-primary">ByChooow</span>
-</div>
-<div class="flex items-center gap-4">
-<button onclick="window.location.href='/search'" class="material-symbols-outlined text-on-surface-variant hover:opacity-80 transition-opacity">search</button>
-<div class="w-8 h-8 rounded-full bg-secondary-container overflow-hidden border border-outline-variant">
-<img alt="User Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuACO1FDt1_uQh0Ln4IggOJsy5ok06DnWLxkv-5QqU_NHrM2pT6ekUGzJiEMa_8Bc-a5x8UExX9Pa1IKJ0AdUWXxcdUk3JcFUf2AJ4fH81hhmfB-dcUNFhgjYOPUN5w4Kpn_r8xmCVsdhG5a5A_cvCMl8NQh0N6OY7KYtMd_dTgKldopmOGbd0Pv1qUGdIzpci5rxf9-qsILxfX_27XLvCczAnNF4Pc6I4nEeZZn1ds9Y8AjTxaS2MrfrRBe1T4YPK8LFSkGbZEuDcU"/>
-</div>
-</div>
-</div>
-</header>
-
-<ShopContent products={products} client:load />
-
-<!-- Floating Action Button -->
-<button class="fixed right-6 bottom-24 w-14 h-14 bg-primary text-on-primary rounded-lg shadow-lg flex items-center justify-center active:scale-95 transition-transform">
-<span class="material-symbols-outlined">shopping_cart</span>
-</button>
-
-<!-- BottomNavBar -->
-<nav class="fixed bottom-0 left-0 w-full bg-surface border-t border-outline-variant z-50 flex justify-around items-center px-4 pb-4 pt-2">
-<a class="flex flex-col items-center justify-center text-secondary px-4 py-1 hover:bg-surface-variant rounded-lg transition-opacity" href="/"><span class="material-symbols-outlined">home</span><span class="text-label-md mt-1">首页</span></a>
-<a class="flex flex-col items-center justify-center text-secondary px-4 py-1 hover:bg-surface-variant rounded-lg transition-opacity" href="/design"><span class="material-symbols-outlined">brush</span><span class="text-label-md mt-1">设计</span></a>
-<a class="flex flex-col items-center justify-center text-secondary px-4 py-1 hover:bg-surface-variant rounded-lg transition-opacity" href="/cart"><span class="material-symbols-outlined">shopping_cart</span><span class="text-label-md mt-1">购物车</span></a>
-<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-lg px-4 py-1 scale-90 transition-transform duration-200" href="/shop"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">storefront</span><span class="text-label-md mt-1">商店</span></a>
-<a class="flex flex-col items-center justify-center text-secondary px-4 py-1 hover:bg-surface-variant rounded-lg transition-opacity" href="/person"><span class="material-symbols-outlined">person</span><span class="text-label-md mt-1">个人中心</span></a>
-</nav>
+  <ShopContent products={products} client:load />
 </MainLayout>

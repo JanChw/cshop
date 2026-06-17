@@ -35,7 +35,7 @@ export default function TextPanel(props: Props) {
     <div class="p-6 space-y-6">
       <div class="space-y-3">
         <div class="flex justify-between items-center">
-          <label class="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">
+          <label class="text-label-md font-medium text-on-surface-variant">
             {isEditing() ? '编辑文字' : '文字内容'}
           </label>
           <span class="text-xs text-secondary">{text().length}/50</span>

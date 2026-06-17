@@ -1,4 +1,5 @@
 import { createSignal, For, onMount, Show } from 'solid-js'
+import ProductImage from '../ui/ProductImage'
 import { api, type UploadItem } from '../../lib/api'
 import { showToast } from '../../lib/toast'
 
@@ -59,14 +60,15 @@ export default function AssetGrid() {
   }
 
   return (
-    <div class="bg-background min-h-screen pb-24 text-on-surface" style="font-family: 'Manrope', sans-serif">
-      <header class="bg-surface/80 backdrop-blur-md sticky top-0 z-50 flex justify-between items-center px-4 h-16 border-b border-outline-variant">
-        <a href="/person" class="p-2 hover:bg-surface-container rounded-full transition-colors" aria-label="返回">
+    <div class="bg-background min-h-screen pb-24 text-on-surface">
+      <header class="md:pt-16 bg-surface/80 backdrop-blur-md sticky top-0 z-50 flex justify-between items-center px-4 h-16 border-b border-outline-variant">
+        <a href="/person" class="tap-target p-2 hover:bg-surface-container rounded-full transition-colors" aria-label="返回">
           <span class="material-symbols-outlined text-on-surface-variant">arrow_back</span>
         </a>
         <h1 class="text-lg font-bold text-primary">个人素材库</h1>
         <button
-          class="p-2 hover:bg-surface-container rounded-full transition-colors"
+          type="button"
+          class="tap-target p-2 hover:bg-surface-container rounded-full transition-colors"
           onClick={() => fileInput?.click()}
           aria-label="上传"
         >
@@ -74,7 +76,7 @@ export default function AssetGrid() {
         </button>
       </header>
 
-      <main class="px-4 pt-4 pb-24 space-y-4 max-w-md mx-auto">
+      <main class="px-4 pt-4 pb-24 space-y-4 container-content">
         <div class="relative">
           <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">search</span>
           <input
@@ -95,7 +97,8 @@ export default function AssetGrid() {
             <div class="text-center py-20">
               <p class="text-sm text-error mb-2">{error()}</p>
               <button
-                class="mt-2 px-4 py-2 bg-primary text-on-primary rounded-lg text-sm"
+                type="button"
+                class="mt-2 px-4 py-2 bg-primary text-on-primary rounded-lg text-sm tap-target"
                 onClick={load}
               >
                 重试
@@ -110,19 +113,23 @@ export default function AssetGrid() {
                 </p>
               </div>
             }>
-              <div class="grid grid-cols-2 gap-3">
+              <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
                 <For each={filtered()}>
                   {(item) => (
                     <div class="group relative bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden flex flex-col aspect-[4/5] hover:border-primary transition-all">
                       <div class="flex-1 bg-surface-variant/30 overflow-hidden relative">
-                        <img
-                          class="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-300"
+                        <ProductImage
                           src={item.thumbUrl}
                           alt={item.originalName}
-                          loading="lazy"
+                          aspect="aspect-[4/5]"
+                          rounded="rounded-none"
+                          fallbackLabel={item.originalName}
+                          objectFit="contain"
+                          class="p-2 group-hover:scale-105 transition-transform duration-300"
                         />
                         <button
-                          class="absolute top-2 right-2 bg-white/90 backdrop-blur-md p-1.5 rounded-lg shadow-sm text-on-surface-variant hover:text-error transition-all"
+                          type="button"
+                          class="absolute top-2 right-2 bg-white/90 backdrop-blur-md p-2 rounded-lg shadow-sm text-on-surface-variant hover:text-error transition-all tap-target"
                           onClick={() => remove(item.id)}
                           aria-label="删除"
                         >
@@ -131,7 +138,7 @@ export default function AssetGrid() {
                       </div>
                       <div class="p-3">
                         <p class="font-semibold text-sm text-on-surface truncate">{item.originalName}</p>
-                        <p class="text-[10px] text-outline mt-1 uppercase tracking-wider font-bold">
+                        <p class="text-label-md text-outline mt-1">
                           {item.width}×{item.height}
                         </p>
                       </div>

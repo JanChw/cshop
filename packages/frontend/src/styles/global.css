@@ -71,6 +71,10 @@
   /* === Shadows === */
   --shadow-card: 0 2px 16px rgba(58, 48, 42, 0.04);
   --shadow-elevated: 0 8px 24px rgba(58, 48, 42, 0.08);
+
+  /* === Content Widths === */
+  --width-content-mobile: 100%;
+  --width-content-tablet: 720px;
 }
 
 /* === Base Styles === */
@@ -84,6 +88,18 @@
     background-color: var(--color-background);
     color: var(--color-on-surface);
   }
+
+  /* Respect reduced motion at the system level */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }
 
 /* === Utility Classes === */
@@ -91,4 +107,28 @@
   &::-webkit-scrollbar { display: none; }
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+@utility container-content {
+  width: 100%;
+  max-width: var(--width-content-mobile);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--spacing-container-margin);
+  padding-right: var(--spacing-container-margin);
+
+  @media (min-width: 768px) {
+    max-width: var(--width-content-tablet);
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
+@utility safe-bottom {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+@utility tap-target {
+  min-width: 44px;
+  min-height: 44px;
 }

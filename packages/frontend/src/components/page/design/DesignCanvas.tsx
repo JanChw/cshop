@@ -123,16 +123,42 @@ export default function DesignCanvas(props: Props) {
         />
       </div>
 
-      <Show when={!props.drawing.enabled}>
-        <div class="absolute top-4 left-4 bg-primary/90 text-on-primary px-3 py-1 rounded-full text-xs font-bold shadow-lg pointer-events-none">
-          实时预览
+      <div class="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none z-10">
+        <Show when={!props.drawing.enabled}>
+          <div class="bg-primary/90 text-on-primary px-3 py-1 rounded-full text-xs font-bold shadow-lg pointer-events-auto">
+            实时预览
+          </div>
+        </Show>
+        <Show when={props.drawing.enabled}>
+          <div class="bg-tertiary/90 text-on-tertiary px-3 py-1 rounded-full text-xs font-bold shadow-lg pointer-events-auto">
+            {props.drawing.mode === 'brush' ? '画笔模式' : '移动模式'}
+          </div>
+        </Show>
+        <div class="flex items-center gap-1 pointer-events-auto">
+          <button
+            class="w-8 h-8 flex items-center justify-center rounded-full bg-white/80 backdrop-blur shadow-sm hover:bg-white transition-all"
+            onClick={zoomIn}
+            aria-label="放大"
+          >
+            <span class="material-symbols-outlined text-lg">zoom_in</span>
+          </button>
+          <button
+            class="w-8 h-8 flex items-center justify-center rounded-full bg-white/80 backdrop-blur shadow-sm hover:bg-white transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            onClick={zoomOut}
+            disabled={previewScale() <= 1}
+            aria-label="缩小"
+          >
+            <span class="material-symbols-outlined text-lg">zoom_out</span>
+          </button>
+          <button
+            class="w-8 h-8 flex items-center justify-center rounded-full bg-white/80 backdrop-blur shadow-sm hover:bg-white transition-all"
+            onClick={resetPreview}
+            aria-label="重置视图"
+          >
+            <span class="material-symbols-outlined text-lg">refresh</span>
+          </button>
         </div>
-      </Show>
-      <Show when={props.drawing.enabled}>
-        <div class="absolute top-4 left-4 bg-tertiary/90 text-on-tertiary px-3 py-1 rounded-full text-xs font-bold shadow-lg pointer-events-none">
-          {props.drawing.mode === 'brush' ? '画笔模式' : '移动模式'}
-        </div>
-      </Show>
+      </div>
 
       <Show when={selectedText()}>
         {(text) => (
@@ -285,31 +311,6 @@ export default function DesignCanvas(props: Props) {
           </button>
         </div>
       </Show>
-
-      <div class="absolute bottom-6 right-4 flex flex-col gap-2">
-        <button
-          class="p-2 rounded-full shadow-sm transition-all bg-white/80 backdrop-blur hover:bg-white"
-          onClick={zoomIn}
-          aria-label="放大"
-        >
-          <span class="material-symbols-outlined">zoom_in</span>
-        </button>
-        <button
-          class="p-2 rounded-full shadow-sm transition-all bg-white/80 backdrop-blur hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed"
-          onClick={zoomOut}
-          disabled={previewScale() <= 1}
-          aria-label="缩小"
-        >
-          <span class="material-symbols-outlined">zoom_out</span>
-        </button>
-        <button
-          class="bg-white/80 backdrop-blur p-2 rounded-full shadow-sm hover:bg-white transition-colors"
-          onClick={resetPreview}
-          aria-label="重置视图"
-        >
-          <span class="material-symbols-outlined">refresh</span>
-        </button>
-      </div>
     </section>
   )
 }

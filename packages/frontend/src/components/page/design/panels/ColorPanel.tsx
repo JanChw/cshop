@@ -58,7 +58,7 @@ export default function ColorPanel(props: Props) {
       </div>
 
       <div>
-        <h3 class="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-4">
+        <h3 class="text-label-md font-medium text-on-surface-variant mb-4">
           预设颜色
         </h3>
         <div class="grid grid-cols-3 gap-6">

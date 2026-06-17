@@ -3,37 +3,27 @@ import MainLayout from '../layouts/MainLayout.astro'
 import CartContent from '../components/page/CartContent.tsx'
 
 const cartItems = [
-  { id: 'ci1', name: '定制创意印花 T恤', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDDpdxrBjD3CogiPj6jWxCdj-fBzrTMI3PM2PY-IbAVmLq0LqPVmvhNbcYgYMGLUW46rWDCDCkFVZ2sBcaTA4B18a_R43xLUcMX139Xlan6MkPMRMXBS1TrgdrnJSvix6QWxDX2LDNcQzPqXzO8SqzDdpfI2rHw7qVdU3BOG0mA2S8TEfF92l8rAt0TB_mcY4XHQlzeXIz_Q9c1pTN-tph944xekDivCJeJ7tLsBn27kiZrV-oZe3EEUlnTualYRqYbU-dOvNWjb8g', price: 199, size: 'L', color: '白色', designId: 'BYCH-8821' },
-  { id: 'ci2', name: 'ByChooow 限量款联名连帽衫', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCpNae0SvcSMbLGz80CSWdBSv-4LPDj4s1FU-n2t9rwpU5LawSnIE6-By2OzV2QamdhCrgBCE5KmxH1Z-5UnAYOhCs7prW6D34AGi_l5skpr8XLcYnDbleSkTjmJBg8m7rJ0BGHtOTk2wV3vB4oJMBYaZAsnpOrw0Z9TQRZOOtoHmMId4BhM3eYqsidegKVbeSULm1KtYipkOWxCqIa9QA3_fxMmpTmjNez0RsL3AI2ZzqLosg4ucwXY7EliFGCsxvIzPOc4jo_CGU', price: 589, size: 'XL', color: '炭灰色' },
-  { id: 'ci3', name: '简约概念帆布袋', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDbJfFaQ9TvHgxrJqqwM4t7BuNTpTYsYxksPghN9AxacWpYoxSfGYAKKSYFBRPPQmpZVA3icG2Az_0F9NHXyj3mbu1zaV36BZ9iY1EWlXWR1Z-WsNmlsCgYTmAqDUll-2NLlUJvdYU_RMPRAkvliJqbZeVaigYsk_gpDJ6-36iRA3TVI1bN9gUsGt0jhAy_AiQYf51j6iOcKcQ5wN7nDXVG1NJsfxetgFrY21tPag9ISkPg6VtYTkfcABEpUXEWuIt4IDRkImavLpw', price: 88, size: '均码', color: '黑色' }
+  { id: 'ci1', name: '定制创意印花 T恤', image: 'https://picsum.photos/seed/6302f36204b7/400/500', price: 199, size: 'L', color: '白色', designId: 'BYCH-8821' },
+  { id: 'ci2', name: 'ByChooow 限量款联名连帽衫', image: 'https://picsum.photos/seed/ef05e1e2518a/400/500', price: 589, size: 'XL', color: '炭灰色' },
+  { id: 'ci3', name: '简约概念帆布袋', image: 'https://picsum.photos/seed/480120054cac/400/500', price: 88, size: '均码', color: '黑色' }
 ]
 ---
 
 <MainLayout title="购物车">
-<!-- TopAppBar -->
-<header class="bg-surface-container-lowest fixed top-0 w-full z-50 border-b border-outline-variant">
-<div class="flex justify-between items-center px-container-margin h-12 w-full">
-<div class="flex items-center gap-4">
-<button onclick="history.back()" class="hover:opacity-80 transition-opacity active:scale-95 transition-transform duration-150">
-<span class="material-symbols-outlined text-primary">arrow_back</span>
-</button>
-<h1 class="text-title-md font-bold text-on-surface">购物车</h1>
-</div>
-<div class="flex items-center gap-2">
-<span class="text-label-md text-on-surface-variant" id="cart-count">共 {cartItems.reduce((s, i) => s + 1, 0)} 件商品</span>
-</div>
-</div>
-</header>
+  <header class="fixed top-0 w-full z-40 bg-surface border-b border-outline-variant md:hidden">
+    <div class="flex justify-between items-center px-container-margin h-12 w-full">
+      <button
+        type="button"
+        onClick={() => history.back()}
+        class="tap-target flex items-center justify-center text-primary"
+        aria-label="返回"
+      >
+        <span class="material-symbols-outlined">arrow_back</span>
+      </button>
+      <h1 class="text-title-md font-bold text-on-surface">购物车</h1>
+      <span class="text-label-md text-on-surface-variant">共 {cartItems.length} 件商品</span>
+    </div>
+  </header>
 
-<CartContent items={cartItems} client:load />
-
-<!-- BottomNavBar (Mobile Only) -->
-<nav class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-4 pt-2 bg-surface-container-lowest border-t border-outline-variant z-50">
-<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-low rounded-lg transition-all" href="/"><span class="material-symbols-outlined">home</span><span class="text-[10px] font-bold">首页</span></a>
-<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-low rounded-lg transition-all" href="/design"><span class="material-symbols-outlined">brush</span><span class="text-[10px] font-bold">设计</span></a>
-<a class="flex flex-col items-center justify-center bg-primary text-on-primary rounded-lg px-4 py-1 scale-90 transition-transform duration-200" href="/cart"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">shopping_cart</span><span class="text-[10px] font-bold">购物车</span></a>
-<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-low rounded-lg transition-all" href="/shop"><span class="material-symbols-outlined">storefront</span><span class="text-[10px] font-bold">商店</span></a>
-<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-low rounded-lg transition-all" href="/person"><span class="material-symbols-outlined">person</span><span class="text-[10px] font-bold">个人中心</span></a>
-</nav>
-<style>body { min-height: max(884px, 100dvh); }</style>
+  <CartContent items={cartItems} client:load />
 </MainLayout>

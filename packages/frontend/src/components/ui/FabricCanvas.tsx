@@ -282,20 +282,25 @@ export default function FabricCanvas(props: Props) {
         const logicalH = fabricCanvas.getHeight() / RENDER_RATIO
         const maxW = (opts.maxWidth ?? logicalW * 0.5) * RENDER_RATIO
         const maxH = (opts.maxHeight ?? logicalH * 0.5) * RENDER_RATIO
-        const img = await FabricImage.fromURL(opts.url, { crossOrigin: 'anonymous' })
-        const scale = Math.min(maxW / img.width!, maxH / img.height!, 1)
-        img.set({
+        const img = new Image()
+        if (!opts.url.startsWith('data:')) img.crossOrigin = 'anonymous'
+        img.src = opts.url
+        await new Promise<void>((resolve, reject) => {
+          img.onload = () => resolve()
+          img.onerror = () => reject(new Error('Image load failed'))
+        })
+        const fabricImg = new FabricImage(img, {
           left: fabricCanvas.getWidth() / 2,
           top: fabricCanvas.getHeight() / 2,
           originX: 'center',
           originY: 'center',
-          scaleX: scale,
-          scaleY: scale,
           objectCaching: false
         })
-        ;(img as any).data = { kind: 'image' }
-        fabricCanvas.add(img)
-        fabricCanvas.setActiveObject(img)
+        const scale = Math.min(maxW / fabricImg.width!, maxH / fabricImg.height!, 1)
+        fabricImg.set({ scaleX: scale, scaleY: scale })
+        ;(fabricImg as any).data = { kind: 'image' }
+        fabricCanvas.add(fabricImg)
+        fabricCanvas.setActiveObject(fabricImg)
         fabricCanvas.renderAll()
         fireChange()
       },

@@ -1,114 +1,16 @@
 ---
 import MainLayout from '../../layouts/MainLayout.astro'
+import LogisticsContent from '../../components/page/LogisticsContent.tsx'
 
 export function getStaticPaths() {
-  return [{ params: { id: 'o1' } }]
+  return [
+    { params: { id: '1' } },
+    { params: { id: 'o1' } },
+    { params: { id: '882931024' } }
+  ]
 }
 ---
 
 <MainLayout title="物流详情">
-<!-- Top AppBar -->
-<header class="bg-surface border-b border-outline-variant flex justify-between items-center px-6 h-16 w-full sticky top-0 z-50">
-<button class="text-primary hover:bg-surface-container-high transition-colors p-2 rounded-full active:scale-95 duration-100">
-<span class="material-symbols-outlined">arrow_back</span>
-</button>
-<h1 class="font-headline text-2xl font-bold text-primary">物流详情</h1>
-<button class="text-primary hover:bg-surface-container-high transition-colors p-2 rounded-full active:scale-95 duration-100">
-<span class="material-symbols-outlined">notifications</span>
-</button>
-</header>
-<main class="max-w-screen-md mx-auto px-4 py-8 space-y-6 pb-32">
-<section class="bg-white rounded-xl p-8 shadow-card border border-outline-variant/60">
-<div class="flex items-start justify-between mb-6">
-<div class="space-y-1">
-<p class="text-on-surface-variant text-sm tracking-wider">当前状态</p>
-<h2 class="text-3xl font-headline text-primary font-bold">运输中</h2>
-</div>
-<div class="w-16 h-16 bg-primary-container/20 flex items-center justify-center rounded-full">
-<span class="material-symbols-outlined text-primary text-3xl">local_shipping</span>
-</div>
-</div>
-<div class="grid grid-cols-2 gap-4 pt-6 border-t border-outline-variant/40">
-<div>
-<p class="text-on-surface-variant text-xs uppercase tracking-widest mb-1">订单编号</p>
-<p class="font-medium text-on-surface">BCW-882931024</p>
-</div>
-<div>
-<p class="text-on-surface-variant text-xs uppercase tracking-widest mb-1">承运公司</p>
-<p class="font-medium text-on-surface">顺丰速运 (SF Express)</p>
-</div>
-</div>
-</section>
-<section class="bg-surface-container-low rounded-xl p-6 flex gap-4 items-center border border-outline-variant/40">
-<img alt="产品图" class="w-20 h-20 object-cover rounded-lg bg-surface-container-highest" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZBlPPqo9NiqcuzZlXXwfLssa_cj8GEcW7FwPMNNf4Ji3IPKYutoQwQaJrFIW5YrWi08OMaWH1MqtojMS8wEW_prcxfb8k9qa_D5yJ7VIRH897N4C5vDLmQ5ru5DbDvT8AlUCM-R9LmZZ7klgQ9w6XxFbn6tbqjRFyly_kwZByCme70drwitN32mkMAXVL0FR0S3M-8y4NPcZruPWKIQyTuktRhy5HxJLjEGPzxlEQgIZlCWgrF3hRz1oSieDUIsGZuNkJdnWnwrM"/>
-<div class="flex-1">
-<h3 class="font-headline text-xl text-on-surface leading-tight">手工亚麻束腰外套</h3>
-<p class="text-on-surface-variant text-sm mt-1">尺码: M | 颜色: 拿铁色</p>
-<div class="mt-2 text-primary font-bold">¥1,280.00</div>
-</div>
-</section>
-<section class="bg-white rounded-xl p-8 shadow-card border border-outline-variant/60">
-<h3 class="font-headline text-2xl mb-8 border-b border-outline-variant/40 pb-4">实时物流轨迹</h3>
-<div class="space-y-8">
-<div class="relative flex gap-6">
-<div class="relative z-10"><div class="w-4 h-4 rounded-full bg-primary ring-4 ring-primary-container/30"></div><div class="absolute top-4 left-[7px] bottom-[-24px] w-px bg-outline-variant"></div></div>
-<div class="pb-2">
-<p class="text-on-surface font-semibold leading-snug">包裹正在派送中</p>
-<p class="text-on-surface-variant text-sm mt-1">上海市静安区派送员 王师傅 (138****0000) 正在为您派送</p>
-<p class="text-on-surface-variant text-xs mt-2">2023-11-24 09:15:32</p>
-</div>
-</div>
-<div class="relative flex gap-6">
-<div class="relative z-10"><div class="w-4 h-4 rounded-full bg-outline"></div><div class="absolute top-4 left-[7px] bottom-[-24px] w-px bg-outline-variant"></div></div>
-<div class="pb-2 opacity-80">
-<p class="text-on-surface font-medium leading-snug">快件到达 【上海静安区共和新路营业点】</p>
-<p class="text-on-surface-variant text-sm mt-1">包裹已到达目的地分拣中心，准备派送</p>
-<p class="text-on-surface-variant text-xs mt-2">2023-11-24 02:10:45</p>
-</div>
-</div>
-<div class="relative flex gap-6">
-<div class="relative z-10"><div class="w-4 h-4 rounded-full bg-outline"></div><div class="absolute top-4 left-[7px] bottom-[-24px] w-px bg-outline-variant"></div></div>
-<div class="pb-2 opacity-60">
-<p class="text-on-surface font-medium leading-snug">快件离开 【杭州萧山集散中心】, 正发往 【上海静安集散中心】</p>
-<p class="text-on-surface-variant text-xs mt-2">2023-11-23 21:45:10</p>
-</div>
-</div>
-<div class="relative flex gap-6">
-<div class="relative z-10"><div class="w-4 h-4 rounded-full bg-outline"></div></div>
-<div class="pb-2 opacity-40">
-<p class="text-on-surface font-medium leading-snug">包裹已发货</p>
-<p class="text-on-surface-variant text-sm mt-1">商家已完成包裹打包并交给快递公司</p>
-<p class="text-on-surface-variant text-xs mt-2">2023-11-23 14:20:00</p>
-</div>
-</div>
-</div>
-</section>
-<div class="flex gap-4 pb-12">
-<button class="flex-1 py-4 px-6 rounded-lg border border-outline text-on-surface-variant font-medium hover:bg-surface-container transition-colors active:scale-95 duration-150">联系客服</button>
-<button class="flex-1 py-4 px-6 rounded-lg bg-primary text-white font-medium hover:opacity-90 transition-all active:scale-95 duration-150 shadow-sm">确认收货</button>
-</div>
-</main>
-<script>
-document.querySelector('header button:first-child')?.addEventListener('click', () => history.back());
-document.querySelector('.flex.gap-4.pb-12 button:first-child')?.addEventListener('click', () => { showToast('正在连接在线客服...'); });
-document.querySelector('.flex.gap-4.pb-12 button:last-child')?.addEventListener('click', function() {
-    if (confirm('确认已收到商品？确认后订单将标记为已完成。')) {
-        this.innerHTML = '<span class="material-symbols-outlined">progress_activity</span> 确认中...';
-        this.disabled = true;
-        setTimeout(() => {
-            this.innerHTML = '<span class="material-symbols-outlined">check_circle</span> 已确认收货';
-            this.classList.remove('bg-primary');
-            this.classList.add('bg-green-600');
-            showToast('已确认收货，感谢您的购买！');
-        }, 1200);
-    }
-});
-document.querySelector('header button:last-child')?.addEventListener('click', () => { showToast('暂无新消息'); });
-function showToast(msg) {
-    let t=document.createElement('div'); t.textContent=msg;
-    t.style.cssText='position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:12px 24px;border-radius:8px;z-index:999;font-size:14px;opacity:0;transition:opacity 0.3s';
-    document.body.appendChild(t); requestAnimationFrame(()=>t.style.opacity='1');
-    setTimeout(()=>{t.style.opacity='0'; setTimeout(()=>t.remove(),300);}, 2000);
-}
-</script>
+  <LogisticsContent client:load />
 </MainLayout>

@@ -1,4 +1,5 @@
 import { createSignal, For, onMount, Show } from 'solid-js'
+import ProductImage from '../ui/ProductImage'
 import { api, type DesignItem } from '../../lib/api'
 import { showToast } from '../../lib/toast'
 
@@ -46,18 +47,18 @@ export default function MyDesigns() {
   }
 
   return (
-    <div class="bg-background min-h-screen pb-24 text-on-surface" style="font-family: 'Manrope', sans-serif">
-      <header class="bg-surface sticky top-0 z-50 flex justify-between items-center px-4 h-16 border-b border-outline-variant">
-        <a href="/person" class="p-2 hover:bg-surface-container-high rounded-full transition-colors" aria-label="返回">
+    <div class="bg-background min-h-screen pb-24 text-on-surface">
+      <header class="md:pt-16 bg-surface sticky top-0 z-50 flex justify-between items-center px-4 h-16 border-b border-outline-variant">
+        <a href="/person" class="tap-target p-2 hover:bg-surface-container-high rounded-full transition-colors" aria-label="返回">
           <span class="material-symbols-outlined text-primary">arrow_back</span>
         </a>
         <h1 class="text-lg font-bold text-primary">我的设计</h1>
-        <a href="/design" class="p-2 hover:bg-surface-container-high rounded-full transition-colors" aria-label="新建设计">
+        <a href="/design" class="tap-target p-2 hover:bg-surface-container-high rounded-full transition-colors" aria-label="新建设计">
           <span class="material-symbols-outlined text-primary">add</span>
         </a>
       </header>
 
-      <main class="px-4 max-w-md mx-auto pt-4 space-y-4">
+      <main class="px-4 container-content pt-4 space-y-4">
         <Show when={!loading()} fallback={
           <div class="text-center py-20 text-secondary">
             <span class="material-symbols-outlined animate-spin text-3xl">progress_activity</span>
@@ -68,7 +69,8 @@ export default function MyDesigns() {
               <span class="material-symbols-outlined text-error text-4xl">error</span>
               <p class="text-sm text-error mt-2">{error()}</p>
               <button
-                class="mt-4 px-4 py-2 bg-primary text-on-primary rounded-lg text-sm"
+                type="button"
+                class="mt-4 px-4 py-2 bg-primary text-on-primary rounded-lg text-sm tap-target"
                 onClick={load}
               >
                 重试
@@ -82,13 +84,13 @@ export default function MyDesigns() {
                 <p class="text-sm text-on-surface-variant">开始创作你的第一个设计</p>
                 <a
                   href="/design"
-                  class="inline-block px-6 py-3 bg-primary text-on-primary rounded-xl font-bold text-sm"
+                  class="inline-block px-6 py-3 bg-primary text-on-primary rounded-xl font-bold text-sm tap-target"
                 >
                   前往设计
                 </a>
               </div>
             }>
-              <div class="grid grid-cols-2 gap-3">
+              <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
                 <For each={items()}>
                   {(item) => (
                     <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden flex flex-col aspect-[4/5] hover:border-primary transition-all group">
@@ -101,21 +103,25 @@ export default function MyDesigns() {
                             </div>
                           }
                         >
-                          <img
-                            class="w-full h-full object-contain"
+                          <ProductImage
                             src={item.previewImage!}
                             alt={item.name}
-                            loading="lazy"
+                            aspect="aspect-[4/5]"
+                            rounded="rounded-none"
+                            fallbackLabel={item.name}
+                            objectFit="contain"
+                            class="w-full h-full"
                           />
                         </Show>
                       </a>
                       <div class="p-3 flex justify-between items-start gap-2">
                         <div class="flex-1 min-w-0">
                           <p class="font-semibold text-sm text-on-surface truncate">{item.name}</p>
-                          <p class="text-[10px] text-secondary mt-0.5">{fmtDate(item.updatedAt)}</p>
+                          <p class="text-label-md text-secondary mt-0.5">{fmtDate(item.updatedAt)}</p>
                         </div>
                         <button
-                          class="p-1.5 rounded-lg hover:bg-error-container/30 hover:text-error text-on-surface-variant transition-all shrink-0"
+                          type="button"
+                          class="tap-target p-2 rounded-lg hover:bg-error-container/30 hover:text-error text-on-surface-variant transition-all shrink-0"
                           onClick={() => remove(item.id)}
                           aria-label="删除"
                         >

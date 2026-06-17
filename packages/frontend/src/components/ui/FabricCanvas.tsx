@@ -289,14 +289,23 @@ export default function FabricCanvas(props: Props) {
           img.onload = () => resolve()
           img.onerror = () => reject(new Error('Image load failed'))
         })
-        const fabricImg = new FabricImage(img, {
+        let source: HTMLImageElement | HTMLCanvasElement = img
+        if (opts.url.startsWith('data:image/svg+xml')) {
+          const c = document.createElement('canvas')
+          c.width = img.naturalWidth || 100
+          c.height = img.naturalHeight || 100
+          const cx = c.getContext('2d')
+          cx?.drawImage(img, 0, 0)
+          source = c
+        }
+        const fabricImg = new FabricImage(source, {
           left: fabricCanvas.getWidth() / 2,
           top: fabricCanvas.getHeight() / 2,
           originX: 'center',
           originY: 'center',
           objectCaching: false
         })
-        const scale = Math.min(maxW / fabricImg.width!, maxH / fabricImg.height!, 1)
+        const scale = Math.min(maxW / (fabricImg.width || 1), maxH / (fabricImg.height || 1), 1)
         fabricImg.set({ scaleX: scale, scaleY: scale })
         ;(fabricImg as any).data = { kind: 'image' }
         fabricCanvas.add(fabricImg)

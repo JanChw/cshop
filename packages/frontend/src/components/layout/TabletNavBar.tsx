@@ -54,11 +54,10 @@ export default function TabletNavBar() {
       <div class="flex items-center gap-4">
         <a
           href="/search"
-          class="flex items-center gap-2 px-4 py-2 rounded-full bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors min-h-10"
+          class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors tap-target"
           aria-label="搜索"
         >
           <span class="material-symbols-outlined text-lg">search</span>
-          <span class="text-sm">搜索</span>
         </a>
         <a
           href="/cart"

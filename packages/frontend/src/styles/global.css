@@ -128,6 +128,37 @@
   padding-bottom: max(1rem, env(safe-area-inset-bottom));
 }
 
+@keyframes pulse-ring {
+  0% { transform: scale(1); opacity: 0.4; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+@utility pulse-ring {
+  animation: pulse-ring 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes lever-pull {
+  0% { transform: translateY(0); }
+  40% { transform: translateY(3px); }
+  70% { transform: translateY(-1px); }
+  100% { transform: translateY(0); }
+}
+
+@utility lever-pull {
+  animation: lever-pull 0.3s ease-out;
+}
+
+@keyframes lever-pull-up {
+  0%   { transform: translateY(0); }
+  40%  { transform: translateY(-3px); }
+  70%  { transform: translateY(1px); }
+  100% { transform: translateY(0); }
+}
+
+@utility lever-pull-up {
+  animation: lever-pull-up 0.3s ease-out;
+}
+
 @utility tap-target {
   min-width: 44px;
   min-height: 44px;

@@ -10,20 +10,5 @@ const cartItems = [
 ---
 
 <MainLayout title="购物车">
-  <header class="fixed top-0 w-full z-40 bg-surface border-b border-outline-variant md:hidden">
-    <div class="flex justify-between items-center px-container-margin h-12 w-full">
-      <button
-        type="button"
-        onClick={() => history.back()}
-        class="tap-target flex items-center justify-center text-primary"
-        aria-label="返回"
-      >
-        <span class="material-symbols-outlined">arrow_back</span>
-      </button>
-      <h1 class="text-title-md font-bold text-on-surface">购物车</h1>
-      <span class="text-label-md text-on-surface-variant">共 {cartItems.length} 件商品</span>
-    </div>
-  </header>
-
   <CartContent items={cartItems} client:load />
 </MainLayout>

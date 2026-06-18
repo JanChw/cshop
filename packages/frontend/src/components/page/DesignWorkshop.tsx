@@ -208,12 +208,14 @@ export default function DesignWorkshop() {
 
   onMount(() => {
     const onHide = () => autoSaveOnHide()
-    window.addEventListener('pagehide', onHide)
-    window.addEventListener('visibilitychange', () => {
+    const onVisChange = () => {
       if (document.visibilityState === 'hidden') onHide()
-    })
+    }
+    window.addEventListener('pagehide', onHide)
+    window.addEventListener('visibilitychange', onVisChange)
     onCleanup(() => {
       window.removeEventListener('pagehide', onHide)
+      window.removeEventListener('visibilitychange', onVisChange)
     })
 
     void api.products.get(String(DEFAULT_PRODUCT_ID)).then((res) => {

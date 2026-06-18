@@ -3,6 +3,12 @@ import FavoriteButton from './FavoriteButton'
 import ProductImage from './ProductImage'
 import { showToast } from '../../lib/toast'
 
+const goDesign = (e: MouseEvent) => {
+  e.preventDefault()
+  e.stopPropagation()
+  window.location.href = '/design'
+}
+
 interface Product {
   id: string
   name: string
@@ -31,12 +37,6 @@ export default function ProductCard(props: Props) {
     showToast('已加入购物车')
   }
 
-  const handleCustomize = (e: MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    window.location.href = '/design'
-  }
-
   return (
     <a href={`/product/${props.product.id}`} class="group cursor-pointer block">
       <div class={`${aspect} rounded-lg bg-surface-container overflow-hidden mb-stack-sm relative border border-outline-variant/20`}>
@@ -58,7 +58,7 @@ export default function ProductCard(props: Props) {
           <div class="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
             <button
               type="button"
-              onClick={handleCustomize}
+              onClick={goDesign}
               class="bg-primary text-on-primary px-5 py-2.5 rounded-lg font-bold hover:scale-105 transition-transform shadow-lg tap-target"
             >
               开始定制

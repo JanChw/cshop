@@ -122,8 +122,8 @@ export default function ProductContent() {
             </p>
           </section>
 
-          <section class="mx-container-margin md:mx-0 mb-stack-lg p-stack-md bg-surface-container-low rounded-lg border border-outline-variant cursor-pointer hover:border-primary transition-colors"
-            onClick={() => window.location.href = '/design'}>
+          <a href="/design"
+            class="block mx-container-margin md:mx-0 mb-stack-lg p-stack-md bg-surface-container-low rounded-lg border border-outline-variant cursor-pointer hover:border-primary transition-colors">
             <div class="flex items-center gap-stack-md">
               <div class="w-12 h-12 rounded-lg bg-primary flex items-center justify-center text-on-primary shrink-0">
                 <span class="material-symbols-outlined">rebase_edit</span>
@@ -134,7 +134,7 @@ export default function ProductContent() {
               </div>
               <span class="material-symbols-outlined text-outline">chevron_right</span>
             </div>
-          </section>
+          </a>
 
           <section class="px-container-margin md:px-0 mb-stack-lg">
             <div class="mb-stack-lg">

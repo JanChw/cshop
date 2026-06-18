@@ -3,17 +3,17 @@ import MainLayout from '../layouts/MainLayout.astro'
 import ShopContent from '../components/page/ShopContent.tsx'
 
 const products = [
-  { id: 'p6', name: '重磅基础圆领T恤', price: 299, image: 'https://picsum.photos/seed/5c97e3382aae/400/500', category: '核心系列' },
-  { id: 'p7', name: '全棉连帽卫衣', price: 589, image: 'https://picsum.photos/seed/cc1602a6ae6c/400/500', category: '核心系列' },
-  { id: 'p8', name: '艺术家合作款短袖', price: 899, image: 'https://picsum.photos/seed/18b9254c6303/400/500', category: '设计师款', designer: 'Alex Chen' },
-  { id: 'p9', name: '手工水洗丹宁夹克', price: 1299, image: 'https://picsum.photos/seed/ebbd34802107/400/500', category: '定制款', tags: ['New'] },
-  { id: 'p10', name: '莫代尔混纺T恤', price: 349, image: 'https://picsum.photos/seed/91c83495b360/400/500', category: '核心系列' },
-  { id: 'p11', name: '廓形立领衬衫', price: 749, image: 'https://picsum.photos/seed/d6148e3dc9b7/400/500', category: '设计师款', designer: 'Li Wei' },
-  { id: 'p1', name: '定制创意印花 T恤', price: 199, originalPrice: 299, image: 'https://picsum.photos/seed/3c604c9a1e87/400/500', category: '基础系列', tags: ['Canvas Ready'], designer: 'Jordan.Design' },
-  { id: 'p2', name: '重磅廓形圆领衫', price: 199, image: 'https://picsum.photos/seed/3c604c9a1e87/400/500', category: '基础系列' },
-  { id: 'p3', name: '极简连帽卫衣', price: 399, image: 'https://picsum.photos/seed/8a17ad401514/400/500', category: '基础系列' },
-  { id: 'p4', name: '阔腿束口短裤', price: 159, image: 'https://picsum.photos/seed/ef2c5fff6450/400/500', category: '基础系列' },
-  { id: 'p5', name: '精梳棉长袖', price: 249, image: 'https://picsum.photos/seed/c8d4d08aa439/400/500', category: '基础系列' }
+  { id: 'p6', name: '重磅基础圆领T恤', price: 299, image: 'https://picsum.photos/seed/5c97e3382aae/400/500', category: '核心款', fabric: '混纺', fit: '常规', sizes: ['S', 'M', 'L', 'XL'] },
+  { id: 'p7', name: '全棉连帽卫衣', price: 589, image: 'https://picsum.photos/seed/cc1602a6ae6c/400/500', category: '核心款', fabric: '混纺', fit: '常规', sizes: ['S', 'M', 'L', 'XL'] },
+  { id: 'p8', name: '艺术家合作款短袖', price: 899, image: 'https://picsum.photos/seed/18b9254c6303/400/500', category: '设计师款', designer: 'Alex Chen', fabric: '涤纶', fit: '修身', sizes: ['M', 'L', 'XL'] },
+  { id: 'p9', name: '手工水洗丹宁夹克', price: 1299, image: 'https://picsum.photos/seed/ebbd34802107/400/500', category: '定制款', tags: ['New'], fabric: '棉质', fit: '宽松', sizes: ['S', 'M', 'L', 'XL', 'XXL'] },
+  { id: 'p10', name: '莫代尔混纺T恤', price: 349, image: 'https://picsum.photos/seed/91c83495b360/400/500', category: '核心款', fabric: '混纺', fit: '常规', sizes: ['S', 'M', 'L', 'XL'] },
+  { id: 'p11', name: '廓形立领衬衫', price: 749, image: 'https://picsum.photos/seed/d6148e3dc9b7/400/500', category: '设计师款', designer: 'Li Wei', fabric: '涤纶', fit: '修身', sizes: ['M', 'L', 'XL'] },
+  { id: 'p1', name: '定制创意印花 T恤', price: 199, originalPrice: 299, image: 'https://picsum.photos/seed/3c604c9a1e87/400/500', category: '基础款', tags: ['Canvas Ready'], designer: 'Jordan.Design', fabric: '棉质', fit: '宽松', sizes: ['S', 'M', 'L', 'XL', 'XXL'] },
+  { id: 'p2', name: '重磅廓形圆领衫', price: 199, image: 'https://picsum.photos/seed/3c604c9a1e87/400/500', category: '基础款', fabric: '棉质', fit: '宽松', sizes: ['S', 'M', 'L', 'XL', 'XXL'] },
+  { id: 'p3', name: '极简连帽卫衣', price: 399, image: 'https://picsum.photos/seed/8a17ad401514/400/500', category: '基础款', fabric: '棉质', fit: '宽松', sizes: ['S', 'M', 'L', 'XL', 'XXL'] },
+  { id: 'p4', name: '阔腿束口短裤', price: 159, image: 'https://picsum.photos/seed/ef2c5fff6450/400/500', category: '基础款', fabric: '棉质', fit: '宽松', sizes: ['S', 'M', 'L', 'XL', 'XXL'] },
+  { id: 'p5', name: '精梳棉长袖', price: 249, image: 'https://picsum.photos/seed/c8d4d08aa439/400/500', category: '基础款', fabric: '棉质', fit: '宽松', sizes: ['S', 'M', 'L', 'XL', 'XXL'] }
 ]
 ---
 

@@ -3,10 +3,15 @@ import MainLayout from '../layouts/MainLayout.astro'
 import SearchContent from '../components/page/SearchContent.tsx'
 
 const products = [
-  { id: 's1', name: '简约基础款 T恤', price: 299, image: 'https://picsum.photos/seed/098e0d9fcdd3/400/500', category: '基础系列', description: '大地色系 / 有机棉' },
-  { id: 's2', name: '重磅廓形连帽衫', price: 599, image: 'https://picsum.photos/seed/ea141792a20f/400/500', category: '核心系列', description: '落肩设计 / 舒适透气' },
-  { id: 's3', name: '极简立领卫衣', price: 459, image: 'https://picsum.photos/seed/a0e3d63f8424/400/500', category: '设计师款', description: '沙色系列 / 限量版' },
-  { id: 's4', name: '修身针织短袖', price: 389, image: 'https://picsum.photos/seed/d56819f894d3/400/500', category: '核心系列', description: '深灰色 / 经典剪裁' }
+  { id: 's1', name: '简约基础款 T恤', price: 299, image: 'https://picsum.photos/seed/098e0d9fcdd3/400/500', category: '基础款', description: '大地色系 / 有机棉', fabric: '棉质', fit: '常规', sizes: ['S', 'M', 'L', 'XL'] },
+  { id: 's2', name: '重磅廓形连帽衫', price: 599, image: 'https://picsum.photos/seed/ea141792a20f/400/500', category: '核心款', description: '落肩设计 / 舒适透气', fabric: '混纺', fit: '宽松', sizes: ['S', 'M', 'L', 'XL'] },
+  { id: 's3', name: '极简立领卫衣', price: 459, image: 'https://picsum.photos/seed/a0e3d63f8424/400/500', category: '设计师款', description: '沙色系列 / 限量版', fabric: '涤纶', fit: '修身', sizes: ['M', 'L', 'XL'] },
+  { id: 's4', name: '修身针织短袖', price: 389, image: 'https://picsum.photos/seed/d56819f894d3/400/500', category: '核心款', description: '深灰色 / 经典剪裁', fabric: '棉质', fit: '修身', sizes: ['S', 'M', 'L'] },
+  { id: 's5', name: '全棉连帽卫衣', price: 589, image: 'https://picsum.photos/seed/cc1602a6ae6c/400/500', category: '核心款', description: '重磅棉质 / 加绒内里', fabric: '混纺', fit: '常规', sizes: ['S', 'M', 'L', 'XL'] },
+  { id: 's6', name: '艺术家合作款短袖', price: 899, image: 'https://picsum.photos/seed/18b9254c6303/400/500', category: '设计师款', description: '联名限量 / 艺术印花', fabric: '涤纶', fit: '修身', sizes: ['M', 'L', 'XL'] },
+  { id: 's7', name: '手工水洗丹宁夹克', price: 1299, image: 'https://picsum.photos/seed/ebbd34802107/400/500', category: '定制款', description: '手工做旧 / 限量定制', fabric: '棉质', fit: '宽松', sizes: ['S', 'M', 'L', 'XL', 'XXL'] },
+  { id: 's8', name: '织锦缎棒球帽', price: 199, image: 'https://picsum.photos/seed/9e32a18bc5f1/400/500', category: '配饰', description: '限定配色 / 可调节', fabric: '混纺', fit: '常规', sizes: ['均码'] },
+  { id: 's9', name: '机能斜挎包', price: 259, image: 'https://picsum.photos/seed/2d6a4f8c3e71/400/500', category: '配饰', description: '防水面料 / 多隔层', fabric: '涤纶', fit: '常规', sizes: ['均码'] },
 ]
 ---
 

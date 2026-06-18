@@ -1,4 +1,4 @@
-import { createSignal, createEffect } from 'solid-js'
+import ScrollRow from '../ui/ScrollRow'
 
 interface Chip {
   zh: string
@@ -10,24 +10,20 @@ interface Props {
   active?: string
   onChange?: (zh: string) => void
   variant?: 'rounded-lg' | 'rounded-full'
+  class?: string
 }
 
 export default function CategoryChips(props: Props) {
-  const [active, setActive] = createSignal(props.active || '全部')
-
-  createEffect(() => {
-    if (props.active) setActive(props.active)
-  })
+  const active = () => props.active || '全部'
 
   const handleClick = (zh: string) => {
-    setActive(zh)
     props.onChange?.(zh)
   }
 
   const radius = props.variant === 'rounded-full' ? 'rounded-full' : 'rounded-lg'
 
   return (
-    <div class="flex overflow-x-auto gap-2 pb-2 hide-scrollbar">
+    <ScrollRow class={`flex overflow-x-auto gap-2 pb-2 pr-container-margin hide-scrollbar ${props.class ?? ''}`.trimEnd()}>
       {props.items.map((chip) => (
         <button
           type="button"
@@ -38,9 +34,9 @@ export default function CategoryChips(props: Props) {
           }`}
           onClick={() => handleClick(chip.zh)}
         >
-          {chip.zh}{chip.en ? ` (${chip.en})` : ''}
+          {chip.zh}{chip.en ? <span class="hidden md:inline"> ({chip.en})</span> : ''}
         </button>
       ))}
-    </div>
+    </ScrollRow>
   )
 }

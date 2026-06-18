@@ -1,52 +1,153 @@
 @import 'tailwindcss';
 
+:root, [data-theme="dark"] {
+  --t-primary: #c2652a;
+  --t-on-primary: #ffffff;
+  --t-primary-container: #2a1a10;
+  --t-on-primary-container: #f8e9df;
+
+  --t-secondary: #a1a1aa;
+  --t-on-secondary: #0c0c0c;
+  --t-secondary-container: #27272a;
+  --t-on-secondary-container: #fafafa;
+
+  --t-tertiary: #71717a;
+  --t-on-tertiary: #ffffff;
+  --t-tertiary-container: #27272a;
+  --t-on-tertiary-container: #d4d4d8;
+
+  --t-background: #0c0c0c;
+  --t-on-background: #fafafa;
+
+  --t-surface: #141414;
+  --t-on-surface: #f5f5f5;
+  --t-surface-variant: #1f1f1f;
+  --t-on-surface-variant: #a1a1aa;
+
+  --t-outline: #3f3f46;
+  --t-outline-variant: #27272a;
+
+  --t-surface-container: #1a1a1a;
+  --t-surface-container-low: #171717;
+  --t-surface-container-high: #242424;
+  --t-surface-container-lowest: #0f0f0f;
+
+  --t-inverse-surface: #f5f5f5;
+  --t-inverse-on-surface: #0c0c0c;
+
+  --t-error: #ef4444;
+  --t-on-error: #ffffff;
+  --t-error-container: #450a0a;
+  --t-on-error-container: #fca5a5;
+
+  --t-success: #22c55e;
+  --t-on-success: #000000;
+  --t-warning: #f59e0b;
+  --t-on-warning: #000000;
+  --t-info: #3b82f6;
+  --t-on-info: #ffffff;
+
+  --t-shadow-card: 0 1px 0 rgba(255, 255, 255, 0.03) inset;
+  --t-shadow-elevated: 0 0 0 1px rgba(255, 255, 255, 0.03);
+}
+
+[data-theme="light"] {
+  --t-primary: #171717;
+  --t-on-primary: #ffffff;
+  --t-primary-container: #e5e5e5;
+  --t-on-primary-container: #171717;
+
+  --t-secondary: #737373;
+  --t-on-secondary: #ffffff;
+  --t-secondary-container: #e5e5e5;
+  --t-on-secondary-container: #171717;
+
+  --t-tertiary: #a3a3a3;
+  --t-on-tertiary: #ffffff;
+  --t-tertiary-container: #e5e5e5;
+  --t-on-tertiary-container: #404040;
+
+  --t-background: #ffffff;
+  --t-on-background: #171717;
+
+  --t-surface: #fafafa;
+  --t-on-surface: #171717;
+  --t-surface-variant: #f2f2f2;
+  --t-on-surface-variant: #525252;
+
+  --t-outline: #d4d4d4;
+  --t-outline-variant: #e5e5e5;
+
+  --t-surface-container: #f5f5f5;
+  --t-surface-container-low: #fafafa;
+  --t-surface-container-high: #e5e5e5;
+  --t-surface-container-lowest: #ffffff;
+
+  --t-inverse-surface: #171717;
+  --t-inverse-on-surface: #ffffff;
+
+  --t-error: #dc2626;
+  --t-on-error: #ffffff;
+  --t-error-container: #fee2e2;
+  --t-on-error-container: #991b1b;
+
+  --t-success: #16a34a;
+  --t-on-success: #ffffff;
+  --t-warning: #d97706;
+  --t-on-warning: #ffffff;
+  --t-info: #2563eb;
+  --t-on-info: #ffffff;
+
+  --t-shadow-card: 0 1px 0 rgba(0, 0, 0, 0.03) inset;
+  --t-shadow-elevated: 0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
 @theme {
-  /* === Colors: Dark Nordic Premium === */
-  --color-primary: #c2652a;
-  --color-on-primary: #ffffff;
-  --color-primary-container: #2a1a10;
-  --color-on-primary-container: #f8e9df;
+  --color-primary: var(--t-primary);
+  --color-on-primary: var(--t-on-primary);
+  --color-primary-container: var(--t-primary-container);
+  --color-on-primary-container: var(--t-on-primary-container);
 
-  --color-secondary: #a1a1aa;
-  --color-on-secondary: #0c0c0c;
-  --color-secondary-container: #27272a;
-  --color-on-secondary-container: #fafafa;
+  --color-secondary: var(--t-secondary);
+  --color-on-secondary: var(--t-on-secondary);
+  --color-secondary-container: var(--t-secondary-container);
+  --color-on-secondary-container: var(--t-on-secondary-container);
 
-  --color-tertiary: #71717a;
-  --color-on-tertiary: #ffffff;
-  --color-tertiary-container: #27272a;
-  --color-on-tertiary-container: #d4d4d8;
+  --color-tertiary: var(--t-tertiary);
+  --color-on-tertiary: var(--t-on-tertiary);
+  --color-tertiary-container: var(--t-tertiary-container);
+  --color-on-tertiary-container: var(--t-on-tertiary-container);
 
-  --color-background: #0c0c0c;
-  --color-on-background: #fafafa;
+  --color-background: var(--t-background);
+  --color-on-background: var(--t-on-background);
 
-  --color-surface: #141414;
-  --color-on-surface: #f5f5f5;
-  --color-surface-variant: #1f1f1f;
-  --color-on-surface-variant: #a1a1aa;
+  --color-surface: var(--t-surface);
+  --color-on-surface: var(--t-on-surface);
+  --color-surface-variant: var(--t-surface-variant);
+  --color-on-surface-variant: var(--t-on-surface-variant);
 
-  --color-outline: #3f3f46;
-  --color-outline-variant: #27272a;
+  --color-outline: var(--t-outline);
+  --color-outline-variant: var(--t-outline-variant);
 
-  --color-surface-container: #1a1a1a;
-  --color-surface-container-low: #171717;
-  --color-surface-container-high: #242424;
-  --color-surface-container-lowest: #0f0f0f;
+  --color-surface-container: var(--t-surface-container);
+  --color-surface-container-low: var(--t-surface-container-low);
+  --color-surface-container-high: var(--t-surface-container-high);
+  --color-surface-container-lowest: var(--t-surface-container-lowest);
 
-  --color-inverse-surface: #f5f5f5;
-  --color-inverse-on-surface: #0c0c0c;
+  --color-inverse-surface: var(--t-inverse-surface);
+  --color-inverse-on-surface: var(--t-inverse-on-surface);
 
-  --color-success: #22c55e;
-  --color-on-success: #000000;
-  --color-warning: #f59e0b;
-  --color-on-warning: #000000;
-  --color-info: #3b82f6;
-  --color-on-info: #ffffff;
+  --color-success: var(--t-success);
+  --color-on-success: var(--t-on-success);
+  --color-warning: var(--t-warning);
+  --color-on-warning: var(--t-on-warning);
+  --color-info: var(--t-info);
+  --color-on-info: var(--t-on-info);
 
-  --color-error: #ef4444;
-  --color-on-error: #ffffff;
-  --color-error-container: #450a0a;
-  --color-on-error-container: #fca5a5;
+  --color-error: var(--t-error);
+  --color-on-error: var(--t-on-error);
+  --color-error-container: var(--t-error-container);
+  --color-on-error-container: var(--t-on-error-container);
 
   /* === Typography === */
   --font-sans: 'Manrope', system-ui, sans-serif;
@@ -77,8 +178,8 @@
   --radius-xl: 16px;
 
   /* === Shadows === */
-  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.03) inset;
-  --shadow-elevated: 0 0 0 1px rgba(255, 255, 255, 0.03);
+  --shadow-card: var(--t-shadow-card);
+  --shadow-elevated: var(--t-shadow-elevated);
 
   /* === Content Widths === */
   --width-content-mobile: 100%;

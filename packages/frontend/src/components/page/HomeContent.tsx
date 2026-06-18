@@ -149,9 +149,9 @@ export default function HomeContent(props: Props) {
                   class="group-hover:opacity-90 transition-opacity duration-500"
                 />
                 <div class="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/20 transition-colors">
-                  <span class="material-symbols-outlined text-on-surface text-5xl relative z-10">play_circle</span>
+                  <span class="material-symbols-outlined text-white text-5xl relative z-10">play_circle</span>
                 </div>
-                <span class="absolute bottom-2 right-2 bg-black/60 text-on-surface text-label-md px-2 py-0.5 rounded">
+                <span class="absolute bottom-2 right-2 bg-black/60 text-white text-label-md px-2 py-0.5 rounded">
                   {video.duration}
                 </span>
               </div>
@@ -201,7 +201,7 @@ export default function HomeContent(props: Props) {
               fallbackLabel={ESSENTIALS[0].title}
               class="absolute inset-0 w-full h-full object-cover group-hover:opacity-90 transition-opacity duration-700"
             />
-            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex flex-col justify-end p-6 md:p-8">
+            <div class="absolute inset-0 bg-gradient-to-t from-background/70 via-background/20 to-transparent flex flex-col justify-end p-6 md:p-8">
               <span class="inline-block bg-primary/90 backdrop-blur-sm text-on-primary text-label-md px-3 py-1 rounded-full mb-3 w-fit">{ESSENTIALS[0].subtitle}</span>
               <h4 class="text-on-surface font-headline text-headline-lg">{ESSENTIALS[0].title}</h4>
             </div>
@@ -219,7 +219,7 @@ export default function HomeContent(props: Props) {
                 fallbackLabel={item.title}
                 class="absolute inset-0 w-full h-full object-cover group-hover:opacity-90 transition-opacity duration-700"
               />
-              <div class="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-colors flex flex-col justify-end p-4 md:p-6">
+              <div class="absolute inset-0 bg-gradient-to-t from-background/60 via-background/10 to-transparent flex flex-col justify-end p-4 md:p-6">
                 <h4 class="text-on-surface font-headline text-title-md">{item.title}</h4>
               </div>
             </a>
@@ -250,7 +250,7 @@ export default function HomeContent(props: Props) {
                     fallbackLabel={collab.name}
                     class="absolute inset-0 w-full h-full object-cover group-hover:opacity-90 transition-opacity duration-700"
                   />
-                  <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex flex-col justify-end p-4">
+                  <div class="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent flex flex-col justify-end p-4">
                     <h5 class="text-on-surface font-headline text-title-md">{collab.name}</h5>
                     <p class="text-label-md text-primary mt-1">{collab.series}</p>
                   </div>

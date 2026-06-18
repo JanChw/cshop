@@ -1,4 +1,5 @@
 import { createSignal, onMount } from 'solid-js'
+import ThemeToggle from '../ui/ThemeToggle'
 
 interface NavLink {
   href: string
@@ -66,6 +67,7 @@ export default function TabletNavBar() {
         >
           <span class="material-symbols-outlined text-2xl">shopping_cart</span>
         </a>
+        <ThemeToggle class="w-9 h-9 text-on-surface-variant hover:text-primary hover:bg-surface-container-high" />
         <a
           href="/person"
           class="w-9 h-9 rounded-full overflow-hidden border border-outline-variant bg-primary-container flex items-center justify-center text-primary tap-target"

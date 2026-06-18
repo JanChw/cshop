@@ -134,7 +134,7 @@ export default function SecuritySettings() {
             </div>
 
             <div class="mt-6 rounded-2xl overflow-hidden relative aspect-video shadow-lg">
-              <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10" />
+              <div class="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent z-10" />
               <ProductImage
                 src="https://picsum.photos/seed/security-hero/800/450"
                 alt="数据隐私保护"

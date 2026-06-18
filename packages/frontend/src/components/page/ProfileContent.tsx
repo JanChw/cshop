@@ -1,5 +1,6 @@
 import { createSignal } from 'solid-js'
 import ProductImage from '../ui/ProductImage'
+import ThemeToggle from '../ui/ThemeToggle'
 import { showToast } from '../../lib/toast'
 
 const STATS = [
@@ -56,7 +57,7 @@ export default function ProfileContent() {
                   <span class="material-symbols-outlined text-4xl">person</span>
                 </div>
               </div>
-              <div class="absolute bottom-0 right-0 bg-primary text-on-primary text-label-md px-2 py-0.5 rounded-full font-medium shadow-sm">LV.4</div>
+              <div class="absolute bottom-0 right-0 bg-primary text-on-primary text-label-md px-2 py-0.5 rounded-full font-medium">LV.4</div>
             </div>
             <h1 class="text-headline-lg-mobile text-on-surface">陈小周</h1>
             <p class="text-body-sm text-secondary mb-stack-md">高级定制设计师 · Creator</p>
@@ -130,7 +131,7 @@ export default function ProfileContent() {
                   fallbackLabel={work.title}
                   class="w-full h-full"
                 />
-                <div class="absolute bottom-0 left-0 w-full p-stack-sm bg-gradient-to-t from-black/60 to-transparent">
+                <div class="absolute bottom-0 left-0 w-full p-stack-sm bg-gradient-to-t from-background/80 to-transparent">
                   <p class="text-on-surface text-label-md truncate">{work.title}</p>
                 </div>
                   {work.draft && (
@@ -188,6 +189,14 @@ export default function ProfileContent() {
                   {idx < SETTINGS.length - 1 && <div class="h-px bg-outline-variant/30 mx-stack-md" />}
                 </>
               ))}
+              <div class="h-px bg-outline-variant/30 mx-stack-md" />
+              <div class="flex items-center justify-between p-stack-md">
+                <div class="flex items-center gap-stack-md">
+                  <span class="material-symbols-outlined text-secondary">dark_mode</span>
+                  <span class="text-body-lg">深色模式</span>
+                </div>
+                <ThemeToggle class="w-10 h-10 text-on-surface-variant hover:text-primary hover:bg-surface-container-low" />
+              </div>
             </div>
           </section>
 

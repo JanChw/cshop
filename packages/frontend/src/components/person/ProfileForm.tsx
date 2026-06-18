@@ -55,7 +55,7 @@ export default function ProfileForm() {
                 <span class="material-symbols-outlined text-5xl">person</span>
               </div>
               <div class="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <span class="material-symbols-outlined text-on-surface text-2xl">photo_camera</span>
+                <span class="material-symbols-outlined text-white text-2xl">photo_camera</span>
               </div>
               <div class="absolute bottom-0 right-0 bg-primary text-on-primary w-8 h-8 rounded-full flex items-center justify-center shadow-md border-2 border-surface">
                 <span class="material-symbols-outlined text-sm" style="font-variation-settings:'FILL' 1">edit</span>

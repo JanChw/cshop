@@ -79,7 +79,7 @@ export default function ProductContent() {
             </button>
           </header>
 
-          <section class="relative bg-white md:rounded-2xl md:overflow-hidden md:border md:border-outline-variant/30 pt-14 md:pt-0">
+          <section class="relative bg-surface md:rounded-2xl md:overflow-hidden md:border md:border-outline-variant/30 pt-14 md:pt-0">
             <div class="aspect-[4/5] overflow-hidden">
               <ProductImage
                 src={mainImage()}
@@ -146,7 +146,7 @@ export default function ProductContent() {
                     onClick={() => setSelectedColor(color)}
                     class={`px-4 py-2 rounded-lg text-body-sm tap-target transition-all ${
                       selectedColor() === color
-                        ? 'border-2 border-primary text-on-surface bg-white'
+                        ? 'border-2 border-primary text-on-surface bg-surface'
                         : 'border border-outline-variant text-on-surface hover:bg-surface-container'
                     }`}
                     aria-pressed={selectedColor() === color}
@@ -174,7 +174,7 @@ export default function ProductContent() {
                     onClick={() => setSelectedSize(size)}
                     class={`py-2 rounded-lg text-center text-body-sm tap-target transition-all ${
                       selectedSize() === size
-                        ? 'border-2 border-primary bg-white text-on-surface'
+                        ? 'border-2 border-primary bg-surface text-on-surface'
                         : 'border border-outline-variant text-on-surface hover:bg-surface-container'
                     }`}
                     aria-pressed={selectedSize() === size}
@@ -229,7 +229,7 @@ export default function ProductContent() {
       </div>
 
       {/* Bottom action bar */}
-      <div class="md:hidden fixed bottom-[calc(64px+env(safe-area-inset-bottom))] left-0 w-full bg-white border-t border-outline-variant z-40">
+      <div class="md:hidden fixed bottom-[calc(64px+env(safe-area-inset-bottom))] left-0 w-full bg-surface border-t border-outline-variant z-40">
         <div class="flex items-center gap-stack-md px-container-margin py-stack-md pb-[max(12px,env(safe-area-inset-bottom))]">
           <button
             type="button"
@@ -260,7 +260,7 @@ export default function ProductContent() {
               type="button"
               onClick={handleAddToCart}
               disabled={adding()}
-              class="flex-1 py-3 rounded-lg border border-primary font-bold text-primary text-body-lg active:scale-95 transition-transform bg-white tap-target disabled:opacity-60"
+              class="flex-1 py-3 rounded-lg border border-primary font-bold text-primary text-body-lg active:scale-95 transition-transform bg-surface tap-target disabled:opacity-60"
             >
               {adding() ? '已加入' : '加入购物车'}
             </button>
@@ -282,7 +282,7 @@ export default function ProductContent() {
           type="button"
           onClick={handleAddToCart}
           disabled={adding()}
-          class="px-8 py-3 rounded-lg border border-primary font-bold text-primary bg-white hover:bg-primary-container transition-colors tap-target disabled:opacity-60"
+          class="px-8 py-3 rounded-lg border border-primary font-bold text-primary bg-surface hover:bg-primary-container transition-colors tap-target disabled:opacity-60"
         >
           {adding() ? '已加入' : '加入购物车'}
         </button>

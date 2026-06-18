@@ -30,9 +30,9 @@ export const TEXT_PALETTE = ['#c2652a', '#3a302a', '#8c3c3c', '#ffffff', '#f0a87
 
 export const FONT_OPTIONS: { name: string; sub: string; family: string; cls?: string; bold?: boolean; italic?: boolean }[] = [
   { name: 'Manrope', sub: 'Modern Sans', family: 'Manrope' },
-  { name: 'EB Garamond', sub: 'Classic Serif', family: 'EB Garamond' },
-  { name: 'Playfair', sub: 'Elegant Editorial', family: 'Playfair Display' },
-  { name: 'Space Mono', sub: 'Technical Look', family: 'Space Mono' }
+  { name: 'Space Mono', sub: 'Technical Look', family: 'Space Mono' },
+  { name: 'System Sans', sub: 'Native UI', family: 'system-ui, sans-serif' },
+  { name: 'System Mono', sub: 'Native Mono', family: 'ui-monospace, monospace' }
 ]
 
 export const BRUSH_COLORS = ['#0052FF', '#151c27', '#F87171', '#34D399', '#c2652a']

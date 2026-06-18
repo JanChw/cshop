@@ -28,7 +28,7 @@ export default function OrderCard(props: Props) {
   const item = props.items[0]
 
   return (
-    <div class="bg-surface-container-low rounded-xl shadow-sm hover:shadow-elevated transition-shadow">
+    <div class="bg-surface-container-low rounded-xl border border-outline-variant/40 hover:border-outline transition-colors">
       <div class="flex items-center justify-between px-4 md:px-5 pt-4 md:pt-5 pb-2">
         <div class="flex items-center gap-2 min-w-0">
           <span class="material-symbols-outlined text-body-sm text-outline shrink-0">receipt_long</span>
@@ -68,9 +68,9 @@ export default function OrderCard(props: Props) {
         {config.actions.map((action) => (
           <button
             type="button"
-            class={`px-4 py-1.5 rounded-lg text-label-md font-medium transition-all active:scale-95 tap-target ${
+            class={`px-4 py-1.5 rounded-lg text-label-md font-medium transition-colors tap-target ${
               action.primary
-                ? 'bg-primary text-on-primary hover:opacity-90 shadow-sm'
+                ? 'bg-primary text-on-primary hover:opacity-90'
                 : 'border border-outline text-on-surface-variant hover:bg-surface-container'
             }`}
           >

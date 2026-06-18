@@ -51,12 +51,12 @@ export default function ProfileContent() {
         <aside class="md:w-[35%] md:sticky md:top-20 md:self-start">
           <header class="py-stack-lg flex flex-col items-center text-center">
             <div class="relative mb-stack-md">
-              <div class="w-24 h-24 rounded-full p-0.5 bg-gradient-to-tr from-primary to-[#fbd38d]">
+              <div class="w-24 h-24 rounded-full p-0.5 bg-primary">
                 <div class="w-full h-full rounded-full bg-primary-container flex items-center justify-center text-primary border-4 border-surface">
                   <span class="material-symbols-outlined text-4xl">person</span>
                 </div>
               </div>
-              <div class="absolute bottom-0 right-0 bg-primary text-white text-label-md px-2 py-0.5 rounded-full font-medium shadow-sm">LV.4</div>
+              <div class="absolute bottom-0 right-0 bg-primary text-on-primary text-label-md px-2 py-0.5 rounded-full font-medium shadow-sm">LV.4</div>
             </div>
             <h1 class="text-headline-lg-mobile text-on-surface">陈小周</h1>
             <p class="text-body-sm text-secondary mb-stack-md">高级定制设计师 · Creator</p>
@@ -121,7 +121,7 @@ export default function ProfileContent() {
             </div>
             <div class="grid grid-cols-2 md:grid-cols-3 gap-gutter">
               {WORKS.map((work) => (
-              <div class="group relative aspect-[4/5] bg-surface-container rounded-xl overflow-hidden border border-outline-variant hover:scale-[1.02] transition-transform">
+              <div class="group relative aspect-[4/5] bg-surface-container rounded-xl overflow-hidden border border-outline-variant hover:opacity-95 transition-opacity">
                 <ProductImage
                   src={work.image}
                   alt={work.title}
@@ -130,11 +130,11 @@ export default function ProfileContent() {
                   fallbackLabel={work.title}
                   class="w-full h-full"
                 />
-                <div class="absolute bottom-0 left-0 w-full p-stack-sm bg-gradient-to-t from-black/40 to-transparent">
-                  <p class="text-white text-label-md truncate">{work.title}</p>
+                <div class="absolute bottom-0 left-0 w-full p-stack-sm bg-gradient-to-t from-black/60 to-transparent">
+                  <p class="text-on-surface text-label-md truncate">{work.title}</p>
                 </div>
                   {work.draft && (
-                    <div class="absolute top-2 right-2 px-2 py-0.5 bg-primary/90 backdrop-blur-md text-white text-label-md rounded">草稿</div>
+                    <div class="absolute top-2 right-2 px-2 py-0.5 bg-primary/90 backdrop-blur-md text-on-primary text-label-md rounded">草稿</div>
                   )}
                 </div>
               ))}

@@ -83,10 +83,10 @@ export default function CartContent(props: Props) {
       </div>
       <button
         type="button"
-        class="w-full mt-6 font-bold py-4 rounded-lg transition-all active:scale-95 shadow-lg shadow-primary/10 flex justify-center items-center gap-2 tap-target disabled:opacity-60"
+        class="w-full mt-6 font-bold py-4 rounded-lg transition-all active:scale-95 flex justify-center items-center gap-2 tap-target disabled:opacity-60"
         classList={{
           'bg-primary text-on-primary hover:opacity-90': checkoutState() !== 'done',
-          'bg-green-600 text-white': checkoutState() === 'done'
+          'bg-success text-on-success': checkoutState() === 'done'
         }}
         onClick={checkout}
         disabled={checkoutState() !== 'idle'}

@@ -155,94 +155,25 @@ export default function ShopContent(props: Props) {
     options: { value: string; label: string }[]
     value: string
     onChange: (v: string) => void
-    variant?: 'slot' | 'chips'
   }) => {
-    const activeIndex = () => {
-      const idx = p.options.findIndex(opt => opt.value === p.value)
-      return idx >= 0 ? idx : 0
-    }
-    const [leverPulledDn, setLeverPulledDn] = createSignal(false)
-    const [leverPulledUp, setLeverPulledUp] = createSignal(false)
-
-    // chips variant — direct selection (mobile bottom sheet)
-    if (p.variant !== 'slot') {
-      return (
-        <div>
-          <h4 class="text-label-md font-bold text-on-surface mb-3">{p.title}</h4>
-          <ScrollRow class="flex overflow-x-auto gap-3 hide-scrollbar">
-            {p.options.map(opt => (
-              <button
-                type="button"
-                onClick={() => p.onChange(opt.value)}
-                class={`px-4 py-2 rounded-lg text-label-md transition-all tap-target flex-shrink-0 whitespace-nowrap ${
-                  p.value === opt.value
-                    ? 'bg-primary text-on-primary'
-                    : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-variant'
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </ScrollRow>
-        </div>
-      )
-    }
-
-    // slot machine variant — tablet sidebar
-    const cycleNext = () => {
-      setLeverPulledDn(true)
-      setTimeout(() => setLeverPulledDn(false), 300)
-      const next = (activeIndex() + 1) % p.options.length
-      p.onChange(p.options[next].value)
-    }
-
-    const cyclePrev = () => {
-      setLeverPulledUp(true)
-      setTimeout(() => setLeverPulledUp(false), 300)
-      const prev = (activeIndex() - 1 + p.options.length) % p.options.length
-      p.onChange(p.options[prev].value)
-    }
-
     return (
       <div>
-        <div class="flex items-center justify-between mb-2">
-          <h4 class="text-label-md font-bold text-on-surface">{p.title}</h4>
-          <div class="flex items-center gap-0.5">
+        <h4 class="text-label-md font-bold text-on-surface mb-3">{p.title}</h4>
+        <ScrollRow class="flex overflow-x-auto gap-3 hide-scrollbar">
+          {p.options.map(opt => (
             <button
               type="button"
-              onClick={cycleNext}
-              class="tap-target flex items-center justify-center rounded-full text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors"
+              onClick={() => p.onChange(opt.value)}
+              class={`px-4 py-2 rounded-lg text-label-md transition-all tap-target flex-shrink-0 whitespace-nowrap ${
+                p.value === opt.value
+                  ? 'bg-primary text-on-primary'
+                  : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-variant'
+              }`}
             >
-              <svg viewBox="0 0 16 24" class={`w-4 h-6 block ${leverPulledDn() ? 'lever-pull' : ''}`}>
-                <line x1="8" y1="2" x2="8" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                <circle cx="8" cy="19" r="3" fill="currentColor" />
-              </svg>
+              {opt.label}
             </button>
-            <button
-              type="button"
-              onClick={cyclePrev}
-              class="tap-target flex items-center justify-center rounded-full text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors"
-            >
-              <svg viewBox="0 0 16 24" class={`w-4 h-6 block ${leverPulledUp() ? 'lever-pull-up' : ''}`}>
-                <circle cx="8" cy="5" r="3" fill="currentColor" />
-                <line x1="8" y1="7" x2="8" y2="22" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-              </svg>
-            </button>
-          </div>
-        </div>
-        <div class="h-12 overflow-hidden rounded-xl relative bg-gradient-to-b from-surface-container to-surface-container-high shadow-[inset_0_2px_6px_rgba(0,0,0,0.12),inset_0_-1px_3px_rgba(0,0,0,0.06)] border-l-2 border-r-2 border-outline-variant/15">
-          <div class="absolute inset-x-1.5 top-1/2 -translate-y-1/2 h-5 border-t border-b border-outline-variant/20 z-10 pointer-events-none rounded-[1px]" />
-          <div
-            class="transition-transform duration-500 ease-[cubic-bezier(0.25,1.3,0.5,1)]"
-            style={{ transform: `translateY(-${activeIndex() * 48}px)` }}
-          >
-            {p.options.map(opt => (
-              <div class="h-12 flex items-center justify-center text-body-sm text-on-surface whitespace-nowrap">
-                {opt.label}
-              </div>
-            ))}
-          </div>
-        </div>
+          ))}
+        </ScrollRow>
       </div>
     )
   }
@@ -250,14 +181,13 @@ export default function ShopContent(props: Props) {
   return (
     <main class="md:pt-16 pb-[calc(64px+env(safe-area-inset-bottom))] md:pb-0">
       {/* Category header */}
-      <section class="pt-stack-lg pb-stack-md relative overflow-hidden">
-        <div class="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
+      <section class="pt-stack-lg pb-stack-md relative">
         <div class="container-content relative">
           <div class="flex items-center justify-between">
             <div class="min-w-0">
-              <span class="text-label-md tracking-[0.2em] text-on-surface-variant uppercase">Shop</span>
+              <span class="text-label-md tracking-wider text-on-surface-variant uppercase">Shop</span>
               <div class="flex items-center gap-4">
-                <h1 class="font-serif text-headline-lg-mobile md:text-headline-lg text-on-surface">探索精品</h1>
+                <h1 class="font-headline text-headline-lg-mobile md:text-headline-lg text-on-surface">探索精品</h1>
                 <div class="w-8 h-0.5 bg-primary rounded-full hidden md:block shrink-0" />
               </div>
             </div>
@@ -457,7 +387,7 @@ export default function ShopContent(props: Props) {
             <Show when={filteredProducts().length === 0}>
               <div class="col-span-full flex flex-col items-center justify-center py-20 text-center">
                 <span class="material-symbols-outlined text-outline text-5xl mb-4">search_off</span>
-                <p class="text-on-surface-variant font-serif text-body-lg">没有符合条件的商品</p>
+                <p class="text-on-surface-variant font-headline text-body-lg">没有符合条件的商品</p>
                 <button
                   type="button"
                   onClick={resetFilters}
@@ -483,7 +413,7 @@ export default function ShopContent(props: Props) {
 
           {/* All loaded */}
           <Show when={allLoaded() && filteredProducts().length > 0}>
-            <p class="text-center font-serif text-body-sm text-on-surface-variant/50 py-8">
+            <p class="text-center font-headline text-body-sm text-on-surface-variant/50 py-8">
               — 已展示全部 {filteredProducts().length} 件商品 —
             </p>
           </Show>
@@ -493,7 +423,7 @@ export default function ShopContent(props: Props) {
       {/* Bottom Sheet */}
       <Show when={filterOpen()}>
         <div class="fixed inset-0 z-50 flex items-end">
-          <div class="absolute inset-0 bg-black/40" onClick={() => setFilterOpen(false)} />
+          <div class="absolute inset-0 bg-black/60" onClick={() => setFilterOpen(false)} />
           <div class="relative w-full bg-surface rounded-t-3xl max-h-[80vh] overflow-y-auto hide-scrollbar shadow-2xl">
             <div class="sticky top-0 bg-surface rounded-t-3xl px-6 py-3 border-b border-outline-variant flex flex-col items-center z-10">
               <div class="w-9 h-1 bg-outline-variant/40 rounded-full mb-3" />

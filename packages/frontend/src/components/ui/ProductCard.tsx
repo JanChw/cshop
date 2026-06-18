@@ -39,14 +39,14 @@ export default function ProductCard(props: Props) {
 
   return (
     <a href={`/product/${props.product.id}`} class="group cursor-pointer block">
-      <div class={`${aspect} rounded-lg bg-surface-container overflow-hidden mb-stack-sm relative border border-outline-variant/20`}>
+      <div class={`${aspect} rounded-lg bg-surface-container overflow-hidden mb-stack-sm relative`}>
         <ProductImage
           src={props.product.image}
           alt={props.product.name}
           aspect={aspect}
           rounded="rounded-lg"
           fallbackLabel={props.product.name}
-          class="group-hover:scale-105 transition-transform duration-500"
+          class="group-hover:opacity-90 transition-opacity duration-500"
         />
         {props.product.tags?.includes('New') && (
           <div class="absolute top-3 left-3 bg-primary text-on-primary text-label-md px-2 py-0.5 rounded-lg font-medium">新品</div>
@@ -59,7 +59,7 @@ export default function ProductCard(props: Props) {
             <button
               type="button"
               onClick={goDesign}
-              class="bg-primary text-on-primary px-5 py-2.5 rounded-lg font-bold hover:scale-105 transition-transform shadow-lg tap-target"
+              class="bg-primary text-on-primary px-5 py-2.5 rounded-lg font-bold hover:opacity-90 transition-opacity tap-target"
             >
               开始定制
             </button>

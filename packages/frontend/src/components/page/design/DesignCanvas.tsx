@@ -136,14 +136,14 @@ export default function DesignCanvas(props: Props) {
         </Show>
         <div class="flex items-center gap-1 pointer-events-auto">
           <button
-            class="w-8 h-8 flex items-center justify-center rounded-full bg-white/80 backdrop-blur shadow-sm hover:bg-white transition-all"
+            class="w-8 h-8 flex items-center justify-center rounded-full bg-surface/80 backdrop-blur hover:bg-surface transition-all"
             onClick={zoomIn}
             aria-label="放大"
           >
             <span class="material-symbols-outlined text-lg">zoom_in</span>
           </button>
           <button
-            class="w-8 h-8 flex items-center justify-center rounded-full bg-white/80 backdrop-blur shadow-sm hover:bg-white transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            class="w-8 h-8 flex items-center justify-center rounded-full bg-surface/80 backdrop-blur hover:bg-surface transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             onClick={zoomOut}
             disabled={previewScale() <= 1}
             aria-label="缩小"
@@ -151,7 +151,7 @@ export default function DesignCanvas(props: Props) {
             <span class="material-symbols-outlined text-lg">zoom_out</span>
           </button>
           <button
-            class="w-8 h-8 flex items-center justify-center rounded-full bg-white/80 backdrop-blur shadow-sm hover:bg-white transition-all"
+            class="w-8 h-8 flex items-center justify-center rounded-full bg-surface/80 backdrop-blur hover:bg-surface transition-all"
             onClick={resetPreview}
             aria-label="重置视图"
           >

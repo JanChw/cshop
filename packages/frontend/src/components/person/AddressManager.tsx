@@ -144,7 +144,7 @@ export default function AddressManager() {
                   <div class="flex items-center gap-3 flex-wrap">
                     <span class="font-bold text-lg text-on-surface">{addr.name}</span>
                     <span class="text-on-surface-variant font-medium">{addr.phone}</span>
-                    {addr.isDefault && <span class="px-2 py-0.5 bg-primary text-white text-label-md rounded-md font-medium">默认</span>}
+                    {addr.isDefault && <span class="px-2 py-0.5 bg-primary text-on-primary text-label-md rounded-md font-medium">默认</span>}
                   </div>
                 </div>
                 <p class="text-on-surface-variant leading-relaxed text-sm">{addr.address}</p>
@@ -185,7 +185,7 @@ export default function AddressManager() {
         <button
           type="button"
           onClick={openAdd}
-          class="w-full h-14 bg-primary hover:opacity-90 active:scale-95 transition-all rounded-xl flex items-center justify-center gap-2 text-white shadow-lg tap-target disabled:opacity-60 md:max-w-md md:mx-auto"
+          class="w-full h-14 bg-primary hover:opacity-90 active:scale-95 transition-all rounded-xl flex items-center justify-center gap-2 text-on-primary shadow-lg tap-target disabled:opacity-60 md:max-w-md md:mx-auto"
         >
           <span class="material-symbols-outlined">add</span>
           <span class="font-bold tracking-widest">添加新地址</span>
@@ -194,7 +194,7 @@ export default function AddressManager() {
 
       {formOpen() && (
         <div class="fixed inset-0 z-50 flex items-end">
-          <div class="absolute inset-0 bg-black/40" onClick={closeForm} />
+          <div class="absolute inset-0 bg-black/60" onClick={closeForm} />
           <div class="relative w-full bg-surface rounded-t-2xl max-h-[85vh] overflow-y-auto hide-scrollbar shadow-2xl">
             <div class="sticky top-0 bg-surface rounded-t-2xl z-10">
               <div class="flex justify-center pt-3 pb-1">
@@ -219,7 +219,7 @@ export default function AddressManager() {
               <div class="space-y-2">
                 <label class="text-label-md font-medium text-on-surface-variant ml-1">收货人姓名</label>
                 <input
-                  class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-on-surface font-medium focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none"
+                  class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-on-surface font-medium focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none"
                   type="text"
                   placeholder="请输入收货人姓名"
                   value={formName()}
@@ -230,7 +230,7 @@ export default function AddressManager() {
               <div class="space-y-2">
                 <label class="text-label-md font-medium text-on-surface-variant ml-1">手机号码</label>
                 <input
-                  class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-on-surface font-medium focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none"
+                  class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-on-surface font-medium focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none"
                   type="tel"
                   placeholder="请输入手机号码"
                   maxLength="11"
@@ -242,7 +242,7 @@ export default function AddressManager() {
               <div class="space-y-2">
                 <label class="text-label-md font-medium text-on-surface-variant ml-1">所在地区</label>
                 <input
-                  class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-on-surface font-medium focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none"
+                  class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-on-surface font-medium focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none"
                   type="text"
                   placeholder="如：浙江省杭州市西湖区"
                   value={formRegion()}
@@ -253,7 +253,7 @@ export default function AddressManager() {
               <div class="space-y-2">
                 <label class="text-label-md font-medium text-on-surface-variant ml-1">详细地址</label>
                 <textarea
-                  class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-on-surface font-medium focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none resize-none"
+                  class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-on-surface font-medium focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none resize-none"
                   placeholder="街道、楼栋、门牌号等"
                   rows="3"
                   value={formDetail()}
@@ -274,7 +274,7 @@ export default function AddressManager() {
                   }`}
                 >
                   <div
-                    class={`w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${
+                    class={`w-5 h-5 rounded-full bg-inverse-surface shadow-sm transition-transform ${
                       formDefault() ? 'translate-x-5' : 'translate-x-0'
                     }`}
                   />
@@ -287,7 +287,7 @@ export default function AddressManager() {
                 type="button"
                 onClick={save}
                 disabled={saving()}
-                class="w-full h-12 bg-primary hover:opacity-90 active:scale-95 transition-all rounded-xl text-white font-bold tracking-wider tap-target disabled:opacity-60"
+                class="w-full h-12 bg-primary hover:opacity-90 active:scale-95 transition-all rounded-xl text-on-primary font-bold tracking-wider tap-target disabled:opacity-60"
               >
                 {saving() ? '保存中...' : '保存'}
               </button>
@@ -298,7 +298,7 @@ export default function AddressManager() {
 
       {deleteId() !== null && (
         <div class="fixed inset-0 z-50 flex items-center justify-center p-6" onClick={cancelDelete}>
-          <div class="absolute inset-0 bg-black/40" />
+          <div class="absolute inset-0 bg-black/60" />
           <div
             class="relative bg-surface rounded-2xl w-full max-w-xs p-6 shadow-elevated flex flex-col items-center text-center"
             onClick={(e) => e.stopPropagation()}

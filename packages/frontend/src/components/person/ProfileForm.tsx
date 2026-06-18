@@ -54,10 +54,10 @@ export default function ProfileForm() {
               <div class="w-28 h-28 rounded-full overflow-hidden border-2 border-primary-container shadow-card bg-primary-container flex items-center justify-center text-primary">
                 <span class="material-symbols-outlined text-5xl">person</span>
               </div>
-              <div class="absolute inset-0 bg-black/30 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <span class="material-symbols-outlined text-white text-2xl">photo_camera</span>
+              <div class="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <span class="material-symbols-outlined text-on-surface text-2xl">photo_camera</span>
               </div>
-              <div class="absolute bottom-0 right-0 bg-primary text-white w-8 h-8 rounded-full flex items-center justify-center shadow-md border-2 border-surface">
+              <div class="absolute bottom-0 right-0 bg-primary text-on-primary w-8 h-8 rounded-full flex items-center justify-center shadow-md border-2 border-surface">
                 <span class="material-symbols-outlined text-sm" style="font-variation-settings:'FILL' 1">edit</span>
               </div>
             </button>
@@ -69,7 +69,7 @@ export default function ProfileForm() {
             <div class="space-y-2">
               <label class="text-label-md font-medium text-on-surface-variant ml-1">昵称</label>
               <input
-                class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-on-surface font-medium focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none"
+                class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-on-surface font-medium focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none"
                 type="text"
                 value={nickname()}
                 onInput={(e) => setNickname(e.currentTarget.value)}
@@ -86,7 +86,7 @@ export default function ProfileForm() {
                     class={`flex items-center justify-center gap-2 py-3 rounded-lg transition-all tap-target ${
                       gender() === g
                         ? 'border-2 border-primary bg-primary-container text-primary font-semibold'
-                        : 'border border-outline-variant bg-white text-on-surface-variant hover:border-primary-container'
+                        : 'border border-outline-variant bg-surface text-on-surface-variant hover:border-primary-container'
                     }`}
                     aria-pressed={gender() === g}
                   >
@@ -103,7 +103,7 @@ export default function ProfileForm() {
               <label class="text-label-md font-medium text-on-surface-variant ml-1">生日</label>
               <div class="relative">
                 <input
-                  class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-on-surface font-medium focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none appearance-none"
+                  class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-on-surface font-medium focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none appearance-none"
                   type="date"
                   value={birthday()}
                   onInput={(e) => setBirthday(e.currentTarget.value)}
@@ -115,7 +115,7 @@ export default function ProfileForm() {
             <div class="space-y-2">
               <label class="text-label-md font-medium text-on-surface-variant ml-1">个人简介</label>
               <textarea
-                class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-on-surface font-medium focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none resize-none"
+                class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-on-surface font-medium focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none resize-none"
                 placeholder="向世界介绍一下你自己吧..."
                 rows="4"
                 value={bio()}

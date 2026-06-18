@@ -42,7 +42,7 @@ export default function TextPanel(props: Props) {
         </div>
         <div class="relative">
           <textarea
-            class="w-full p-4 bg-white border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none min-h-[100px] text-lg resize-none transition-shadow placeholder:text-outline-variant/60"
+            class="w-full p-4 bg-surface border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none min-h-[100px] text-lg resize-none transition-shadow placeholder:text-outline-variant/60"
             placeholder="输入文字..."
             value={text()}
             maxLength={50}
@@ -60,7 +60,7 @@ export default function TextPanel(props: Props) {
 
       <div class="pt-2">
         <button
-          class="w-full bg-primary text-on-primary py-4 rounded-xl font-bold text-lg hover:bg-primary/90 transition-all active:scale-[0.98] shadow-lg shadow-primary/20 disabled:opacity-50"
+          class="w-full bg-primary text-on-primary py-4 rounded-xl font-bold text-lg hover:bg-primary/90 transition-all active:scale-[0.98] disabled:opacity-50"
           onClick={apply}
           disabled={!text().trim()}
         >

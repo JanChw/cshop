@@ -46,7 +46,7 @@ export default function HelpCenter() {
           <h2 class="text-3xl md:text-4xl font-headline mb-4 tracking-tight">我们能为您提供什么帮助？</h2>
           <p class="text-on-surface-variant font-body mb-8">在这里搜索常见问题或浏览下方类别</p>
           <div class="max-w-2xl mx-auto md:mx-0">
-            <SearchInput placeholder='搜索关键词，如"定制"、"退货政策"...' value={searchQuery()} onInput={setSearchQuery} class="shadow-card" />
+            <SearchInput placeholder='搜索关键词，如"定制"、"退货政策"...' value={searchQuery()} onInput={setSearchQuery} />
           </div>
         </section>
 
@@ -55,7 +55,7 @@ export default function HelpCenter() {
             <button
               type="button"
               onClick={() => showToast(`${cat.title}详情即将上线`)}
-              class="bg-surface-container-low p-6 md:p-8 rounded-xl border border-outline-variant/40 hover:shadow-card transition-all cursor-pointer text-left tap-target"
+              class="bg-surface-container-low p-6 md:p-8 rounded-xl border border-outline-variant/40 hover:border-outline transition-colors cursor-pointer text-left tap-target"
             >
               <div class={`w-12 h-12 bg-${cat.color}/10 rounded-lg flex items-center justify-center mb-6`}>
                 <span class={`material-symbols-outlined text-${cat.color}`}>{cat.icon}</span>
@@ -83,7 +83,6 @@ export default function HelpCenter() {
           </section>
 
           <section class="bg-primary text-on-primary rounded-2xl p-8 md:p-8 flex flex-col items-center justify-between gap-8 overflow-hidden relative md:w-1/2">
-            <div class="absolute top-0 right-0 w-48 h-48 bg-primary-container opacity-20 rounded-full -mr-16 -mt-16" />
             <div class="relative z-10 text-center md:text-left">
               <h2 class="text-2xl md:text-3xl font-headline mb-2">仍需进一步帮助？</h2>
               <p class="text-on-primary/80 max-w-md">我们的客服专家全天候在线，随时为您解答疑问并提供个性化建议。</p>
@@ -91,7 +90,7 @@ export default function HelpCenter() {
             <button
               type="button"
               onClick={() => showToast('正在连接在线客服...')}
-              class="relative z-10 px-8 py-4 bg-surface text-primary font-bold rounded-lg hover:bg-surface-container-high transition-all active:scale-95 shadow-lg flex items-center gap-2 tap-target shrink-0"
+              class="relative z-10 px-8 py-4 bg-surface text-primary font-bold rounded-lg hover:bg-surface-container-high transition-colors flex items-center gap-2 tap-target shrink-0"
             >
               <span class="material-symbols-outlined">support_agent</span>联系在线客服
             </button>

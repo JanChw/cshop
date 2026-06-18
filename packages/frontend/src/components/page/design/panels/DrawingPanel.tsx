@@ -63,8 +63,8 @@ export default function DrawingPanel(props: Props) {
                     class="w-9 h-9 rounded-full"
                     style={{
                       'background-color': c,
-                      border: isSelected() ? '2px solid #c2652a' : '2px solid transparent',
-                      'box-shadow': isSelected() ? '0 0 0 2px #c2652a20' : 'none'
+                      border: isSelected() ? '2px solid var(--color-on-surface)' : '2px solid transparent',
+                      'box-shadow': isSelected() ? '0 0 0 2px var(--color-outline-variant)' : 'none'
                     }}
                     onClick={() => props.onColorChange(c)}
                     aria-label={`画笔颜色 ${c}`}
@@ -128,7 +128,7 @@ export default function DrawingPanel(props: Props) {
 
       <div class="grid grid-cols-2 gap-3">
         <button
-          class="flex items-center justify-center gap-2 py-3 rounded-xl border border-outline-variant bg-white hover:border-primary hover:bg-primary-container/10 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+          class="flex items-center justify-center gap-2 py-3 rounded-xl border border-outline-variant bg-surface hover:border-primary hover:bg-primary-container/10 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
           onClick={props.onUndo}
           disabled={!props.canUndo}
         >
@@ -136,7 +136,7 @@ export default function DrawingPanel(props: Props) {
           <span class="text-sm font-bold">撤销</span>
         </button>
         <button
-          class="flex items-center justify-center gap-2 py-3 rounded-xl border border-outline-variant bg-white hover:border-error hover:bg-error-container/30 hover:text-error transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+          class="flex items-center justify-center gap-2 py-3 rounded-xl border border-outline-variant bg-surface hover:border-error hover:bg-error-container/30 hover:text-error transition-all disabled:opacity-40 disabled:cursor-not-allowed"
           onClick={props.onClear}
           disabled={!props.hasDrawing}
         >

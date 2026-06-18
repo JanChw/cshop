@@ -107,7 +107,7 @@ export default function LoginForm() {
               <button
                 type="submit"
                 disabled={loading()}
-                class="w-full bg-primary text-white py-4 px-6 rounded-lg font-bold tracking-wide flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all group shadow-lg shadow-primary/10 tap-target disabled:opacity-60"
+                class="w-full bg-primary text-on-primary py-4 px-6 rounded-lg font-bold tracking-wide flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all group shadow-lg shadow-primary/10 tap-target disabled:opacity-60"
               >
                 <Show when={!loading()}>
                   <span>登录</span>
@@ -133,7 +133,7 @@ export default function LoginForm() {
                   class="flex items-center justify-center gap-3 py-3 px-4 border border-outline-variant rounded-lg hover:bg-surface-variant transition-colors group tap-target"
                 >
                   <div class="w-6 h-6 flex items-center justify-center bg-[#07C160] rounded-full">
-                    <span class="material-symbols-outlined text-white text-base" style="font-variation-settings: 'FILL' 1">chat</span>
+                    <span class="material-symbols-outlined text-on-primary text-base" style="font-variation-settings: 'FILL' 1">chat</span>
                   </div>
                   <span class="text-sm font-semibold text-on-surface-variant">微信</span>
                 </button>
@@ -143,7 +143,7 @@ export default function LoginForm() {
                   class="flex items-center justify-center gap-3 py-3 px-4 border border-outline-variant rounded-lg hover:bg-surface-variant transition-colors group tap-target"
                 >
                   <div class="w-6 h-6 flex items-center justify-center bg-[#12B7F5] rounded-full">
-                    <span class="material-symbols-outlined text-white text-base" style="font-variation-settings: 'FILL' 1">person</span>
+                    <span class="material-symbols-outlined text-on-primary text-base" style="font-variation-settings: 'FILL' 1">person</span>
                   </div>
                   <span class="text-sm font-semibold text-on-surface-variant">QQ</span>
                 </button>

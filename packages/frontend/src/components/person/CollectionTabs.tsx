@@ -85,7 +85,7 @@ export default function CollectionTabs() {
         {activeTab() === 'favorites' && (
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
             {mockFavorites.map((item) => (
-              <div class="bg-surface-container-low rounded-xl overflow-hidden shadow-card group hover:-translate-y-1 transition-transform duration-300">
+              <div class="bg-surface-container-low rounded-xl overflow-hidden border border-outline-variant/40 group hover:border-outline transition-colors">
                 <div class="aspect-[4/5] relative overflow-hidden bg-surface-container">
                   <ProductImage
                     src={item.image}
@@ -98,7 +98,7 @@ export default function CollectionTabs() {
                   <button
                     type="button"
                     onClick={(e) => { e.stopPropagation(); toggleFav(item.id) }}
-                    class="absolute top-4 right-4 tap-target bg-surface/80 backdrop-blur-md p-2 rounded-full text-primary shadow-sm"
+                    class="absolute top-4 right-4 tap-target bg-surface/80 backdrop-blur-md p-2 rounded-full text-primary"
                     aria-label={favorites().has(item.id) ? '取消收藏' : '加入收藏'}
                   >
                     <span class="material-symbols-outlined" style={`font-variation-settings:'FILL' ${favorites().has(item.id) ? 1 : 0}`}>favorite</span>
@@ -131,7 +131,7 @@ export default function CollectionTabs() {
               <p class="font-medium text-on-surface-variant">开启新创作</p>
             </a>
             {mockDrafts.map((draft) => (
-              <div class="bg-surface-container-low rounded-xl overflow-hidden shadow-card relative h-[400px]">
+              <div class="bg-surface-container-low rounded-xl overflow-hidden border border-outline-variant/40 relative h-[400px]">
                 <div class="h-2/3 bg-surface-container overflow-hidden">
                   <ProductImage
                     src={draft.image}
@@ -168,7 +168,7 @@ export default function CollectionTabs() {
       {showFab() && (
         <button
           type="button"
-          class="fixed right-6 bottom-24 w-14 h-14 bg-primary text-on-primary rounded-xl flex items-center justify-center shadow-lg active:scale-95 transition-all z-40 tap-target"
+          class="fixed right-6 bottom-24 w-14 h-14 bg-primary text-on-primary rounded-xl flex items-center justify-center active:scale-95 transition-all z-40 tap-target"
           onClick={() => showToast('创作功能即将上线')}
           aria-label="新建创作"
         >

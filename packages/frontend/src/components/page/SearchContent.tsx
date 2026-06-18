@@ -379,7 +379,7 @@ export default function SearchContent(props: Props) {
 
           {/* All loaded */}
           <Show when={allLoaded() && filteredProducts().length > 0}>
-            <p class="text-center font-serif text-body-sm text-on-surface-variant/50 py-8">
+            <p class="text-center font-headline text-body-sm text-on-surface-variant/50 py-8">
               — 已展示全部 {filteredProducts().length} 件商品 —
             </p>
           </Show>
@@ -388,7 +388,7 @@ export default function SearchContent(props: Props) {
 
       <Show when={filterOpen()}>
         <div class="fixed inset-0 z-50 flex items-end">
-          <div class="absolute inset-0 bg-black/40" onClick={() => setFilterOpen(false)} />
+          <div class="absolute inset-0 bg-black/60" onClick={() => setFilterOpen(false)} />
           <div class="relative w-full bg-surface rounded-t-2xl max-h-[80vh] overflow-y-auto hide-scrollbar shadow-2xl">
             <div class="sticky top-0 bg-surface rounded-t-2xl px-6 py-4 border-b border-outline-variant flex justify-between items-center z-10">
               <h3 class="text-title-md font-bold text-on-surface">筛选</h3>

@@ -152,7 +152,7 @@ export default function RegisterForm() {
               <button
                 type="submit"
                 disabled={loading()}
-                class="w-full bg-primary text-white font-bold py-4 rounded-lg shadow-sm hover:opacity-90 active:scale-[0.98] transition-all duration-200 mt-4 tracking-wide tap-target disabled:opacity-60"
+                class="w-full bg-primary text-on-primary font-bold py-4 rounded-lg shadow-sm hover:opacity-90 active:scale-[0.98] transition-all duration-200 mt-4 tracking-wide tap-target disabled:opacity-60"
               >
                 {loading() ? (
                   <span class="flex items-center justify-center gap-2">

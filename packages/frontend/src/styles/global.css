@@ -1,52 +1,59 @@
 @import 'tailwindcss';
 
 @theme {
-  /* === Colors: Home Page Sahara Theme === */
+  /* === Colors: Dark Nordic Premium === */
   --color-primary: #c2652a;
   --color-on-primary: #ffffff;
-  --color-primary-container: #f8e9df;
-  --color-on-primary-container: #3e1c00;
+  --color-primary-container: #2a1a10;
+  --color-on-primary-container: #f8e9df;
 
-  --color-secondary: #705d4e;
-  --color-on-secondary: #ffffff;
-  --color-secondary-container: #fbeee4;
-  --color-on-secondary-container: #291b0f;
+  --color-secondary: #a1a1aa;
+  --color-on-secondary: #0c0c0c;
+  --color-secondary-container: #27272a;
+  --color-on-secondary-container: #fafafa;
 
-  --color-tertiary: #5d624c;
+  --color-tertiary: #71717a;
   --color-on-tertiary: #ffffff;
-  --color-tertiary-container: #e2e7d0;
-  --color-on-tertiary-container: #1a1e0e;
+  --color-tertiary-container: #27272a;
+  --color-on-tertiary-container: #d4d4d8;
 
-  --color-background: #faf9f6;
-  --color-on-background: #1f1b18;
+  --color-background: #0c0c0c;
+  --color-on-background: #fafafa;
 
-  --color-surface: #faf9f6;
-  --color-on-surface: #1f1b18;
-  --color-surface-variant: #f0ede6;
-  --color-on-surface-variant: #4f453d;
+  --color-surface: #141414;
+  --color-on-surface: #f5f5f5;
+  --color-surface-variant: #1f1f1f;
+  --color-on-surface-variant: #a1a1aa;
 
-  --color-outline: #81756a;
-  --color-outline-variant: #d2ccc3;
+  --color-outline: #3f3f46;
+  --color-outline-variant: #27272a;
 
-  --color-surface-container: #f4f1eb;
-  --color-surface-container-low: #f9f6f1;
-  --color-surface-container-high: #efece5;
-  --color-surface-container-lowest: #ffffff;
+  --color-surface-container: #1a1a1a;
+  --color-surface-container-low: #171717;
+  --color-surface-container-high: #242424;
+  --color-surface-container-lowest: #0f0f0f;
 
-  --color-inverse-surface: #352f2a;
-  --color-inverse-on-surface: #f9f0ea;
+  --color-inverse-surface: #f5f5f5;
+  --color-inverse-on-surface: #0c0c0c;
 
-  --color-error: #c0392b;
+  --color-success: #22c55e;
+  --color-on-success: #000000;
+  --color-warning: #f59e0b;
+  --color-on-warning: #000000;
+  --color-info: #3b82f6;
+  --color-on-info: #ffffff;
+
+  --color-error: #ef4444;
   --color-on-error: #ffffff;
-  --color-error-container: #fce4e0;
-  --color-on-error-container: #7a1a10;
+  --color-error-container: #450a0a;
+  --color-on-error-container: #fca5a5;
 
   /* === Typography === */
-  --font-sans: 'Manrope', sans-serif;
-  --font-serif: 'Playfair Display', serif;
-  --font-headline: 'Playfair Display', serif;
-  --font-body: 'Manrope', sans-serif;
-  --font-label: 'Manrope', sans-serif;
+  --font-sans: 'Manrope', system-ui, sans-serif;
+  --font-mono: 'Space Mono', ui-monospace, monospace;
+  --font-headline: 'Manrope', system-ui, sans-serif;
+  --font-body: 'Manrope', system-ui, sans-serif;
+  --font-label: 'Manrope', system-ui, sans-serif;
 
   --text-headline-lg: 32px / 40px;
   --text-headline-lg-mobile: 28px / 34px;
@@ -70,8 +77,8 @@
   --radius-xl: 16px;
 
   /* === Shadows === */
-  --shadow-card: 0 2px 16px rgba(58, 48, 42, 0.04);
-  --shadow-elevated: 0 8px 24px rgba(58, 48, 42, 0.08);
+  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.03) inset;
+  --shadow-elevated: 0 0 0 1px rgba(255, 255, 255, 0.03);
 
   /* === Content Widths === */
   --width-content-mobile: 100%;

@@ -69,7 +69,7 @@ export default function LogisticsContent() {
 
       <div class="container-content pt-4 pb-8 md:flex md:gap-8">
         <div class="md:w-2/5 space-y-6">
-          <section class="bg-white rounded-xl p-6 md:p-8 shadow-card border border-outline-variant/60">
+          <section class="bg-surface rounded-xl p-6 md:p-8 shadow-card border border-outline-variant/60">
             <div class="flex items-start justify-between mb-6">
               <div class="space-y-1">
                 <p class="text-on-surface-variant text-sm">当前状态</p>
@@ -122,7 +122,7 @@ export default function LogisticsContent() {
               onClick={handleConfirm}
               disabled={confirmed() || confirming()}
               class={`flex-1 py-4 px-6 rounded-lg font-medium transition-all active:scale-95 tap-target disabled:opacity-60 ${
-                confirmed() ? 'bg-green-600 text-white' : 'bg-primary text-white hover:opacity-90'
+                confirmed() ? 'bg-success text-on-success' : 'bg-primary text-on-primary hover:opacity-90'
               }`}
             >
               {confirming() ? (
@@ -136,7 +136,7 @@ export default function LogisticsContent() {
           </div>
         </div>
 
-        <section class="md:w-3/5 bg-white rounded-xl p-6 md:p-8 shadow-card border border-outline-variant/60 mt-6 md:mt-0">
+        <section class="md:w-3/5 bg-surface rounded-xl p-6 md:p-8 shadow-card border border-outline-variant/60 mt-6 md:mt-0">
           <h3 class="font-headline text-2xl mb-8 border-b border-outline-variant/40 pb-4">实时物流轨迹</h3>
           <div class="space-y-8">
             {TIMELINE.map((node, index) => (

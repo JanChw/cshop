@@ -51,7 +51,7 @@ export default function SecuritySettings() {
                 verified_user
               </span>
             </div>
-            <div class="absolute -bottom-1 -right-1 bg-primary text-white p-1 rounded-full border-2 border-surface">
+            <div class="absolute -bottom-1 -right-1 bg-primary text-on-primary p-1 rounded-full border-2 border-surface">
               <span class="material-symbols-outlined text-sm">check</span>
             </div>
           </div>
@@ -143,7 +143,7 @@ export default function SecuritySettings() {
                 fallbackLabel="数据隐私保护"
                 class="w-full h-full brightness-90"
               />
-              <div class="absolute bottom-4 left-6 z-20 text-white">
+              <div class="absolute bottom-4 left-6 z-20 text-on-surface">
                 <h4 class="font-headline text-lg font-bold">数据隐私保护</h4>
                 <p class="text-xs opacity-80">我们致力于守护您的每一份数据资产</p>
               </div>

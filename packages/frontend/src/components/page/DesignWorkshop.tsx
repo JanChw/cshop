@@ -653,15 +653,15 @@ export default function DesignWorkshop() {
         </div>
       </div>
       <div
-        class={`fixed inset-0 bg-black/40 z-40 transition-opacity duration-300 ${drawerOpen() ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        class={`fixed inset-0 bg-black/60 z-40 transition-opacity duration-300 ${drawerOpen() ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
         onClick={() => setDrawerOpen(false)}
       />
 
       <style>{`
         input[type="range"] {
-          accent-color: #c2652a;
+          accent-color: var(--color-primary);
           -webkit-appearance: none;
-          background: #eae2da;
+          background: var(--color-outline-variant);
           height: 4px;
           border-radius: 2px;
         }
@@ -670,18 +670,18 @@ export default function DesignWorkshop() {
           height: 18px;
           width: 18px;
           border-radius: 50%;
-          background: #c2652a;
+          background: var(--color-primary);
           cursor: pointer;
-          border: 2px solid #ffffff;
-          box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+          border: 2px solid var(--color-surface);
+          box-shadow: 0 1px 4px rgba(0,0,0,0.3);
         }
         input[type="range"]::-moz-range-thumb {
           height: 18px;
           width: 18px;
           border-radius: 50%;
-          background: #c2652a;
+          background: var(--color-primary);
           cursor: pointer;
-          border: 2px solid #ffffff;
+          border: 2px solid var(--color-surface);
         }
       `}</style>
     </div>

@@ -74,7 +74,7 @@ export default function ColorPanel(props: Props) {
                     class="w-16 h-16 rounded-full border border-outline-variant relative flex items-center justify-center transition-transform group-hover:scale-105"
                     style={{
                       'background-color': c.hex,
-                      outline: isSelected() ? '2px solid #c2652a' : 'none',
+                      outline: isSelected() ? '2px solid var(--color-primary)' : 'none',
                       'outline-offset': '2px'
                     }}
                   >

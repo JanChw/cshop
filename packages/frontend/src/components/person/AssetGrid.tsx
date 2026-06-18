@@ -80,7 +80,7 @@ export default function AssetGrid() {
         <div class="relative">
           <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">search</span>
           <input
-            class="w-full bg-white border border-outline-variant rounded-lg py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-outline"
+            class="w-full bg-surface border border-outline-variant rounded-lg py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-on-surface-variant"
             placeholder="查找素材名称..."
             type="text"
             value={search()}
@@ -125,11 +125,11 @@ export default function AssetGrid() {
                           rounded="rounded-none"
                           fallbackLabel={item.originalName}
                           objectFit="contain"
-                          class="p-2 group-hover:scale-105 transition-transform duration-300"
+                          class="p-2 group-hover:opacity-90 transition-opacity duration-300"
                         />
                         <button
                           type="button"
-                          class="absolute top-2 right-2 bg-white/90 backdrop-blur-md p-2 rounded-lg shadow-sm text-on-surface-variant hover:text-error transition-all tap-target"
+                          class="absolute top-2 right-2 bg-surface/90 backdrop-blur-md p-2 rounded-lg text-on-surface-variant hover:text-error transition-all tap-target"
                           onClick={() => remove(item.id)}
                           aria-label="删除"
                         >

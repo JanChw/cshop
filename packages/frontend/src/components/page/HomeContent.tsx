@@ -1,4 +1,4 @@
-import { createSignal, onMount } from 'solid-js'
+import { createSignal, onMount, onCleanup } from 'solid-js'
 import ProductCard from '../ui/ProductCard'
 import ProductImage from '../ui/ProductImage'
 import { showToast } from '../../lib/toast'
@@ -80,9 +80,9 @@ export default function HomeContent(props: Props) {
       }
     }
     scrollContainers.forEach((el) => el.addEventListener('wheel', handler))
-    return () => {
+    onCleanup(() => {
       scrollContainers.forEach((el) => el.removeEventListener('wheel', handler))
-    }
+    })
   })
 
   const handleFabClick = () => {
@@ -130,7 +130,7 @@ export default function HomeContent(props: Props) {
                 href="/shop"
                 class="bg-surface-container-lowest/90 backdrop-blur border border-outline-variant text-on-surface px-8 py-4 rounded-lg font-bold text-center hover:bg-surface-variant transition-colors active:scale-95 tap-target flex items-center justify-center"
               >
-                探索灵感
+                探索
               </a>
             </div>
           </div>

@@ -18,7 +18,7 @@ export default function SecuritySettings() {
 
   return (
     <div class="md:pt-16 min-h-screen pb-24">
-      <header class="fixed md:sticky top-0 z-40 bg-surface border-b border-outline-variant px-4 h-16 w-full flex justify-between items-center">
+      <header class="sticky top-0 md:top-16 z-40 bg-surface border-b border-outline-variant px-4 h-16 w-full flex justify-between items-center">
         <div class="flex items-center gap-4">
           <button
             type="button"

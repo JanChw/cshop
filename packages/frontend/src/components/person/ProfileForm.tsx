@@ -22,7 +22,7 @@ export default function ProfileForm() {
 
   return (
     <div class="md:pt-16 min-h-screen pb-24">
-      <header class="fixed md:sticky top-0 z-40 bg-surface border-b border-outline-variant/60 px-6 h-16 flex items-center justify-between">
+      <header class="sticky top-0 md:top-16 z-40 bg-surface border-b border-outline-variant/60 w-full px-6 h-16 flex items-center justify-between">
         <button
           type="button"
           onClick={() => history.back()}
@@ -124,10 +124,9 @@ export default function ProfileForm() {
               <div class="text-label-md text-right text-on-surface-variant/70">{charCount()} / 200</div>
             </div>
 
-            <section>
+            <a href="/person/address">
               <div
                 class="bg-surface-container-low rounded-xl p-5 border border-outline-variant/40 flex items-center justify-between group cursor-pointer hover:bg-surface-container transition-colors shadow-card tap-target"
-                onClick={() => window.location.href = '/person/address'}
               >
                 <div class="flex items-center gap-4">
                   <div class="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center text-primary">
@@ -140,7 +139,7 @@ export default function ProfileForm() {
                 </div>
                 <span class="material-symbols-outlined text-outline group-hover:translate-x-1 transition-transform">chevron_right</span>
               </div>
-            </section>
+            </a>
 
             <footer class="pt-8 flex flex-col items-center gap-4">
               <button

@@ -19,7 +19,7 @@ export default function HelpCenter() {
 
   return (
     <div class="md:pt-16 min-h-screen pb-24">
-      <header class="fixed md:sticky top-0 z-40 bg-surface border-b border-outline-variant/60 flex justify-between items-center px-6 h-16 w-full">
+      <header class="sticky top-0 md:top-16 z-40 bg-surface border-b border-outline-variant/60 flex justify-between items-center px-6 h-16 w-full">
         <div class="flex items-center gap-4">
           <button
             type="button"
@@ -82,8 +82,8 @@ export default function HelpCenter() {
             </div>
           </section>
 
-          <section class="bg-primary text-on-primary rounded-2xl p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-8 overflow-hidden relative md:w-1/2 md:h-fit">
-            <div class="absolute top-0 right-0 w-64 h-64 bg-primary-container opacity-20 rounded-full -mr-20 -mt-20" />
+          <section class="bg-primary text-on-primary rounded-2xl p-8 md:p-8 flex flex-col items-center justify-between gap-8 overflow-hidden relative md:w-1/2">
+            <div class="absolute top-0 right-0 w-48 h-48 bg-primary-container opacity-20 rounded-full -mr-16 -mt-16" />
             <div class="relative z-10 text-center md:text-left">
               <h2 class="text-2xl md:text-3xl font-headline mb-2">仍需进一步帮助？</h2>
               <p class="text-on-primary/80 max-w-md">我们的客服专家全天候在线，随时为您解答疑问并提供个性化建议。</p>

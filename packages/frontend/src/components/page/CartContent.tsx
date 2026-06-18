@@ -108,7 +108,22 @@ export default function CartContent(props: Props) {
   )
 
   return (
-    <main class="pt-12 md:pt-20 pb-[calc(64px+env(safe-area-inset-bottom))] md:pb-8 min-h-screen container-content">
+    <main class="pt-12 md:pt-20 pb-[calc(140px+env(safe-area-inset-bottom))] md:pb-8 min-h-screen container-content relative">
+      {/* Mobile header */}
+      <header class="fixed top-0 left-0 w-full z-40 bg-surface border-b border-outline-variant md:hidden">
+        <div class="flex justify-between items-center px-container-margin h-12 w-full">
+          <button
+            type="button"
+            onClick={() => history.back()}
+            class="tap-target flex items-center justify-center text-primary"
+            aria-label="返回"
+          >
+            <span class="material-symbols-outlined">arrow_back</span>
+          </button>
+          <h1 class="text-title-md font-bold text-on-surface">购物车</h1>
+          <span class="text-label-md text-on-surface-variant">共 {itemCount()} 件商品</span>
+        </div>
+      </header>
       <div class="md:flex md:gap-6">
         <section class="md:w-3/5 space-y-stack-md">
           <Show when={items().length === 0}>
@@ -148,20 +163,42 @@ export default function CartContent(props: Props) {
           ))}
         </section>
 
+        {items().length > 0 && (
+          <div class="md:hidden bg-surface-container-lowest p-stack-md rounded-lg border border-outline-variant">
+            <label class="block text-label-md text-on-surface-variant mb-2">优惠券代码</label>
+            <div class="flex flex-col gap-2">
+              <input
+                class="w-full bg-background border border-outline-variant rounded-lg px-4 py-2 text-body-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                placeholder="输入优惠码"
+                value={couponInput()}
+                onInput={(e) => setCouponInput(e.currentTarget.value)}
+              />
+              <button
+                type="button"
+                class="w-full bg-primary text-on-primary font-bold px-4 py-2 rounded-lg hover:opacity-90 transition-opacity tap-target disabled:opacity-60"
+                onClick={applyCoupon}
+                disabled={couponApplied()}
+              >
+                {couponApplied() ? '✓ 已应用' : '应用'}
+              </button>
+            </div>
+          </div>
+        )}
+
         <aside class="hidden md:block md:w-2/5">
           <div class="sticky top-20 space-y-stack-md">
             <div class="bg-surface-container-lowest p-stack-md rounded-lg border border-outline-variant">
               <label class="block text-label-md text-on-surface-variant mb-2">优惠券代码</label>
-              <div class="flex gap-2">
+              <div class="flex flex-col gap-2">
                 <input
-                  class="flex-grow bg-background border border-outline-variant rounded-lg px-4 py-2 text-body-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                  class="w-full bg-background border border-outline-variant rounded-lg px-4 py-2 text-body-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
                   placeholder="输入优惠码"
                   value={couponInput()}
                   onInput={(e) => setCouponInput(e.currentTarget.value)}
                 />
                 <button
                   type="button"
-                  class="bg-primary text-on-primary font-bold px-4 py-2 rounded-lg hover:opacity-90 transition-opacity tap-target disabled:opacity-60"
+                  class="w-full bg-primary text-on-primary font-bold px-4 py-2 rounded-lg hover:opacity-90 transition-opacity tap-target disabled:opacity-60"
                   onClick={applyCoupon}
                   disabled={couponApplied()}
                 >

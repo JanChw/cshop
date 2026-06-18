@@ -60,8 +60,8 @@ export default function AssetGrid() {
   }
 
   return (
-    <div class="bg-background min-h-screen pb-24 text-on-surface">
-      <header class="md:pt-16 bg-surface/80 backdrop-blur-md sticky top-0 z-50 flex justify-between items-center px-4 h-16 border-b border-outline-variant">
+    <div class="md:pt-16 bg-background min-h-screen pb-24 text-on-surface">
+      <header class="bg-surface/80 backdrop-blur-md sticky top-0 md:top-16 z-40 flex justify-between items-center px-4 h-16 border-b border-outline-variant">
         <a href="/person" class="tap-target p-2 hover:bg-surface-container rounded-full transition-colors" aria-label="返回">
           <span class="material-symbols-outlined text-on-surface-variant">arrow_back</span>
         </a>

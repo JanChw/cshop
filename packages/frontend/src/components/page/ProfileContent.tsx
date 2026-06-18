@@ -149,7 +149,7 @@ export default function ProfileContent() {
             <div class="flex items-center justify-between mb-stack-md">
               <h2 class="text-title-md text-on-surface">订单概览</h2>
               <a class="text-label-md text-primary flex items-center gap-1 hover:opacity-80 tap-target" href="/order">
-                <span>订单详情</span>
+                <span>订单管理</span>
                 <span class="material-symbols-outlined text-xs">chevron_right</span>
               </a>
             </div>

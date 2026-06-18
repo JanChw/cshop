@@ -22,7 +22,7 @@ const { title, hideNav = false } = Astro.props
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
     <title>{title} - ByChooow</title>
   </head>
-  <body class="bg-background text-on-surface antialiased">
+  <body class="bg-background text-on-surface antialiased overflow-x-hidden">
     {!hideNav && (
       <>
         <TabletNavBar client:load />

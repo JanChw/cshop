@@ -163,6 +163,15 @@ export default function SearchContent(props: Props) {
     <main class="md:pt-16 pb-[calc(64px+env(safe-area-inset-bottom))] md:pb-0 min-h-screen">
       <section class="pt-stack-lg pb-stack-md container-content">
         <div class="flex items-stretch border border-outline-variant rounded-full bg-surface-container-low overflow-hidden md:max-w-xl md:mx-auto">
+          <button
+            type="button"
+            onClick={() => window.history.back()}
+            class="md:hidden flex items-center justify-center w-11 shrink-0 text-on-surface-variant hover:text-on-surface transition-colors tap-target"
+            aria-label="返回"
+          >
+            <span class="material-symbols-outlined text-2xl">arrow_back</span>
+          </button>
+          <div class="w-px bg-outline-variant shrink-0 md:hidden" />
           <div class="flex-1 min-w-0">
             <SearchInput
               placeholder="搜索连帽衫、T恤..."

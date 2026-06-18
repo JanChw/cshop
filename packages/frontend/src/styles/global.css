@@ -63,6 +63,7 @@
   --spacing-stack-lg: 32px;
   --spacing-unit: 4px;
   --spacing-container-margin: 20px;
+  --spacing-container-margin-tablet: 32px;
 
   /* === Border Radius === */
   --radius-lg: 8px;
@@ -74,7 +75,7 @@
 
   /* === Content Widths === */
   --width-content-mobile: 100%;
-  --width-content-tablet: 720px;
+  --width-content-tablet: 1024px;
 }
 
 /* === Base Styles === */
@@ -119,8 +120,8 @@
 
   @media (min-width: 768px) {
     max-width: var(--width-content-tablet);
-    padding-left: 0;
-    padding-right: 0;
+    padding-left: var(--spacing-container-margin-tablet);
+    padding-right: var(--spacing-container-margin-tablet);
   }
 }
 

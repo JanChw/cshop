@@ -1,7 +1,7 @@
-import { createSignal, onMount, onCleanup } from 'solid-js'
+import { onMount, onCleanup } from 'solid-js'
 import ProductCard from '../ui/ProductCard'
 import ProductImage from '../ui/ProductImage'
-import { showToast } from '../../lib/toast'
+
 
 interface Product {
   id: string
@@ -67,7 +67,7 @@ const COLLABS = [
 ]
 
 export default function HomeContent(props: Props) {
-  const [fabRotated, setFabRotated] = createSignal(false)
+
   let scrollContainers: HTMLElement[] = []
 
   onMount(() => {
@@ -83,12 +83,6 @@ export default function HomeContent(props: Props) {
       scrollContainers.forEach((el) => el.removeEventListener('wheel', handler))
     })
   })
-
-  const handleFabClick = () => {
-    setFabRotated(true)
-    showToast('开始新的创作')
-    setTimeout(() => setFabRotated(false), 1000)
-  }
 
   return (
     <main class="pb-[calc(64px+env(safe-area-inset-bottom))] md:pb-0 md:pt-16">
@@ -176,6 +170,7 @@ export default function HomeContent(props: Props) {
       </section>
 
       {/* 基础系列 */}
+      <div class="container-content">
       <section class="mt-stack-lg bg-primary-container/30 -mx-container-margin px-container-margin md:mx-0 md:px-0 md:rounded-xl py-stack-lg">
         <div class="flex justify-between items-end mb-stack-md">
           <div>
@@ -192,6 +187,7 @@ export default function HomeContent(props: Props) {
           ))}
         </div>
       </section>
+      </div>
 
       {/* 必备单品 */}
       <section class="mt-16 container-content">
@@ -271,15 +267,6 @@ export default function HomeContent(props: Props) {
           ))}
         </div>
       </section>
-
-      {/* Floating Action Button */}
-      <button
-        onClick={handleFabClick}
-        class={`fixed bottom-24 md:bottom-8 right-6 w-14 h-14 bg-primary text-on-primary rounded-full shadow-2xl flex items-center justify-center z-40 hover:scale-110 active:scale-95 transition-transform tap-target before:absolute before:-inset-4 before:rounded-full before:bg-primary/20 before:blur-xl before:-z-10 ${fabRotated() ? 'rotate-45' : ''}`}
-        aria-label="开始新的创作"
-      >
-        <span class="material-symbols-outlined text-3xl">add</span>
-      </button>
     </main>
   )
 }

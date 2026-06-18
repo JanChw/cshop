@@ -21,17 +21,17 @@ export default function ProfileForm() {
   }
 
   return (
-    <div class="md:pt-16 min-h-screen pb-24">
-      <header class="sticky top-0 md:top-16 z-40 bg-surface border-b border-outline-variant/60 w-full px-6 h-16 flex items-center justify-between">
+    <div class="bg-background min-h-screen pb-24 text-on-surface md:pt-16">
+      <header class="sticky top-0 md:top-16 z-50 bg-surface h-16 flex items-center justify-between px-4 border-b border-outline-variant">
         <button
           type="button"
           onClick={() => history.back()}
-          class="tap-target flex items-center justify-start text-on-surface hover:opacity-70"
+          class="tap-target p-2 hover:bg-surface-container-high rounded-full transition-colors"
           aria-label="返回"
         >
-          <span class="material-symbols-outlined">arrow_back</span>
+          <span class="material-symbols-outlined text-primary">arrow_back</span>
         </button>
-        <h1 class="text-xl font-headline font-semibold text-on-surface">编辑个人资料</h1>
+        <h1 class="text-lg font-bold text-primary">编辑个人资料</h1>
         <button
           type="button"
           onClick={save}

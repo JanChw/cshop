@@ -108,28 +108,28 @@ export default function AddressManager() {
   }
 
   return (
-    <div class="md:pt-16 min-h-screen pb-24">
-      <header class="sticky top-0 md:top-16 z-40 bg-surface shadow-sm w-full h-16 flex justify-between items-center px-6">
+    <div class="bg-background min-h-screen pb-24 text-on-surface md:pt-16">
+      <header class="sticky top-0 md:top-16 z-50 bg-surface h-16 flex justify-between items-center px-4 border-b border-outline-variant">
         <button
           type="button"
           onClick={() => history.back()}
-          class="tap-target text-on-surface hover:opacity-80 transition-opacity"
+          class="tap-target p-2 hover:bg-surface-container-high rounded-full transition-colors"
           aria-label="返回"
         >
-          <span class="material-symbols-outlined">arrow_back_ios_new</span>
+          <span class="material-symbols-outlined text-primary">arrow_back</span>
         </button>
-        <h1 class="font-headline text-2xl font-bold text-primary">收货地址</h1>
+        <h1 class="text-lg font-bold text-primary">收货地址</h1>
         <button
           type="button"
           onClick={() => showToast('帮助功能即将上线')}
-          class="tap-target text-on-surface hover:opacity-80 transition-opacity"
+          class="tap-target p-2 hover:bg-surface-container-high rounded-full transition-colors"
           aria-label="帮助"
         >
-          <span class="material-symbols-outlined">help_outline</span>
+          <span class="material-symbols-outlined text-primary">help_outline</span>
         </button>
       </header>
 
-      <main class="mt-16 md:mt-0 mb-24 px-container-margin py-8 container-content">
+      <main class="pt-4 py-8 container-content">
         {addresses().length === 0 ? (
           <div class="flex flex-col items-center justify-center py-20 text-center">
             <span class="material-symbols-outlined text-6xl text-outline-variant/50 mb-4">location_on</span>

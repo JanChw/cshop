@@ -44,30 +44,30 @@ export default function LogisticsContent() {
   }
 
   return (
-    <main class="md:pt-16 min-h-screen pb-24 md:pb-8">
-      <header class="fixed top-0 md:top-16 w-full z-40 bg-surface border-b border-outline-variant">
+    <div class="bg-background min-h-screen pb-24 text-on-surface md:pt-16">
+      <header class="sticky top-0 md:top-16 z-50 bg-surface border-b border-outline-variant">
         <div class="container-content flex justify-between items-center h-16">
           <button
             type="button"
             onClick={() => history.back()}
-            class="tap-target flex items-center justify-center text-primary hover:bg-surface-container-high rounded-full p-2"
+            class="tap-target p-2 hover:bg-surface-container-high rounded-full transition-colors"
             aria-label="返回"
           >
-            <span class="material-symbols-outlined">arrow_back</span>
+            <span class="material-symbols-outlined text-primary">arrow_back</span>
           </button>
-          <h1 class="font-headline text-2xl font-bold text-primary">物流详情</h1>
+          <h1 class="text-lg font-bold text-primary">物流详情</h1>
           <button
             type="button"
             onClick={() => showToast('暂无新消息')}
-            class="tap-target flex items-center justify-center text-primary hover:bg-surface-container-high rounded-full p-2"
+            class="tap-target p-2 hover:bg-surface-container-high rounded-full transition-colors"
             aria-label="通知"
           >
-            <span class="material-symbols-outlined">notifications</span>
+            <span class="material-symbols-outlined text-primary">notifications</span>
           </button>
         </div>
       </header>
 
-      <div class="container-content pt-20 md:pt-24 pb-8 md:flex md:gap-8">
+      <div class="container-content pt-4 pb-8 md:flex md:gap-8">
         <div class="md:w-2/5 space-y-6">
           <section class="bg-white rounded-xl p-6 md:p-8 shadow-card border border-outline-variant/60">
             <div class="flex items-start justify-between mb-6">
@@ -159,6 +159,6 @@ export default function LogisticsContent() {
           </div>
         </section>
       </div>
-    </main>
+    </div>
   )
 }

@@ -60,15 +60,15 @@ export default function AssetGrid() {
   }
 
   return (
-    <div class="md:pt-16 bg-background min-h-screen pb-24 text-on-surface">
-      <header class="bg-surface/80 backdrop-blur-md sticky top-0 md:top-16 z-40 flex justify-between items-center px-4 h-16 border-b border-outline-variant">
-        <a href="/person" class="tap-target p-2 hover:bg-surface-container rounded-full transition-colors" aria-label="返回">
-          <span class="material-symbols-outlined text-on-surface-variant">arrow_back</span>
+    <div class="bg-background min-h-screen pb-24 text-on-surface md:pt-16">
+      <header class="sticky top-0 md:top-16 z-50 bg-surface h-16 flex justify-between items-center px-4 border-b border-outline-variant">
+        <a href="/person" class="tap-target p-2 hover:bg-surface-container-high rounded-full transition-colors" aria-label="返回">
+          <span class="material-symbols-outlined text-primary">arrow_back</span>
         </a>
         <h1 class="text-lg font-bold text-primary">个人素材库</h1>
         <button
           type="button"
-          class="tap-target p-2 hover:bg-surface-container rounded-full transition-colors"
+          class="tap-target p-2 hover:bg-surface-container-high rounded-full transition-colors"
           onClick={() => fileInput?.click()}
           aria-label="上传"
         >
@@ -76,7 +76,7 @@ export default function AssetGrid() {
         </button>
       </header>
 
-      <main class="px-4 pt-4 pb-24 space-y-4 container-content">
+      <main class="pt-4 pb-24 space-y-4 container-content">
         <div class="relative">
           <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">search</span>
           <input

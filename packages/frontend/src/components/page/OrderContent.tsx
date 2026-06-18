@@ -58,9 +58,9 @@ export default function OrderContent(props: Props) {
   })
 
   return (
-    <main class="md:pt-16 min-h-screen pb-[calc(64px+env(safe-area-inset-bottom))] md:pb-8">
-      <header class="fixed top-0 md:top-16 w-full z-40 bg-surface/90 backdrop-blur-md border-b border-outline-variant">
-        <div class="container-content flex items-center h-14 gap-3">
+    <div class="bg-background min-h-screen pb-24 text-on-surface md:pt-16">
+      <header class="sticky top-0 md:top-16 z-50 bg-surface border-b border-outline-variant">
+        <div class="container-content flex items-center justify-between h-16">
           <Show
             when={!searchOpen()}
             fallback={
@@ -68,10 +68,10 @@ export default function OrderContent(props: Props) {
                 <button
                   type="button"
                   onClick={() => { setSearchOpen(false); setQuery('') }}
-                  class="tap-target flex items-center justify-center text-on-surface hover:bg-surface-container rounded-full flex-shrink-0"
+                  class="tap-target p-2 hover:bg-surface-container-high rounded-full transition-colors shrink-0"
                   aria-label="关闭搜索"
                 >
-                  <span class="material-symbols-outlined">arrow_back</span>
+                  <span class="material-symbols-outlined text-primary">arrow_back</span>
                 </button>
                 <SearchInput
                   value={query()}
@@ -80,40 +80,35 @@ export default function OrderContent(props: Props) {
                   placeholder="搜索订单号或商品名称"
                   size="sm"
                   autoFocus
-                  class="flex-1"
+                  class="flex-1 ml-2"
                 />
               </>
             }
           >
-            <div class="flex items-center gap-4 flex-1">
+            <div class="flex items-center gap-3 flex-1 min-w-0">
               <button
                 type="button"
                 onClick={() => history.back()}
-                class="md:hidden tap-target flex items-center justify-center text-on-surface hover:bg-surface-container rounded-full"
+                class="tap-target p-2 hover:bg-surface-container-high rounded-full transition-colors shrink-0"
                 aria-label="返回"
               >
-                <span class="material-symbols-outlined">arrow_back</span>
+                <span class="material-symbols-outlined text-primary">arrow_back</span>
               </button>
-              <h1 class="text-title-md md:text-headline-lg-mobile font-bold text-on-surface">订单管理</h1>
+              <h1 class="text-lg font-bold text-primary truncate">订单管理</h1>
             </div>
-            <div class="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setSearchOpen(true)}
-                class="tap-target flex items-center justify-center text-on-surface-variant hover:bg-surface-container rounded-full p-2"
-                aria-label="搜索订单"
-              >
-                <span class="material-symbols-outlined">search</span>
-              </button>
-              <div class="w-8 h-8 rounded-full bg-surface-container-highest overflow-hidden border border-outline-variant flex items-center justify-center text-primary">
-                <span class="material-symbols-outlined text-lg">person</span>
-              </div>
-            </div>
+            <button
+              type="button"
+              onClick={() => setSearchOpen(true)}
+              class="tap-target p-2 hover:bg-surface-container-high rounded-full transition-colors"
+              aria-label="搜索订单"
+            >
+              <span class="material-symbols-outlined text-primary">search</span>
+            </button>
           </Show>
         </div>
       </header>
 
-      <nav class="sticky top-14 z-30 bg-surface border-b border-outline-variant">
+      <nav class="sticky top-16 md:top-32 z-30 bg-surface border-b border-outline-variant">
         <div class="container-content flex items-center gap-6 md:gap-8 h-12 overflow-x-auto hide-scrollbar">
           {TABS.map((tab) => (
             <button
@@ -132,7 +127,7 @@ export default function OrderContent(props: Props) {
         </div>
       </nav>
 
-      <section class="container-content py-stack-lg space-y-6 pt-28 md:pt-8">
+      <section class="container-content py-stack-lg space-y-6">
         <Show
           when={filteredOrders().length > 0}
           fallback={
@@ -165,6 +160,6 @@ export default function OrderContent(props: Props) {
           </For>
         </Show>
       </section>
-    </main>
+    </div>
   )
 }

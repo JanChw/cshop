@@ -18,8 +18,8 @@ export default function HelpCenter() {
   ]
 
   return (
-    <div class="md:pt-16 min-h-screen pb-24">
-      <header class="sticky top-0 md:top-16 z-40 bg-surface border-b border-outline-variant/60 flex justify-between items-center px-6 h-16 w-full">
+    <div class="bg-background min-h-screen pb-24 text-on-surface md:pt-16">
+      <header class="sticky top-0 md:top-16 z-50 bg-surface h-16 flex justify-between items-center px-4 border-b border-outline-variant">
         <div class="flex items-center gap-4">
           <button
             type="button"
@@ -27,9 +27,9 @@ export default function HelpCenter() {
             class="tap-target p-2 hover:bg-surface-container-high transition-colors rounded-full"
             aria-label="返回"
           >
-            <span class="material-symbols-outlined text-on-surface">arrow_back</span>
+            <span class="material-symbols-outlined text-primary">arrow_back</span>
           </button>
-          <h1 class="font-headline text-2xl font-bold text-primary">帮助中心</h1>
+          <h1 class="text-lg font-bold text-primary">帮助中心</h1>
         </div>
         <button
           type="button"
@@ -37,7 +37,7 @@ export default function HelpCenter() {
           class="tap-target p-2 hover:bg-surface-container-high transition-colors rounded-full"
           aria-label="通知"
         >
-          <span class="material-symbols-outlined text-on-surface">notifications</span>
+          <span class="material-symbols-outlined text-primary">notifications</span>
         </button>
       </header>
 

@@ -81,6 +81,7 @@ export default function ShopContent(props: Props) {
   const [filterSize, setFilterSize] = createSignal('')
   const [filterPrice, setFilterPrice] = createSignal('')
   const [sortMode, setSortMode] = createSignal<'default' | 'price-asc' | 'newest'>('default')
+  const [filterPanelOpen, setFilterPanelOpen] = createSignal(false)
 
   const [showScrollTop, setShowScrollTop] = createSignal(false)
 
@@ -135,6 +136,9 @@ export default function ShopContent(props: Props) {
     const en = categoryMap[zh] || 'all'
     setActiveCategory(en)
   }
+
+  const filterLabel = (opts: { value: string; label: string }[], value: string): string =>
+    opts.find(o => o.value === value)?.label ?? value
 
   const resetFilters = () => {
     setFilterFabric('')
@@ -262,7 +266,8 @@ export default function ShopContent(props: Props) {
             </a>
           </div>
         </div>
-        <div class="container-content mt-stack-md">
+        {/* CategoryChips - mobile only */}
+        <div class="container-content mt-stack-md md:hidden">
           <div class="bg-primary-container/20 -mx-container-margin px-container-margin md:mx-0 md:px-0 md:rounded-xl py-3">
             <div class="-mr-container-margin md:mr-0">
               <CategoryChips
@@ -280,45 +285,139 @@ export default function ShopContent(props: Props) {
             </div>
           </div>
         </div>
+
       </section>
 
-      <div class="md:flex md:container-content md:gap-6 md:items-start">
-        {/* Tablet filter sidebar */}
-        <aside class="hidden md:block w-44 shrink-0">
-          <div class="sticky top-20 space-y-6 bg-surface-container-low rounded-xl p-5">
-            <FilterGroup title="面料" options={FABRIC_OPTS} value={filterFabric()} onChange={setFilterFabric} variant="slot" />
-            <FilterGroup title="版型" options={FIT_OPTS} value={filterFit()} onChange={setFilterFit} variant="slot" />
-            <FilterGroup title="尺码" options={SIZE_OPTS} value={filterSize()} onChange={setFilterSize} variant="slot" />
-            <FilterGroup title="价格" options={PRICE_OPTS} value={filterPrice()} onChange={setFilterPrice} variant="slot" />
+        {/* Tablet: Filter + Sort bar */}
+        <div class="hidden md:block container-content mt-2 relative">
+          <div class="flex items-center gap-6 bg-surface-container-low rounded-xl px-5 py-3">
+            <div class="flex items-center gap-1 flex-1 min-w-0 overflow-x-auto hide-scrollbar">
+              <Show when={activeFilterCount() > 0}>
+                <Show when={filterFabric()}>
+                  <span class="inline-flex items-center gap-1 pl-2 pr-1 py-1 rounded-lg bg-primary-container text-primary text-label-md font-medium whitespace-nowrap shrink-0">
+                    面料: {filterLabel(FABRIC_OPTS, filterFabric())}
+                    <button type="button" onClick={() => setFilterFabric('')} class="flex items-center justify-center w-5 h-5 rounded-full hover:bg-primary/20 transition-colors">
+                      <span class="material-symbols-outlined text-sm">close</span>
+                    </button>
+                  </span>
+                </Show>
+                <Show when={filterFit()}>
+                  <span class="inline-flex items-center gap-1 pl-2 pr-1 py-1 rounded-lg bg-primary-container text-primary text-label-md font-medium whitespace-nowrap shrink-0">
+                    版型: {filterLabel(FIT_OPTS, filterFit())}
+                    <button type="button" onClick={() => setFilterFit('')} class="flex items-center justify-center w-5 h-5 rounded-full hover:bg-primary/20 transition-colors">
+                      <span class="material-symbols-outlined text-sm">close</span>
+                    </button>
+                  </span>
+                </Show>
+                <Show when={filterSize()}>
+                  <span class="inline-flex items-center gap-1 pl-2 pr-1 py-1 rounded-lg bg-primary-container text-primary text-label-md font-medium whitespace-nowrap shrink-0">
+                    尺码: {filterLabel(SIZE_OPTS, filterSize())}
+                    <button type="button" onClick={() => setFilterSize('')} class="flex items-center justify-center w-5 h-5 rounded-full hover:bg-primary/20 transition-colors">
+                      <span class="material-symbols-outlined text-sm">close</span>
+                    </button>
+                  </span>
+                </Show>
+                <Show when={filterPrice()}>
+                  <span class="inline-flex items-center gap-1 pl-2 pr-1 py-1 rounded-lg bg-primary-container text-primary text-label-md font-medium whitespace-nowrap shrink-0">
+                    价格: {filterLabel(PRICE_OPTS, filterPrice())}
+                    <button type="button" onClick={() => setFilterPrice('')} class="flex items-center justify-center w-5 h-5 rounded-full hover:bg-primary/20 transition-colors">
+                      <span class="material-symbols-outlined text-sm">close</span>
+                    </button>
+                  </span>
+                </Show>
+              </Show>
 
-            <div>
-              <div class="w-8 h-0.5 bg-primary rounded-full mb-4" />
-              <h3 class="text-body-lg font-bold text-on-surface mb-3">排序</h3>
-              <div class="space-y-2">
-                {SORT_OPTS.map(opt => (
-                  <label class="flex items-center gap-2 text-body-sm text-on-surface-variant cursor-pointer tap-target">
-                    <input
-                      type="radio"
-                      name="shop-sort"
-                      checked={sortMode() === opt.value}
-                      onChange={() => setSortMode(opt.value)}
-                      class="accent-primary"
-                    />
-                    {opt.label}
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <Show when={activeFilterCount() > 0}>
               <button
                 type="button"
-                onClick={resetFilters}
-                class="text-primary text-label-md font-bold tap-target hover:underline"
+                onClick={() => setFilterPanelOpen(p => !p)}
+                class={`flex items-center gap-1 px-2 py-1 text-label-md font-bold tap-target transition-colors shrink-0 ${
+                  filterPanelOpen()
+                    ? 'text-primary'
+                    : 'text-on-surface-variant hover:text-on-surface'
+                }`}
               >
-                重置筛选
+                <span class="material-symbols-outlined text-lg">{filterPanelOpen() ? 'expand_less' : 'tune'}</span>
+                <span>筛选{activeFilterCount() > 0 ? ` (${activeFilterCount()})` : ''}</span>
               </button>
-            </Show>
+            </div>
+
+            <div class="w-px h-6 bg-outline-variant shrink-0" />
+
+            <div class="flex items-center gap-2 shrink-0">
+              {SORT_OPTS.map((opt, i) => [
+                i > 0 ? <span class="text-outline-variant text-label-md">·</span> : null,
+                <button
+                  type="button"
+                  onClick={() => setSortMode(opt.value)}
+                  class={`whitespace-nowrap text-label-md tap-target transition-colors ${
+                    sortMode() === opt.value ? 'text-primary font-bold' : 'text-on-surface-variant'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ])}
+            </div>
+          </div>
+
+          <Show when={filterPanelOpen()}>
+            <div class="fixed inset-0 z-20" onClick={() => setFilterPanelOpen(false)} />
+            <div class="absolute left-0 right-0 top-full mt-1 z-30 bg-surface-container-low rounded-xl p-5 space-y-4 shadow-elevated">
+              <FilterGroup title="面料" options={FABRIC_OPTS} value={filterFabric()} onChange={setFilterFabric} />
+              <FilterGroup title="版型" options={FIT_OPTS} value={filterFit()} onChange={setFilterFit} />
+              <FilterGroup title="尺码" options={SIZE_OPTS} value={filterSize()} onChange={setFilterSize} />
+              <FilterGroup title="价格" options={PRICE_OPTS} value={filterPrice()} onChange={setFilterPrice} />
+
+              <div class="flex justify-between items-center pt-3 border-t border-outline-variant">
+                <button
+                  type="button"
+                  onClick={resetFilters}
+                  class="text-label-md font-bold text-on-surface-variant tap-target hover:text-on-surface transition-colors"
+                >
+                  × 重置筛选
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFilterPanelOpen(false)}
+                  class="text-label-md font-bold text-primary tap-target hover:underline transition-colors"
+                >
+                  收起
+                </button>
+              </div>
+            </div>
+          </Show>
+        </div>
+
+      <div class="md:flex md:container-content md:gap-6 md:items-start">
+        {/* Tablet: Categories sidebar */}
+        <aside class="hidden md:block w-36 shrink-0">
+          <div class="sticky top-20 bg-surface-container-low rounded-xl p-4">
+            <h3 class="text-label-md font-bold text-on-surface mb-3">分类</h3>
+            <div class="space-y-1">
+              <button
+                type="button"
+                onClick={() => setActiveCategory('all')}
+                class={`w-full text-left px-3 py-2 rounded-lg text-body-sm transition-colors tap-target ${
+                  activeCategory() === 'all'
+                    ? 'text-primary font-bold bg-primary/10'
+                    : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'
+                }`}
+              >
+                全部
+              </button>
+              {Object.entries(categoryMap).map(([zh, en]) => (
+                <button
+                  type="button"
+                  onClick={() => setActiveCategory(en)}
+                  class={`w-full text-left px-3 py-2 rounded-lg text-body-sm transition-colors tap-target ${
+                    activeCategory() === en
+                      ? 'text-primary font-bold bg-primary/10'
+                      : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'
+                  }`}
+                >
+                  {zh}
+                </button>
+              ))}
+            </div>
           </div>
         </aside>
 
@@ -351,12 +450,12 @@ export default function ShopContent(props: Props) {
           </section>
 
           {/* Product grid */}
-          <section class="px-container-margin md:px-0 py-stack-lg grid grid-cols-2 md:grid-cols-2 gap-x-gutter gap-y-stack-md">
+          <section class="px-container-margin md:px-0 py-stack-lg grid grid-cols-2 md:grid-cols-3 gap-x-gutter gap-y-stack-md">
             {visibleItems().map((product) => (
               <ProductCard product={product} variant="shop" />
             ))}
             <Show when={filteredProducts().length === 0}>
-              <div class="col-span-2 flex flex-col items-center justify-center py-20 text-center">
+              <div class="col-span-full flex flex-col items-center justify-center py-20 text-center">
                 <span class="material-symbols-outlined text-outline text-5xl mb-4">search_off</span>
                 <p class="text-on-surface-variant font-serif text-body-lg">没有符合条件的商品</p>
                 <button
@@ -372,7 +471,8 @@ export default function ShopContent(props: Props) {
 
           {/* Loading skeleton */}
           <Show when={loading() && filteredProducts().length > 0}>
-            <div class="px-container-margin md:px-0 grid grid-cols-2 md:grid-cols-2 gap-x-gutter gap-y-stack-md">
+            <div class="px-container-margin md:px-0 grid grid-cols-2 md:grid-cols-3 gap-x-gutter gap-y-stack-md">
+              <SkeletonCard />
               <SkeletonCard />
               <SkeletonCard />
             </div>

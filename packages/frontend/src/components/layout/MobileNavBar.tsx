@@ -29,7 +29,7 @@ export default function MobileNavBar() {
 
   return (
     <nav
-      class="md:hidden fixed bottom-0 left-0 w-full z-50 bg-surface/95 backdrop-blur-lg border-t border-outline-variant flex justify-around items-center px-2 pt-2 pb-[max(8px,env(safe-area-inset-bottom))]"
+      class="md:hidden fixed bottom-0 left-0 w-full z-50 bg-surface/95 backdrop-blur-lg border-t border-outline-variant flex items-center px-2 pt-1.5 pb-[max(8px,env(safe-area-inset-bottom))]"
       aria-label="主导航"
     >
       {NAV_ITEMS.map((item) => {
@@ -37,12 +37,13 @@ export default function MobileNavBar() {
         return (
           <a
             href={item.href}
-            class={`flex flex-col items-center justify-center min-w-11 min-h-11 px-3 py-1 rounded-xl transition-colors ${
+            class={`flex flex-1 min-w-0 flex-col items-center justify-center py-1 rounded-xl transition-colors ${
               active
                 ? 'text-primary'
                 : 'text-on-surface-variant hover:text-primary'
             }`}
             aria-current={active ? 'page' : undefined}
+            aria-label={item.label}
           >
             <span
               class="material-symbols-outlined text-2xl"
@@ -50,7 +51,6 @@ export default function MobileNavBar() {
             >
               {item.icon}
             </span>
-            <span class={`text-label-md mt-0.5 ${active ? 'font-bold' : ''}`}>{item.label}</span>
           </a>
         )
       })}

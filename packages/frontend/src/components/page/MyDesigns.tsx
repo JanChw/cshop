@@ -47,8 +47,8 @@ export default function MyDesigns() {
   }
 
   return (
-    <div class="bg-background min-h-screen pb-24 text-on-surface">
-      <header class="md:pt-16 bg-surface sticky top-0 z-50 flex justify-between items-center px-4 h-16 border-b border-outline-variant">
+    <div class="bg-background min-h-screen pb-24 text-on-surface md:pt-16">
+      <header class="md:top-16 bg-surface sticky top-0 z-50 flex justify-between items-center px-4 h-16 border-b border-outline-variant">
         <a href="/person" class="tap-target p-2 hover:bg-surface-container-high rounded-full transition-colors" aria-label="返回">
           <span class="material-symbols-outlined text-primary">arrow_back</span>
         </a>
@@ -58,7 +58,7 @@ export default function MyDesigns() {
         </a>
       </header>
 
-      <main class="px-4 container-content pt-4 space-y-4">
+      <main class="container-content pt-4 space-y-4">
         <Show when={!loading()} fallback={
           <div class="text-center py-20 text-secondary">
             <span class="material-symbols-outlined animate-spin text-3xl">progress_activity</span>

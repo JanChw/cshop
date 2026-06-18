@@ -17,8 +17,8 @@ export default function SecuritySettings() {
   ]
 
   return (
-    <div class="md:pt-16 min-h-screen pb-24">
-      <header class="sticky top-0 md:top-16 z-40 bg-surface border-b border-outline-variant px-4 h-16 w-full flex justify-between items-center">
+    <div class="bg-background min-h-screen pb-24 text-on-surface md:pt-16">
+      <header class="sticky top-0 md:top-16 z-50 bg-surface h-16 flex justify-between items-center px-4 border-b border-outline-variant">
         <div class="flex items-center gap-4">
           <button
             type="button"
@@ -28,7 +28,7 @@ export default function SecuritySettings() {
           >
             <span class="material-symbols-outlined text-primary">arrow_back</span>
           </button>
-          <h1 class="text-on-surface font-headline text-xl font-semibold">账号与安全</h1>
+          <h1 class="text-lg font-bold text-primary">账号与安全</h1>
         </div>
         <button
           type="button"
@@ -36,7 +36,7 @@ export default function SecuritySettings() {
           class="tap-target p-2 hover:bg-surface-container-high transition-colors rounded-full"
           aria-label="帮助"
         >
-          <span class="material-symbols-outlined text-on-surface-variant">info</span>
+          <span class="material-symbols-outlined text-primary">info</span>
         </button>
       </header>
 

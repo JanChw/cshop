@@ -1,10 +1,10 @@
 @import 'tailwindcss';
 
 :root, [data-theme="dark"] {
-  --t-primary: #c2652a;
-  --t-on-primary: #ffffff;
-  --t-primary-container: #2a1a10;
-  --t-on-primary-container: #f8e9df;
+  --t-primary: #f5f5f5;
+  --t-on-primary: #0c0c0c;
+  --t-primary-container: #1f1f1f;
+  --t-on-primary-container: #f5f5f5;
 
   --t-secondary: #a1a1aa;
   --t-on-secondary: #0c0c0c;
@@ -42,8 +42,9 @@
 
   --t-success: #22c55e;
   --t-on-success: #000000;
-  --t-warning: #f59e0b;
-  --t-on-warning: #000000;
+  --t-warning: #facc15;
+  --t-on-warning: #0c0c0c;
+  --t-accent: #ef4444;
   --t-info: #3b82f6;
   --t-on-info: #ffffff;
 
@@ -97,6 +98,7 @@
   --t-on-warning: #ffffff;
   --t-info: #2563eb;
   --t-on-info: #ffffff;
+  --t-accent: #ef4444;
 
   --t-shadow-card: 0 1px 0 rgba(0, 0, 0, 0.03) inset;
   --t-shadow-elevated: 0 0 0 1px rgba(0, 0, 0, 0.05);
@@ -143,6 +145,7 @@
   --color-on-warning: var(--t-on-warning);
   --color-info: var(--t-info);
   --color-on-info: var(--t-on-info);
+  --color-accent: var(--t-accent);
 
   --color-error: var(--t-error);
   --color-on-error: var(--t-on-error);

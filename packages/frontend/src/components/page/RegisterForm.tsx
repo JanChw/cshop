@@ -42,8 +42,6 @@ export default function RegisterForm() {
     <main class="min-h-screen flex flex-col md:flex-row">
       {/* Tablet brand side */}
       <div class="hidden md:flex md:w-1/2 relative overflow-hidden items-center justify-center bg-surface-container-low">
-        <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[100px]" />
-        <div class="absolute bottom-[-10%] right-[-10%] w-[30%] h-[30%] bg-tertiary/5 rounded-full blur-[80px]" />
         <div class="relative z-10 text-center px-12">
           <h2 class="font-headline text-5xl font-bold text-primary mb-4">ByChooow</h2>
           <p class="text-body-lg text-on-surface-variant">加入创作者社区，开始设计您的专属服饰</p>

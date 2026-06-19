@@ -38,9 +38,9 @@ export default function MobileNavBar() {
           <a
             href={item.href}
             class={`flex flex-1 min-w-0 flex-col items-center justify-center py-1 rounded-xl transition-colors ${
-              active
-                ? 'text-primary'
-                : 'text-on-surface-variant hover:text-primary'
+               active
+                 ? 'text-accent'
+                 : 'text-on-surface-variant hover:text-primary'
             }`}
             aria-current={active ? 'page' : undefined}
             aria-label={item.label}

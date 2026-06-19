@@ -40,7 +40,7 @@ export default function TabletNavBar() {
               <a
                 href={link.href}
                 class={`text-sm font-medium transition-colors ${
-                  active ? 'text-primary font-bold' : 'text-on-surface-variant hover:text-on-surface'
+                   active ? 'text-accent font-bold' : 'text-on-surface-variant hover:text-on-surface'
                 }`}
                 aria-current={active ? 'page' : undefined}
               >

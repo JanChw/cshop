@@ -1,4 +1,4 @@
-import { createSignal, onMount } from 'solid-js'
+import { createSignal, onMount, onCleanup } from 'solid-js'
 
 interface NavItem {
   href: string
@@ -20,15 +20,28 @@ function isActive(path: string, href: string) {
   return path === href || path.startsWith(`${href}/`)
 }
 
-export default function MobileNavBar() {
-  const [activePath, setActivePath] = createSignal('/')
+interface Props {
+  currentPath?: string
+}
+
+export default function MobileNavBar(props: Props) {
+  const [activePath, setActivePath] = createSignal(
+    props.currentPath || '/'
+  )
 
   onMount(() => {
-    setActivePath(window.location.pathname)
+    const update = () => setActivePath(window.location.pathname)
+    document.addEventListener('astro:before-swap', update)
+    document.addEventListener('astro:page-load', update)
+    onCleanup(() => {
+      document.removeEventListener('astro:before-swap', update)
+      document.removeEventListener('astro:page-load', update)
+    })
   })
 
   return (
     <nav
+      style={{ "view-transition-name": "mobile-nav-bar" }}
       class="md:hidden fixed bottom-0 left-0 w-full z-50 bg-surface/95 backdrop-blur-lg border-t border-outline-variant flex items-center px-2 pt-1.5 pb-[max(8px,env(safe-area-inset-bottom))]"
       aria-label="主导航"
     >

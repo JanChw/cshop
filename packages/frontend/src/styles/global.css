@@ -12,7 +12,7 @@
   --t-on-secondary-container: #fafafa;
 
   --t-tertiary: #71717a;
-  --t-on-tertiary: #ffffff;
+  --t-on-tertiary: #0c0c0c;
   --t-tertiary-container: #27272a;
   --t-on-tertiary-container: #d4d4d8;
 
@@ -36,7 +36,7 @@
   --t-inverse-on-surface: #0c0c0c;
 
   --t-error: #ef4444;
-  --t-on-error: #ffffff;
+  --t-on-error: #171717;
   --t-error-container: #450a0a;
   --t-on-error-container: #fca5a5;
 
@@ -64,7 +64,7 @@
   --t-on-secondary-container: #171717;
 
   --t-tertiary: #a3a3a3;
-  --t-on-tertiary: #ffffff;
+  --t-on-tertiary: #171717;
   --t-tertiary-container: #e5e5e5;
   --t-on-tertiary-container: #404040;
 
@@ -87,7 +87,7 @@
   --t-inverse-surface: #171717;
   --t-inverse-on-surface: #ffffff;
 
-  --t-error: #dc2626;
+  --t-error: #b91c1c;
   --t-on-error: #ffffff;
   --t-error-container: #fee2e2;
   --t-on-error-container: #991b1b;
@@ -274,4 +274,82 @@
 @utility tap-target {
   min-width: 44px;
   min-height: 44px;
+}
+
+/* === Range Input === */
+input[type="range"] {
+  accent-color: var(--color-primary);
+  -webkit-appearance: none;
+  background: var(--color-outline-variant);
+  height: 4px;
+  border-radius: 2px;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 18px;
+  width: 18px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  cursor: pointer;
+  border: 2px solid var(--color-surface);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+input[type="range"]::-moz-range-thumb {
+  height: 18px;
+  width: 18px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  cursor: pointer;
+  border: 2px solid var(--color-surface);
+}
+
+/* === Focus Visible === */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+button:focus-visible,
+a:focus-visible,
+select:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* === Tab Scroll Hint === */
+@utility tab-scroll-hint {
+  -webkit-mask-image: linear-gradient(to right, black 85%, transparent);
+  mask-image: linear-gradient(to right, black 85%, transparent);
+}
+
+/* View Transitions */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+::view-transition-old(root) {
+  animation: fade-out 300ms ease-out both;
+}
+::view-transition-new(root) {
+  animation: fade-in 300ms ease-in both;
+}
+::view-transition-group(mobile-nav-bar),
+::view-transition-group(tablet-nav-bar) {
+  animation-duration: 0s;
+}
+::view-transition-old(mobile-nav-bar),
+::view-transition-new(mobile-nav-bar),
+::view-transition-old(tablet-nav-bar),
+::view-transition-new(tablet-nav-bar) {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
 }

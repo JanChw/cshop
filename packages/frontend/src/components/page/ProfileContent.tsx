@@ -99,7 +99,7 @@ export default function ProfileContent() {
                 <button
                   type="button"
                   onClick={() => setActiveWorkTab('drafts')}
-                  class={`px-4 py-1 text-label-md rounded-md transition-all tap-target ${
+                  class={`px-4 py-1 text-label-md rounded-md transition-colors tap-target ${
                     activeWorkTab() === 'drafts'
                       ? 'bg-surface-container-lowest text-primary shadow-sm'
                       : 'text-secondary hover:text-on-surface'
@@ -110,7 +110,7 @@ export default function ProfileContent() {
                 <button
                   type="button"
                   onClick={() => setActiveWorkTab('ordered')}
-                  class={`px-4 py-1 text-label-md rounded-md transition-all tap-target ${
+                  class={`px-4 py-1 text-label-md rounded-md transition-colors tap-target ${
                     activeWorkTab() === 'ordered'
                       ? 'bg-surface-container-lowest text-primary shadow-sm'
                       : 'text-secondary hover:text-on-surface'

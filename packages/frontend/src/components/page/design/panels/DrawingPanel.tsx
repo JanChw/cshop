@@ -21,7 +21,7 @@ export default function DrawingPanel(props: Props) {
     <section class="px-0 mt-6 space-y-6">
       <div class="grid grid-cols-2 gap-2 p-1 bg-surface-container-low rounded-xl border border-outline-variant">
         <button
-          class={`flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold transition-all ${
+          class={`flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold transition-colors ${
             props.mode === 'brush'
               ? 'bg-primary text-on-primary shadow-sm'
               : 'text-on-surface-variant hover:bg-surface-container-high'
@@ -32,7 +32,7 @@ export default function DrawingPanel(props: Props) {
           画笔
         </button>
         <button
-          class={`flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold transition-all ${
+          class={`flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold transition-colors ${
             props.mode === 'move'
               ? 'bg-primary text-on-primary shadow-sm'
               : 'text-on-surface-variant hover:bg-surface-container-high'
@@ -83,7 +83,7 @@ export default function DrawingPanel(props: Props) {
                 const selected = () => props.style === s.key
                 return (
                   <button
-                    class={`flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-bold transition-all ${
+                    class={`flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-bold transition-colors ${
                       selected()
                         ? 'bg-primary text-on-primary shadow-sm'
                         : 'text-on-surface-variant hover:bg-surface-container-high'
@@ -128,7 +128,7 @@ export default function DrawingPanel(props: Props) {
 
       <div class="grid grid-cols-2 gap-3">
         <button
-          class="flex items-center justify-center gap-2 py-3 rounded-xl border border-outline-variant bg-surface hover:border-primary hover:bg-primary-container/10 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+          class="flex items-center justify-center gap-2 py-3 rounded-xl border border-outline-variant bg-surface hover:border-primary hover:bg-primary-container/10 transition-colors transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
           onClick={props.onUndo}
           disabled={!props.canUndo}
         >
@@ -136,7 +136,7 @@ export default function DrawingPanel(props: Props) {
           <span class="text-sm font-bold">撤销</span>
         </button>
         <button
-          class="flex items-center justify-center gap-2 py-3 rounded-xl border border-outline-variant bg-surface hover:border-error hover:bg-error-container/30 hover:text-error transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+          class="flex items-center justify-center gap-2 py-3 rounded-xl border border-outline-variant bg-surface hover:border-error hover:bg-error-container/30 hover:text-error transition-colors transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
           onClick={props.onClear}
           disabled={!props.hasDrawing}
         >

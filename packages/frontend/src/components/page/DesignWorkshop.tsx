@@ -12,7 +12,7 @@ import ColorPanel from './design/panels/ColorPanel'
 import TextPanel from './design/panels/TextPanel'
 import AssetsPanel from './design/panels/AssetsPanel'
 import DrawingPanel from './design/panels/DrawingPanel'
-import { DESIGN_TABS, TSHIRT_COLORS, type DesignTab, type BrushStyle } from './design/design-types'
+import { DESIGN_TABS, TSHIRT_COLORS, DEFAULT_CANVAS_INK, DEFAULT_DRAWING_COLOR, type DesignTab, type BrushStyle } from './design/design-types'
 import type { CanvasAPI } from '../ui/FabricCanvas'
 import { api } from '../../lib/api'
 import { showToast } from '../../lib/toast'
@@ -34,7 +34,7 @@ export default function DesignWorkshop() {
   const [drawerOpen, setDrawerOpen] = createSignal(false)
   const [tshirtColor, setTshirtColor] = createSignal(TSHIRT_COLORS[0].hex)
   const [bgColor] = createSignal('transparent')
-  const [drawingColor, setDrawingColor] = createSignal('#0052FF')
+  const [drawingColor, setDrawingColor] = createSignal(DEFAULT_DRAWING_COLOR)
   const [drawingSize, setDrawingSize] = createSignal(1)
   const [drawingMode, setDrawingMode] = createSignal<'brush' | 'move'>('brush')
   const [drawingStyle, setDrawingStyle] = createSignal<BrushStyle>('pencil')
@@ -336,6 +336,7 @@ export default function DesignWorkshop() {
             )}
           >
             <input
+              aria-label="设计名称"
               ref={(el) => { nameInputRef = el; if (el) el.focus() }}
               class="font-headline text-xl font-bold tracking-tight text-primary leading-tight text-center bg-transparent border-b-2 border-primary outline-none min-w-40 max-w-52"
               value={nameDraft()}
@@ -367,7 +368,7 @@ export default function DesignWorkshop() {
         </button>
       </header>
 
-      <main class="px-4 md:px-8 md:max-w-6xl md:mx-auto md:flex md:gap-6 md:pt-20 pb-28 md:pb-8">
+      <main class="px-4 md:px-8 md:mx-auto md:flex md:gap-6 md:pt-20 pb-28 md:pb-8">
         <div class="md:w-2/3 md:order-2 md:flex md:flex-col md:gap-4">
         <Show when={product()}>
           <div class="px-4 py-3 bg-surface border border-outline-variant rounded-lg">
@@ -578,7 +579,7 @@ export default function DesignWorkshop() {
                   canvasAPI?.addText({
                     text: opts.text,
                     font: 'Manrope',
-                    color: '#000000',
+                  color: DEFAULT_CANVAS_INK,
                     size: 32,
                     letterSpacing: 0,
                     bold: false,

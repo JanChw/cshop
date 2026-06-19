@@ -80,7 +80,7 @@ export default function AssetGrid() {
         <div class="relative">
           <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">search</span>
           <input
-            class="w-full bg-surface border border-outline-variant rounded-lg py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-on-surface-variant"
+            class="w-full bg-surface border border-outline-variant rounded-lg py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors placeholder:text-on-surface-variant"
             placeholder="查找素材名称..."
             type="text"
             value={search()}
@@ -116,7 +116,7 @@ export default function AssetGrid() {
               <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
                 <For each={filtered()}>
                   {(item) => (
-                    <div class="group relative bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden flex flex-col aspect-[4/5] hover:border-primary transition-all">
+                    <div class="group relative bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden flex flex-col aspect-[4/5] hover:border-primary transition-colors">
                       <div class="flex-1 bg-surface-variant/30 overflow-hidden relative">
                         <ProductImage
                           src={item.thumbUrl}
@@ -129,7 +129,7 @@ export default function AssetGrid() {
                         />
                         <button
                           type="button"
-                          class="absolute top-2 right-2 bg-surface/90 backdrop-blur-md p-2 rounded-lg text-on-surface-variant hover:text-error transition-all tap-target"
+                          class="absolute top-2 right-2 bg-surface/90 backdrop-blur-md p-2 rounded-lg text-on-surface-variant hover:text-error transition-colors tap-target"
                           onClick={() => remove(item.id)}
                           aria-label="删除"
                         >

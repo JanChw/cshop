@@ -114,7 +114,7 @@ export default function AssetsPanel(props: Props) {
           <For each={STICKER_CATEGORIES}>
             {(cat) => (
               <button
-                class={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
+                class={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold border transition-colors ${
                   activeCategory() === cat.key
                     ? 'bg-primary text-on-primary border-primary'
                     : 'bg-surface-container-low text-on-surface-variant border-outline-variant hover:border-primary/60'
@@ -131,7 +131,7 @@ export default function AssetsPanel(props: Props) {
           <For each={filteredStickers()}>
             {(sticker) => (
               <button
-                class="aspect-square bg-surface-container-low rounded-lg overflow-hidden border border-outline-variant hover:border-primary hover:scale-[1.02] active:scale-95 transition-all p-2"
+                class="aspect-square bg-surface-container-low rounded-lg overflow-hidden border border-outline-variant hover:border-primary hover:scale-[1.02] active:scale-95 transition-colors transition-transform p-2"
                 onClick={() => props.onAddImage({ url: sticker.url, maxWidth: 120, maxHeight: 120 })}
                 title={sticker.name}
               >
@@ -150,7 +150,7 @@ export default function AssetsPanel(props: Props) {
       <section>
         <h2 class="text-2xl font-headline mb-4 text-on-surface">添加新元素</h2>
         <div
-          class="rounded-lg bg-surface border-2 border-dashed border-outline-variant flex flex-col items-center justify-center p-10 transition-all cursor-pointer group hover:border-primary hover:bg-primary-container/5"
+          class="rounded-lg bg-surface border-2 border-dashed border-outline-variant flex flex-col items-center justify-center p-10 transition-colors cursor-pointer group hover:border-primary hover:bg-primary-container/5"
           onClick={() => fileInput?.click()}
         >
           <Show
@@ -173,7 +173,7 @@ export default function AssetsPanel(props: Props) {
             </p>
             <button
               type="button"
-              class="mt-4 px-6 py-2 bg-primary text-on-primary rounded-lg font-bold text-sm hover:brightness-110 active:scale-95 transition-all"
+              class="mt-4 px-6 py-2 bg-primary text-on-primary rounded-lg font-bold text-sm hover:brightness-110 active:scale-95 transition-colors transition-transform"
             >
               浏览文件
             </button>
@@ -228,7 +228,7 @@ export default function AssetsPanel(props: Props) {
                   <For each={showAllUploads() ? uploads() : uploads().slice(0, 4)}>
                     {(item) => (
                       <button
-                        class="aspect-square bg-surface-container-low rounded-lg overflow-hidden border border-outline-variant hover:border-primary hover:scale-[1.02] active:scale-95 transition-all"
+                        class="aspect-square bg-surface-container-low rounded-lg overflow-hidden border border-outline-variant hover:border-primary hover:scale-[1.02] active:scale-95 transition-colors transition-transform"
                         onClick={() => addToCanvas(item)}
                         title={item.originalName}
                       >
@@ -253,7 +253,7 @@ export default function AssetsPanel(props: Props) {
                 <For each={uploads()}>
                   {(item) => (
                     <button
-                      class="aspect-square bg-surface-container-low rounded-lg overflow-hidden border border-outline-variant hover:border-primary hover:scale-[1.02] active:scale-95 transition-all"
+                      class="aspect-square bg-surface-container-low rounded-lg overflow-hidden border border-outline-variant hover:border-primary hover:scale-[1.02] active:scale-95 transition-colors transition-transform"
                       onClick={() => addToCanvas(item)}
                       title={item.originalName}
                     >

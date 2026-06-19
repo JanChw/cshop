@@ -93,7 +93,7 @@ export default function MyDesigns() {
               <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
                 <For each={items()}>
                   {(item) => (
-                    <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden flex flex-col aspect-[4/5] hover:border-primary transition-all group">
+                    <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden flex flex-col aspect-[4/5] hover:border-primary transition-colors group">
                       <a href={`/design?design=${item.id}`} class="flex-1 bg-surface-variant/30 overflow-hidden relative">
                         <Show
                           when={item.previewImage}
@@ -121,7 +121,7 @@ export default function MyDesigns() {
                         </div>
                         <button
                           type="button"
-                          class="tap-target p-2 rounded-lg hover:bg-error-container/30 hover:text-error text-on-surface-variant transition-all shrink-0"
+                          class="tap-target p-2 rounded-lg hover:bg-error-container/30 hover:text-error text-on-surface-variant transition-colors shrink-0"
                           onClick={() => remove(item.id)}
                           aria-label="删除"
                         >

@@ -76,10 +76,11 @@ export default function RegisterForm() {
           <div class="bg-surface-container-lowest p-8 rounded-xl shadow-card border border-outline-variant/60">
             <form class="space-y-5" onSubmit={handleSubmit}>
               <div class="space-y-1.5">
-                <label class="block text-label-md font-medium text-on-surface-variant ml-1">全名</label>
+                <label class="block text-label-md font-medium text-on-surface-variant ml-1" for="reg-name">全名</label>
                 <input
+                  id="reg-name"
                   type="text"
-                  class={`w-full px-4 py-3 bg-surface rounded-lg border outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 text-on-surface placeholder:text-outline ${errors().name ? 'border-error' : 'border-outline-variant'}`}
+                  class={`w-full px-4 py-3 bg-surface rounded-lg border outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200 text-on-surface placeholder:text-outline ${errors().name ? 'border-error' : 'border-outline-variant'}`}
                   placeholder="您的称呼"
                   value={name()}
                   onInput={(e) => { setName(e.currentTarget.value); setErrors((prev) => ({ ...prev, name: '' })) }}
@@ -88,10 +89,11 @@ export default function RegisterForm() {
               </div>
 
               <div class="space-y-1.5">
-                <label class="block text-label-md font-medium text-on-surface-variant ml-1">邮箱或手机号</label>
+                <label class="block text-label-md font-medium text-on-surface-variant ml-1" for="reg-email">邮箱或手机号</label>
                 <input
+                  id="reg-email"
                   type="text"
-                  class={`w-full px-4 py-3 bg-surface rounded-lg border outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 text-on-surface placeholder:text-outline ${errors().email ? 'border-error' : 'border-outline-variant'}`}
+                  class={`w-full px-4 py-3 bg-surface rounded-lg border outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200 text-on-surface placeholder:text-outline ${errors().email ? 'border-error' : 'border-outline-variant'}`}
                   placeholder="example@chooow.com"
                   value={email()}
                   onInput={(e) => { setEmail(e.currentTarget.value); setErrors((prev) => ({ ...prev, email: '' })) }}
@@ -100,10 +102,11 @@ export default function RegisterForm() {
               </div>
 
               <div class="space-y-1.5 relative">
-                <label class="block text-label-md font-medium text-on-surface-variant ml-1">密码</label>
+                <label class="block text-label-md font-medium text-on-surface-variant ml-1" for="reg-password">密码</label>
                 <input
+                  id="reg-password"
                   type={showPassword() ? 'text' : 'password'}
-                  class={`w-full px-4 py-3 bg-surface rounded-lg border outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 text-on-surface placeholder:text-outline ${errors().password ? 'border-error' : 'border-outline-variant'}`}
+                  class={`w-full px-4 py-3 bg-surface rounded-lg border outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200 text-on-surface placeholder:text-outline ${errors().password ? 'border-error' : 'border-outline-variant'}`}
                   placeholder="至少 8 位字符"
                   value={password()}
                   onInput={(e) => { setPassword(e.currentTarget.value); setErrors((prev) => ({ ...prev, password: '' })) }}
@@ -120,10 +123,11 @@ export default function RegisterForm() {
               </div>
 
               <div class="space-y-1.5">
-                <label class="block text-label-md font-medium text-on-surface-variant ml-1">确认密码</label>
+                <label class="block text-label-md font-medium text-on-surface-variant ml-1" for="reg-confirm">确认密码</label>
                 <input
+                  id="reg-confirm"
                   type="password"
-                  class={`w-full px-4 py-3 bg-surface rounded-lg border outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 text-on-surface placeholder:text-outline ${errors().confirmPassword ? 'border-error' : 'border-outline-variant'}`}
+                  class={`w-full px-4 py-3 bg-surface rounded-lg border outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200 text-on-surface placeholder:text-outline ${errors().confirmPassword ? 'border-error' : 'border-outline-variant'}`}
                   placeholder="再次输入密码"
                   value={confirmPassword()}
                   onInput={(e) => { setConfirmPassword(e.currentTarget.value); setErrors((prev) => ({ ...prev, confirmPassword: '' })) }}
@@ -136,13 +140,13 @@ export default function RegisterForm() {
                   <input
                     id="terms"
                     type="checkbox"
-                    class={`w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary/30 transition-all cursor-pointer ${errors().terms ? 'border-error' : ''}`}
+                    class={`w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary/30 transition-colors cursor-pointer ${errors().terms ? 'border-error' : ''}`}
                     checked={agreed()}
                     onChange={(e) => { setAgreed(e.currentTarget.checked); setErrors((prev) => ({ ...prev, terms: '' })) }}
                   />
                 </div>
                 <label class="text-xs text-on-surface-variant leading-relaxed cursor-pointer select-none" for="terms">
-                  我已阅读并同意 <a class="text-primary hover:underline transition-all" href="#">用户协议</a> 与 <a class="text-primary hover:underline transition-all" href="#">隐私条款</a>。
+                  我已阅读并同意 <a class="text-primary hover:underline transition-colors" href="#">用户协议</a> 与 <a class="text-primary hover:underline transition-colors" href="#">隐私条款</a>。
                 </label>
               </div>
               {errors().terms && <p class="text-error text-xs -mt-3">{errors().terms}</p>}
@@ -150,7 +154,7 @@ export default function RegisterForm() {
               <button
                 type="submit"
                 disabled={loading()}
-                class="w-full bg-primary text-on-primary font-bold py-4 rounded-lg shadow-sm hover:opacity-90 active:scale-[0.98] transition-all duration-200 mt-4 tracking-wide tap-target disabled:opacity-60"
+                class="w-full bg-primary text-on-primary font-bold py-4 rounded-lg shadow-sm hover:opacity-90 active:scale-[0.98] transition-opacity transition-transform duration-200 mt-4 tracking-wide tap-target disabled:opacity-60"
               >
                 {loading() ? (
                   <span class="flex items-center justify-center gap-2">
@@ -190,7 +194,7 @@ export default function RegisterForm() {
 
           <div class="mt-8 text-center">
             <p class="text-sm text-on-surface-variant">
-              已有账号？ <a class="text-primary font-bold hover:underline underline-offset-4 decoration-primary/30 transition-all" href="/login">登录</a>
+              已有账号？ <a class="text-primary font-bold hover:underline underline-offset-4 decoration-primary/30 transition-colors" href="/login">登录</a>
             </p>
           </div>
         </div>

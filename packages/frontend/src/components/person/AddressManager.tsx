@@ -185,7 +185,7 @@ export default function AddressManager() {
         <button
           type="button"
           onClick={openAdd}
-          class="w-full h-14 bg-primary hover:opacity-90 active:scale-95 transition-all rounded-xl flex items-center justify-center gap-2 text-on-primary shadow-lg tap-target disabled:opacity-60 md:max-w-md md:mx-auto"
+          class="w-full h-14 bg-primary hover:opacity-90 active:scale-95 transition-opacity transition-transform rounded-xl flex items-center justify-center gap-2 text-on-primary shadow-lg tap-target disabled:opacity-60 md:max-w-md md:mx-auto"
         >
           <span class="material-symbols-outlined">add</span>
           <span class="font-bold tracking-widest">添加新地址</span>
@@ -217,10 +217,12 @@ export default function AddressManager() {
 
             <div class="px-6 space-y-5 pb-6">
               <div class="space-y-2">
-                <label class="text-label-md font-medium text-on-surface-variant ml-1">收货人姓名</label>
+                <label class="text-label-md font-medium text-on-surface-variant ml-1" for="addr-name">收货人姓名</label>
                 <input
-                  class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-on-surface font-medium focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none"
+                  id="addr-name"
+                  class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-on-surface font-medium focus:ring-1 focus:ring-primary focus:border-primary transition-colors outline-none"
                   type="text"
+                  autocomplete="name"
                   placeholder="请输入收货人姓名"
                   value={formName()}
                   onInput={(e) => setFormName(e.currentTarget.value)}
@@ -228,10 +230,12 @@ export default function AddressManager() {
               </div>
 
               <div class="space-y-2">
-                <label class="text-label-md font-medium text-on-surface-variant ml-1">手机号码</label>
+                <label class="text-label-md font-medium text-on-surface-variant ml-1" for="addr-phone">手机号码</label>
                 <input
-                  class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-on-surface font-medium focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none"
+                  id="addr-phone"
+                  class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-on-surface font-medium focus:ring-1 focus:ring-primary focus:border-primary transition-colors outline-none"
                   type="tel"
+                  autocomplete="tel"
                   placeholder="请输入手机号码"
                   maxLength="11"
                   value={formPhone()}
@@ -240,10 +244,12 @@ export default function AddressManager() {
               </div>
 
               <div class="space-y-2">
-                <label class="text-label-md font-medium text-on-surface-variant ml-1">所在地区</label>
+                <label class="text-label-md font-medium text-on-surface-variant ml-1" for="addr-region">所在地区</label>
                 <input
-                  class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-on-surface font-medium focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none"
+                  id="addr-region"
+                  class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-on-surface font-medium focus:ring-1 focus:ring-primary focus:border-primary transition-colors outline-none"
                   type="text"
+                  autocomplete="address-level2"
                   placeholder="如：浙江省杭州市西湖区"
                   value={formRegion()}
                   onInput={(e) => setFormRegion(e.currentTarget.value)}
@@ -251,9 +257,11 @@ export default function AddressManager() {
               </div>
 
               <div class="space-y-2">
-                <label class="text-label-md font-medium text-on-surface-variant ml-1">详细地址</label>
+                <label class="text-label-md font-medium text-on-surface-variant ml-1" for="addr-detail">详细地址</label>
                 <textarea
-                  class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-on-surface font-medium focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none resize-none"
+                  id="addr-detail"
+                  class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-on-surface font-medium focus:ring-1 focus:ring-primary focus:border-primary transition-colors outline-none resize-none"
+                  autocomplete="street-address"
                   placeholder="街道、楼栋、门牌号等"
                   rows="3"
                   value={formDetail()}
@@ -287,7 +295,7 @@ export default function AddressManager() {
                 type="button"
                 onClick={save}
                 disabled={saving()}
-                class="w-full h-12 bg-primary hover:opacity-90 active:scale-95 transition-all rounded-xl text-on-primary font-bold tracking-wider tap-target disabled:opacity-60"
+                class="w-full h-12 bg-primary hover:opacity-90 active:scale-95 transition-opacity transition-transform rounded-xl text-on-primary font-bold tracking-wider tap-target disabled:opacity-60"
               >
                 {saving() ? '保存中...' : '保存'}
               </button>
@@ -319,7 +327,7 @@ export default function AddressManager() {
               <button
                 type="button"
                 onClick={confirmDelete}
-                class="flex-1 h-11 bg-error text-on-error rounded-xl font-bold text-label-md hover:opacity-90 active:scale-95 transition-all tap-target"
+                class="flex-1 h-11 bg-error text-on-error rounded-xl font-bold text-label-md hover:opacity-90 active:scale-95 transition-opacity transition-transform tap-target"
               >
                 确认删除
               </button>

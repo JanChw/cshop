@@ -67,9 +67,10 @@ export default function ProfileForm() {
 
           <section class="space-y-6 md:w-2/3">
             <div class="space-y-2">
-              <label class="text-label-md font-medium text-on-surface-variant ml-1">昵称</label>
+              <label class="text-label-md font-medium text-on-surface-variant ml-1" for="profile-nickname">昵称</label>
               <input
-                class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-on-surface font-medium focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none"
+                id="profile-nickname"
+                class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-on-surface font-medium focus:ring-1 focus:ring-primary focus:border-primary transition-colors outline-none"
                 type="text"
                 value={nickname()}
                 onInput={(e) => setNickname(e.currentTarget.value)}
@@ -83,7 +84,7 @@ export default function ProfileForm() {
                   <button
                     type="button"
                     onClick={() => setGender(g)}
-                    class={`flex items-center justify-center gap-2 py-3 rounded-lg transition-all tap-target ${
+                    class={`flex items-center justify-center gap-2 py-3 rounded-lg transition-colors tap-target ${
                       gender() === g
                         ? 'border-2 border-primary bg-primary-container text-primary font-semibold'
                         : 'border border-outline-variant bg-surface text-on-surface-variant hover:border-primary-container'
@@ -100,10 +101,11 @@ export default function ProfileForm() {
             </div>
 
             <div class="space-y-2">
-              <label class="text-label-md font-medium text-on-surface-variant ml-1">生日</label>
+              <label class="text-label-md font-medium text-on-surface-variant ml-1" for="profile-birthday">生日</label>
               <div class="relative">
                 <input
-                  class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-on-surface font-medium focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none appearance-none"
+                  id="profile-birthday"
+                  class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-on-surface font-medium focus:ring-1 focus:ring-primary focus:border-primary transition-colors outline-none appearance-none"
                   type="date"
                   value={birthday()}
                   onInput={(e) => setBirthday(e.currentTarget.value)}
@@ -113,9 +115,10 @@ export default function ProfileForm() {
             </div>
 
             <div class="space-y-2">
-              <label class="text-label-md font-medium text-on-surface-variant ml-1">个人简介</label>
+              <label class="text-label-md font-medium text-on-surface-variant ml-1" for="profile-bio">个人简介</label>
               <textarea
-                class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-on-surface font-medium focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none resize-none"
+                id="profile-bio"
+                class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-on-surface font-medium focus:ring-1 focus:ring-primary focus:border-primary transition-colors outline-none resize-none"
                 placeholder="向世界介绍一下你自己吧..."
                 rows="4"
                 value={bio()}

@@ -121,7 +121,7 @@ export default function LogisticsContent() {
               type="button"
               onClick={handleConfirm}
               disabled={confirmed() || confirming()}
-              class={`flex-1 py-4 px-6 rounded-lg font-medium transition-all active:scale-95 tap-target disabled:opacity-60 ${
+              class={`flex-1 py-4 px-6 rounded-lg font-medium transition-opacity transition-transform active:scale-95 tap-target disabled:opacity-60 ${
                 confirmed() ? 'bg-success text-on-success' : 'bg-primary text-on-primary hover:opacity-90'
               }`}
             >

@@ -144,7 +144,7 @@ export default function ProductContent() {
                   <button
                     type="button"
                     onClick={() => setSelectedColor(color)}
-                    class={`px-4 py-2 rounded-lg text-body-sm tap-target transition-all ${
+                    class={`px-4 py-2 rounded-lg text-body-sm tap-target transition-colors ${
                       selectedColor() === color
                         ? 'border-2 border-primary text-on-surface bg-surface'
                         : 'border border-outline-variant text-on-surface hover:bg-surface-container'
@@ -172,7 +172,7 @@ export default function ProductContent() {
                   <button
                     type="button"
                     onClick={() => setSelectedSize(size)}
-                    class={`py-2 rounded-lg text-center text-body-sm tap-target transition-all ${
+                    class={`py-2 rounded-lg text-center text-body-sm tap-target transition-colors ${
                       selectedSize() === size
                         ? 'border-2 border-primary bg-surface text-on-surface'
                         : 'border border-outline-variant text-on-surface hover:bg-surface-container'

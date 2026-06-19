@@ -9,6 +9,7 @@ import {
   SprayBrush,
   filters
 } from 'fabric'
+import { DEFAULT_CANVAS_INK } from '../page/design/design-types'
 
 export interface DesignText {
   text: string
@@ -266,7 +267,7 @@ export default function FabricCanvas(props: Props) {
           fontSize: (opts.size || 32) * RENDER_RATIO,
           fontWeight: opts.bold ? 'bold' : 'normal',
           fontStyle: opts.italic ? 'italic' : 'normal',
-          fill: opts.color || '#000000',
+          fill: opts.color || DEFAULT_CANVAS_INK,
           charSpacing: Math.round((opts.letterSpacing || 0) * 1000),
           objectCaching: false
         })
@@ -405,7 +406,7 @@ export default function FabricCanvas(props: Props) {
         return {
           text: t.text || '',
           font: t.fontFamily || 'Manrope',
-          color: (t.fill as string) || '#000000',
+          color: (t.fill as string) || DEFAULT_CANVAS_INK,
           size: (t.fontSize || 32) / RENDER_RATIO,
           letterSpacing: (t.charSpacing || 0) / 1000,
           bold: t.fontWeight === 'bold' || false,
@@ -420,7 +421,7 @@ export default function FabricCanvas(props: Props) {
         t.set({
           text: opts.text || '文字',
           fontFamily: opts.font || 'Manrope',
-          fill: opts.color || '#000000',
+          fill: opts.color || DEFAULT_CANVAS_INK,
           fontSize: (opts.size || 32) * RENDER_RATIO,
           fontWeight: opts.bold ? 'bold' : 'normal',
           fontStyle: opts.italic ? 'italic' : 'normal',

@@ -146,7 +146,7 @@ export default function SearchContent(props: Props) {
           <button
             type="button"
             onClick={() => p.onChange(opt.value)}
-            class={`px-4 py-2 rounded-lg text-label-md transition-all tap-target flex-shrink-0 whitespace-nowrap ${
+            class={`px-4 py-2 rounded-lg text-label-md transition-colors tap-target flex-shrink-0 whitespace-nowrap ${
               p.value === opt.value
                 ? 'bg-primary text-on-primary'
                 : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-variant'
@@ -220,7 +220,7 @@ export default function SearchContent(props: Props) {
                 <button
                   type="button"
                   onClick={() => setFilterFabric(opt.value)}
-                  class={`px-4 py-2 rounded-lg text-label-md transition-all tap-target ${
+                  class={`px-4 py-2 rounded-lg text-label-md transition-colors tap-target ${
                     filterFabric() === opt.value
                       ? 'bg-primary text-on-primary'
                       : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-variant'
@@ -237,7 +237,7 @@ export default function SearchContent(props: Props) {
                 <button
                   type="button"
                   onClick={() => setFilterFit(opt.value)}
-                  class={`px-4 py-2 rounded-lg text-label-md transition-all tap-target ${
+                  class={`px-4 py-2 rounded-lg text-label-md transition-colors tap-target ${
                     filterFit() === opt.value
                       ? 'bg-primary text-on-primary'
                       : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-variant'
@@ -254,7 +254,7 @@ export default function SearchContent(props: Props) {
                 <button
                   type="button"
                   onClick={() => setFilterSize(opt.value)}
-                  class={`px-4 py-2 rounded-lg text-label-md transition-all tap-target ${
+                  class={`px-4 py-2 rounded-lg text-label-md transition-colors tap-target ${
                     filterSize() === opt.value
                       ? 'bg-primary text-on-primary'
                       : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-variant'
@@ -271,7 +271,7 @@ export default function SearchContent(props: Props) {
                 <button
                   type="button"
                   onClick={() => setFilterPrice(opt.value)}
-                  class={`px-4 py-2 rounded-lg text-label-md transition-all tap-target ${
+                  class={`px-4 py-2 rounded-lg text-label-md transition-colors tap-target ${
                     filterPrice() === opt.value
                       ? 'bg-primary text-on-primary'
                       : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-variant'

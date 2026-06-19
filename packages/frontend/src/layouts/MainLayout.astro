@@ -1,6 +1,7 @@
 ---
 import MobileNavBar from '../components/layout/MobileNavBar.tsx'
 import TabletNavBar from '../components/layout/TabletNavBar.tsx'
+import ThemeInitializer from '../components/layout/ThemeInitializer.tsx'
 
 interface Props {
   title: string
@@ -11,15 +12,10 @@ const { title, hideNav = false } = Astro.props
 ---
 
 <!doctype html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="dark">
   <head>
     <meta charset="utf-8" />
-    <script is:inline>
-      (function () {
-        const theme = localStorage.getItem('cshop-theme') || 'dark'
-        document.documentElement.setAttribute('data-theme', theme)
-      })()
-    </script>
+    <ThemeInitializer client:only="solid-js" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />

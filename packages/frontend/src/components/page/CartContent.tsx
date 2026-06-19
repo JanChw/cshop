@@ -83,7 +83,7 @@ export default function CartContent(props: Props) {
       </div>
       <button
         type="button"
-        class="w-full mt-6 font-bold py-4 rounded-lg transition-all active:scale-95 flex justify-center items-center gap-2 tap-target disabled:opacity-60"
+        class="w-full mt-6 font-bold py-4 rounded-lg transition-opacity transition-transform active:scale-95 flex justify-center items-center gap-2 tap-target disabled:opacity-60"
         classList={{
           'bg-primary text-on-primary hover:opacity-90': checkoutState() !== 'done',
           'bg-success text-on-success': checkoutState() === 'done'
@@ -165,10 +165,11 @@ export default function CartContent(props: Props) {
 
         {items().length > 0 && (
           <div class="md:hidden bg-surface-container-lowest p-stack-md rounded-lg border border-outline-variant">
-            <label class="block text-label-md text-on-surface-variant mb-2">优惠券代码</label>
+            <label class="block text-label-md text-on-surface-variant mb-2" for="coupon-mobile">优惠券代码</label>
             <div class="flex flex-col gap-2">
               <input
-                class="w-full bg-background border border-outline-variant rounded-lg px-4 py-2 text-body-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                id="coupon-mobile"
+                class="w-full bg-background border border-outline-variant rounded-lg px-4 py-2 text-body-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors"
                 placeholder="输入优惠码"
                 value={couponInput()}
                 onInput={(e) => setCouponInput(e.currentTarget.value)}
@@ -188,10 +189,11 @@ export default function CartContent(props: Props) {
         <aside class="hidden md:block md:w-2/5">
           <div class="sticky top-20 space-y-stack-md">
             <div class="bg-surface-container-lowest p-stack-md rounded-lg border border-outline-variant">
-              <label class="block text-label-md text-on-surface-variant mb-2">优惠券代码</label>
+              <label class="block text-label-md text-on-surface-variant mb-2" for="coupon-desktop">优惠券代码</label>
               <div class="flex flex-col gap-2">
                 <input
-                  class="w-full bg-background border border-outline-variant rounded-lg px-4 py-2 text-body-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                  id="coupon-desktop"
+                  class="w-full bg-background border border-outline-variant rounded-lg px-4 py-2 text-body-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors"
                   placeholder="输入优惠码"
                   value={couponInput()}
                   onInput={(e) => setCouponInput(e.currentTarget.value)}

@@ -35,6 +35,9 @@ export const FONT_OPTIONS: { name: string; sub: string; family: string; cls?: st
   { name: 'System Mono', sub: 'Native Mono', family: 'ui-monospace, monospace' }
 ]
 
+export const DEFAULT_CANVAS_INK = '#000000'
+export const DEFAULT_DRAWING_COLOR = '#0052FF'
+
 export const BRUSH_COLORS = ['#0052FF', '#151c27', '#F87171', '#34D399', '#c2652a']
 
 export type BrushStyle = 'pencil' | 'marker' | 'spray'

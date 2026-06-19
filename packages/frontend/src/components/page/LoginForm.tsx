@@ -1,6 +1,11 @@
 import { createSignal, Show } from 'solid-js'
 import { showToast } from '../../lib/toast'
 
+const SOCIAL_BRAND_COLORS = {
+  wechat: '#07C160',
+  qq: '#12B7F5'
+}
+
 export default function LoginForm() {
   const [identifier, setIdentifier] = createSignal('')
   const [password, setPassword] = createSignal('')
@@ -68,7 +73,7 @@ export default function LoginForm() {
                   <input
                     id="identifier"
                     type="text"
-                    class={`w-full pl-12 pr-4 py-3.5 bg-surface-container-lowest border rounded-lg focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all placeholder:text-outline/60 ${errors().identifier ? 'border-error' : 'border-outline-variant'}`}
+                    class={`w-full pl-12 pr-4 py-3.5 bg-surface-container-lowest border rounded-lg focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-colors placeholder:text-outline/60 ${errors().identifier ? 'border-error' : 'border-outline-variant'}`}
                     placeholder="输入您的联系方式"
                     value={identifier()}
                     onInput={(e) => { setIdentifier(e.currentTarget.value); setErrors((prev) => ({ ...prev, identifier: '' })) }}
@@ -87,7 +92,7 @@ export default function LoginForm() {
                   <input
                     id="password"
                     type={showPassword() ? 'text' : 'password'}
-                    class={`w-full pl-12 pr-12 py-3.5 bg-surface-container-lowest border rounded-lg focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all placeholder:text-outline/60 ${errors().password ? 'border-error' : 'border-outline-variant'}`}
+                    class={`w-full pl-12 pr-12 py-3.5 bg-surface-container-lowest border rounded-lg focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-colors placeholder:text-outline/60 ${errors().password ? 'border-error' : 'border-outline-variant'}`}
                     placeholder="输入您的密码"
                     value={password()}
                     onInput={(e) => { setPassword(e.currentTarget.value); setErrors((prev) => ({ ...prev, password: '' })) }}
@@ -107,7 +112,7 @@ export default function LoginForm() {
               <button
                 type="submit"
                 disabled={loading()}
-                class="w-full bg-primary text-on-primary py-4 px-6 rounded-lg font-bold tracking-wide flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all group shadow-lg shadow-primary/10 tap-target disabled:opacity-60"
+                class="w-full bg-primary text-on-primary py-4 px-6 rounded-lg font-bold tracking-wide flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-opacity transition-transform group shadow-lg shadow-primary/10 tap-target disabled:opacity-60"
               >
                 <Show when={!loading()}>
                   <span>登录</span>
@@ -132,7 +137,7 @@ export default function LoginForm() {
                   onClick={() => socialLogin('微信')}
                   class="flex items-center justify-center gap-3 py-3 px-4 border border-outline-variant rounded-lg hover:bg-surface-variant transition-colors group tap-target"
                 >
-                  <div class="w-6 h-6 flex items-center justify-center bg-[#07C160] rounded-full">
+                  <div class="w-6 h-6 flex items-center justify-center rounded-full" style={`background-color: ${SOCIAL_BRAND_COLORS.wechat}`}>
                     <span class="material-symbols-outlined text-on-primary text-base" style="font-variation-settings: 'FILL' 1">chat</span>
                   </div>
                   <span class="text-sm font-semibold text-on-surface-variant">微信</span>
@@ -142,7 +147,7 @@ export default function LoginForm() {
                   onClick={() => socialLogin('QQ')}
                   class="flex items-center justify-center gap-3 py-3 px-4 border border-outline-variant rounded-lg hover:bg-surface-variant transition-colors group tap-target"
                 >
-                  <div class="w-6 h-6 flex items-center justify-center bg-[#12B7F5] rounded-full">
+                  <div class="w-6 h-6 flex items-center justify-center rounded-full" style={`background-color: ${SOCIAL_BRAND_COLORS.qq}`}>
                     <span class="material-symbols-outlined text-on-primary text-base" style="font-variation-settings: 'FILL' 1">person</span>
                   </div>
                   <span class="text-sm font-semibold text-on-surface-variant">QQ</span>

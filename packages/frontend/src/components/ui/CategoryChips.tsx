@@ -27,7 +27,7 @@ export default function CategoryChips(props: Props) {
       {props.items.map((chip) => (
         <button
           type="button"
-          class={`flex-shrink-0 px-4 py-2 ${radius} text-label-md transition-all active:scale-95 tap-target ${
+          class={`flex-shrink-0 px-4 py-2 ${radius} text-label-md transition-transform active:scale-95 tap-target ${
             active() === chip.zh
               ? 'bg-primary text-on-primary'
               : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-variant'

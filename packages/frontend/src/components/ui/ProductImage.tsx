@@ -11,12 +11,6 @@ interface Props {
   eager?: boolean
 }
 
-function seedFromString(str: string) {
-  let h = 0
-  for (let i = 0; i < str.length; i++) h = (h << 5) - h + str.charCodeAt(i)
-  return Math.abs(h).toString(36)
-}
-
 export default function ProductImage(props: Props) {
   const [loaded, setLoaded] = createSignal(false)
   const [error, setError] = createSignal(false)
@@ -25,15 +19,11 @@ export default function ProductImage(props: Props) {
   const rounded = props.rounded || 'rounded-lg'
   const fit = props.objectFit || 'cover'
   const label = props.fallbackLabel ?? (props.alt || 'image')
-  const seed = seedFromString(label)
 
   return (
     <div class={`relative ${aspect} ${rounded} overflow-hidden bg-surface-container`}>
-      <img
-        class={`absolute inset-0 w-full h-full object-${fit} z-10 transition-opacity duration-500 ${loaded() ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
-        src={`https://picsum.photos/seed/${seed}/600/800`}
-        alt={label}
-        loading="eager"
+      <div
+        class={`absolute inset-0 z-10 bg-gradient-to-br from-surface-container via-surface-container-high to-surface-container transition-opacity duration-500 ${loaded() ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
       />
       <img
         class={`absolute inset-0 w-full h-full object-${fit} z-20 transition-opacity duration-500 ${loaded() ? 'opacity-100' : 'opacity-0'} ${props.class || ''}`}
@@ -50,6 +40,11 @@ export default function ProductImage(props: Props) {
         }}
         onError={() => setError(true)}
       />
+      {error() && (
+        <div class="absolute inset-0 z-30 flex items-center justify-center bg-surface-container text-on-surface-variant">
+          <span class="material-symbols-outlined text-3xl">broken_image</span>
+        </div>
+      )}
     </div>
   )
 }

@@ -69,14 +69,14 @@ export default function CollectionTabs() {
           <button
             type="button"
             onClick={() => setActiveTab('favorites')}
-            class={`pb-3 text-lg font-medium transition-all tap-target ${activeTab() === 'favorites' ? 'text-primary border-b-2 border-primary font-bold' : 'text-on-surface-variant/60 hover:text-on-surface-variant'}`}
+            class={`pb-3 text-lg font-medium transition-colors tap-target ${activeTab() === 'favorites' ? 'text-primary border-b-2 border-primary font-bold' : 'text-on-surface-variant/60 hover:text-on-surface-variant'}`}
           >
             我的收藏
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('drafts')}
-            class={`pb-3 text-lg font-medium transition-all tap-target ${activeTab() === 'drafts' ? 'text-primary border-b-2 border-primary font-bold' : 'text-on-surface-variant/60 hover:text-on-surface-variant'}`}
+            class={`pb-3 text-lg font-medium transition-colors tap-target ${activeTab() === 'drafts' ? 'text-primary border-b-2 border-primary font-bold' : 'text-on-surface-variant/60 hover:text-on-surface-variant'}`}
           >
             设计草稿
           </button>
@@ -168,7 +168,7 @@ export default function CollectionTabs() {
       {showFab() && (
         <button
           type="button"
-          class="fixed right-6 bottom-24 w-14 h-14 bg-primary text-on-primary rounded-xl flex items-center justify-center active:scale-95 transition-all z-40 tap-target"
+          class="fixed right-6 bottom-24 w-14 h-14 bg-primary text-on-primary rounded-xl flex items-center justify-center active:scale-95 transition-transform z-40 tap-target"
           onClick={() => showToast('创作功能即将上线')}
           aria-label="新建创作"
         >

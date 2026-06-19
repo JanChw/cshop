@@ -60,7 +60,7 @@ export default function TextPanel(props: Props) {
 
       <div class="pt-2">
         <button
-          class="w-full bg-primary text-on-primary py-4 rounded-xl font-bold text-lg hover:bg-primary/90 transition-all active:scale-[0.98] disabled:opacity-50"
+          class="w-full bg-primary text-on-primary py-4 rounded-xl font-bold text-lg hover:bg-primary/90 transition-colors transition-opacity transition-transform active:scale-[0.98] disabled:opacity-50"
           onClick={apply}
           disabled={!text().trim()}
         >

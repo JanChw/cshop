@@ -164,7 +164,7 @@ export default function ShopContent(props: Props) {
             <button
               type="button"
               onClick={() => p.onChange(opt.value)}
-              class={`px-4 py-2 rounded-lg text-label-md transition-all tap-target flex-shrink-0 whitespace-nowrap ${
+              class={`px-4 py-2 rounded-lg text-label-md transition-colors tap-target flex-shrink-0 whitespace-nowrap ${
                 p.value === opt.value
                   ? 'bg-primary text-on-primary'
                   : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-variant'
@@ -471,7 +471,7 @@ export default function ShopContent(props: Props) {
         <button
           type="button"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          class="fixed right-6 bottom-[11.5rem] w-14 h-14 bg-surface-container-high text-on-surface-variant rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-all tap-target z-40 hover:bg-primary hover:text-on-primary"
+          class="fixed right-6 bottom-[11.5rem] w-14 h-14 bg-surface-container-high text-on-surface-variant rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-colors transition-transform tap-target z-40 hover:bg-primary hover:text-on-primary"
           aria-label="回到顶部"
         >
           <span class="material-symbols-outlined">arrow_upward</span>

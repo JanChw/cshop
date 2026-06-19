@@ -20,12 +20,13 @@ export default function SearchInput(props: Props) {
       </span>
       <input
         type="text"
-        class={`w-full bg-surface-container-low border border-outline-variant rounded-full text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all ${
+        class={`w-full bg-surface-container-low border border-outline-variant rounded-full text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors ${
           props.size === 'sm'
             ? 'py-2.5 pl-10 pr-10 text-body-sm'
             : 'py-4 pl-12 pr-6'
         }`}
         placeholder={props.placeholder || '搜索...'}
+        aria-label={props.placeholder || '搜索'}
         value={props.value || ''}
         onInput={(e) => props.onInput?.(e.currentTarget.value)}
         autofocus={props.autoFocus}

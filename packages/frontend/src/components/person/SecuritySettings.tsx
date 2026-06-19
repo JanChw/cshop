@@ -70,7 +70,7 @@ export default function SecuritySettings() {
                   <button
                     type="button"
                     onClick={() => showToast(`${item.label}功能即将上线`)}
-                    class="w-full flex items-center justify-between p-5 hover:bg-surface-container-high transition-all group tap-target text-left"
+                    class="w-full flex items-center justify-between p-5 hover:bg-surface-container-high transition-colors group tap-target text-left"
                   >
                     <div class="flex items-center gap-4">
                       <div class="bg-primary/10 p-2 rounded-lg text-primary">
@@ -121,7 +121,7 @@ export default function SecuritySettings() {
                     showToast('网络错误')
                   }
                 }}
-                class="w-full flex items-center justify-between p-5 hover:bg-surface-container-high transition-all group tap-target text-left"
+                class="w-full flex items-center justify-between p-5 hover:bg-surface-container-high transition-colors group tap-target text-left"
               >
                 <div class="flex items-center gap-4">
                   <div class="bg-tertiary-container/10 p-2 rounded-lg text-tertiary">

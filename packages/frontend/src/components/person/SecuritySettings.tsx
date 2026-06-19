@@ -12,7 +12,6 @@ export default function SecuritySettings() {
   const settings = [
     { icon: 'lock_reset', label: '修改登录密码', hint: '定期更换更安全' },
     { icon: 'phone_android', label: '绑定手机号', hint: '138****8888' },
-    { icon: 'badge', label: '实名认证', hint: '', badge: '已认证' },
     { icon: 'devices', label: '登录设备管理', hint: '' }
   ]
 
@@ -20,20 +19,19 @@ export default function SecuritySettings() {
     <div class="bg-background min-h-screen pb-24 text-on-surface md:pt-16">
       <header class="sticky top-0 md:top-16 z-50 bg-surface h-16 flex justify-between items-center px-4 border-b border-outline-variant">
         <div class="flex items-center gap-4">
-          <button
-            type="button"
-            onClick={() => history.back()}
-            class="tap-target p-2 hover:bg-surface-container-high transition-colors rounded-full"
+          <a
+            href="/person"
+            class="tap-target p-2 hover:bg-primary/10 hover:text-primary transition-colors rounded-full"
             aria-label="返回"
           >
             <span class="material-symbols-outlined text-primary">arrow_back</span>
-          </button>
+          </a>
           <h1 class="text-lg font-bold text-primary">账号与安全</h1>
         </div>
         <button
           type="button"
           onClick={() => showToast('安全帮助信息')}
-          class="tap-target p-2 hover:bg-surface-container-high transition-colors rounded-full"
+          class="tap-target p-2 hover:bg-primary/10 hover:text-primary transition-colors rounded-full"
           aria-label="帮助"
         >
           <span class="material-symbols-outlined text-primary">info</span>
@@ -70,7 +68,7 @@ export default function SecuritySettings() {
                   <button
                     type="button"
                     onClick={() => showToast(`${item.label}功能即将上线`)}
-                    class="w-full flex items-center justify-between p-5 hover:bg-surface-container-high transition-colors group tap-target text-left"
+                    class="w-full flex items-center justify-between p-5 hover:bg-primary/10 transition-colors group tap-target text-left"
                   >
                     <div class="flex items-center gap-4">
                       <div class="bg-primary/10 p-2 rounded-lg text-primary">
@@ -121,7 +119,7 @@ export default function SecuritySettings() {
                     showToast('网络错误')
                   }
                 }}
-                class="w-full flex items-center justify-between p-5 hover:bg-surface-container-high transition-colors group tap-target text-left"
+                class="w-full flex items-center justify-between p-5 hover:bg-primary/10 transition-colors group tap-target text-left"
               >
                 <div class="flex items-center gap-4">
                   <div class="bg-tertiary-container/10 p-2 rounded-lg text-tertiary">

@@ -17,7 +17,7 @@ interface Props {
 }
 
 const statusConfig = {
-  pending: { label: '待付款', color: 'text-primary font-medium', actions: [{ text: '取消订单', primary: false }, { text: '去付款', primary: true }] },
+  pending: { label: '待付款', color: 'bg-accent-container text-on-accent-container font-medium', actions: [{ text: '取消订单', primary: false }, { text: '去付款', primary: true }] },
   shipping: { label: '待收货', color: 'text-on-surface-variant', actions: [{ text: '查看物流', primary: false }, { text: '确认收货', primary: true }] },
   completed: { label: '已完成', color: 'text-outline', actions: [{ text: '查看详情', primary: false }, { text: '再次购买', primary: false }] },
   cancelled: { label: '已取消', color: 'text-outline', actions: [{ text: '查看详情', primary: false }] }
@@ -65,18 +65,28 @@ export default function OrderCard(props: Props) {
       </div>
 
       <div class="px-4 md:px-5 pb-4 md:pb-5 flex justify-end gap-2">
-        {config.actions.map((action) => (
-          <button
-            type="button"
-            class={`px-4 py-1.5 rounded-lg text-label-md font-medium transition-colors tap-target ${
-              action.primary
-                ? 'bg-primary text-on-primary hover:opacity-90'
-                : 'border border-outline text-on-surface-variant hover:bg-surface-container'
-            }`}
-          >
-            {action.text}
-          </button>
-        ))}
+        {config.actions.map((action) => {
+          const isLogistics = props.status === 'shipping' && action.text === '查看物流'
+          return isLogistics ? (
+            <a
+              href={`/logistics?id=${props.orderNumber}`}
+              class={`px-4 py-1.5 rounded-lg text-label-md font-medium transition-colors tap-target border border-outline text-on-surface-variant hover:bg-primary/10 hover:text-primary`}
+            >
+              {action.text}
+            </a>
+          ) : (
+            <button
+              type="button"
+              class={`px-4 py-1.5 rounded-lg text-label-md font-medium transition-colors tap-target ${
+                action.primary
+                  ? 'bg-primary text-on-primary hover:opacity-90'
+                  : 'border border-outline text-on-surface-variant hover:bg-primary/10 hover:text-primary'
+              }`}
+            >
+              {action.text}
+            </button>
+          )
+        })}
       </div>
     </div>
   )

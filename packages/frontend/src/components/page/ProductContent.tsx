@@ -1,26 +1,20 @@
-import { createSignal, createMemo } from 'solid-js'
+import { createSignal } from 'solid-js'
 import ProductImage from '../ui/ProductImage'
 import { showToast } from '../../lib/toast'
+import type { ProductDetail } from '../../lib/productData'
 
-const THUMBNAILS = [
-  'https://picsum.photos/seed/374f813ba69b/400/500',
-  'https://picsum.photos/seed/8d59cc3834da/400/500',
-  'https://picsum.photos/seed/16843390e3cf/400/500'
-]
+interface Props {
+  product: ProductDetail
+}
 
-const COLORS = ['白色', '黑色', '灰色']
-const SIZES = ['S', 'M', 'L', 'XL', 'XXL']
-
-export default function ProductContent() {
-  const [mainImage, setMainImage] = createSignal(THUMBNAILS[0])
-  const [selectedColor, setSelectedColor] = createSignal('白色')
-  const [selectedSize, setSelectedSize] = createSignal('M')
+export default function ProductContent(props: Props) {
+  const p = () => props.product
+  const [mainImage, setMainImage] = createSignal(p().thumbnails[0])
+  const [selectedColor, setSelectedColor] = createSignal(p().colors[0])
+  const [selectedSize, setSelectedSize] = createSignal(p().sizes[0])
   const [favorited, setFavorited] = createSignal(false)
   const [adding, setAdding] = createSignal(false)
   const [buying, setBuying] = createSignal(false)
-
-  const price = 199
-  const originalPrice = 299
 
   const handleThumbClick = (src: string) => {
     setMainImage(src)
@@ -55,10 +49,50 @@ export default function ProductContent() {
   }
 
   return (
-    <div class="md:pt-16 md:container-content">
+    <div class="md:pt-16">
+      {/* Tablet action bar - sticky outside container for full-width */}
+      <div class="hidden md:sticky md:top-16 md:flex w-full bg-surface border-b border-outline-variant px-6 items-center justify-between py-3 z-30">
+        <div class="flex items-center gap-4">
+          <button
+            type="button"
+            onClick={() => history.back()}
+            class="tap-target flex items-center justify-center text-on-surface hover:opacity-80 transition-opacity"
+            aria-label="返回"
+          >
+            <span class="material-symbols-outlined">arrow_back</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleShare}
+            class="tap-target flex items-center justify-center text-on-surface hover:opacity-80 transition-opacity"
+            aria-label="分享"
+          >
+            <span class="material-symbols-outlined">share</span>
+          </button>
+        </div>
+        <div class="flex gap-3">
+          <button
+            type="button"
+            onClick={handleAddToCart}
+            disabled={adding()}
+            class="px-6 py-2.5 rounded-lg border border-primary font-bold text-primary bg-surface hover:bg-primary-container transition-colors tap-target disabled:opacity-60"
+          >
+            {adding() ? '已加入' : '加入购物车'}
+          </button>
+          <button
+            type="button"
+            onClick={handleBuyNow}
+            disabled={buying()}
+            class="px-6 py-2.5 rounded-lg bg-accent font-bold text-on-accent hover:opacity-90 transition-opacity tap-target disabled:opacity-60"
+          >
+            {buying() ? '跳转中...' : '立即购买'}
+          </button>
+        </div>
+      </div>
+      <div class="md:container-content">
       <div class="md:flex md:gap-8 md:py-8">
         {/* Left: images */}
-        <div class="md:w-1/2 md:sticky md:top-20 md:self-start">
+        <div class="md:w-1/2 md:sticky md:top-32 md:self-start">
           <header class="md:hidden bg-surface border-b border-outline-variant fixed top-0 w-full z-50 h-14 flex justify-between items-center px-container-margin">
             <button
               type="button"
@@ -83,15 +117,15 @@ export default function ProductContent() {
             <div class="aspect-[4/5] overflow-hidden">
               <ProductImage
                 src={mainImage()}
-                alt="定制创意印花 T恤"
+                alt={p().name}
                 aspect="aspect-[4/5]"
                 rounded="rounded-none"
-                fallbackLabel="定制创意印花 T恤"
+                fallbackLabel={p().name}
                 eager
               />
             </div>
             <div class="flex gap-stack-sm p-container-margin overflow-x-auto hide-scrollbar">
-              {THUMBNAILS.map((src) => (
+              {p().thumbnails.map((src) => (
                 <button
                   type="button"
                   onClick={() => handleThumbClick(src)}
@@ -110,44 +144,53 @@ export default function ProductContent() {
         <div class="md:w-1/2 pb-32 md:pb-0">
           <section class="px-container-margin md:px-0 mb-stack-md">
             <div class="flex justify-between items-start mb-unit">
-              <span class="bg-primary-container text-primary text-label-md px-2 py-1 rounded">可定制</span>
+              {p().customizable && (
+                <span class="bg-primary-container text-primary text-label-md px-2 py-1 rounded">可定制</span>
+              )}
+              {p().tags?.map(tag => (
+                <span class="bg-accent text-on-accent text-label-md px-2 py-1 rounded">{tag}</span>
+              ))}
             </div>
-            <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-surface mb-2">定制创意印花 T恤</h2>
+            <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-surface mb-2">{p().name}</h2>
             <div class="flex items-baseline gap-2 mb-stack-md">
-              <span class="text-primary font-bold text-2xl">¥ {price.toFixed(2)}</span>
-              <span class="text-outline text-body-sm line-through">¥ {originalPrice.toFixed(2)}</span>
+              <span class="text-primary font-bold text-2xl">¥ {p().price.toFixed(2)}</span>
+              {p().originalPrice && (
+                <span class="text-accent text-body-sm line-through">¥ {p().originalPrice!.toFixed(2)}</span>
+              )}
             </div>
             <p class="text-on-surface-variant text-body-sm leading-relaxed">
-              采用 100% 高品质精梳棉，手感柔软亲肤。支持多区域个性化定制，让你的创意灵感跃然衣上。
+              {p().description}
             </p>
           </section>
 
-          <a href="/design"
-            class="block mx-container-margin md:mx-0 mb-stack-lg p-stack-md bg-surface-container-low rounded-lg border border-outline-variant cursor-pointer hover:border-primary transition-colors">
-            <div class="flex items-center gap-stack-md">
-              <div class="w-12 h-12 rounded-lg bg-primary flex items-center justify-center text-on-primary shrink-0">
-                <span class="material-symbols-outlined">rebase_edit</span>
+          {p().customizable && (
+            <a href="/design"
+              class="block mx-container-margin md:mx-0 mb-stack-lg p-stack-md bg-surface-container-low rounded-lg border border-outline-variant cursor-pointer hover:border-primary transition-colors">
+              <div class="flex items-center gap-stack-md">
+                <div class="w-12 h-12 rounded-lg bg-primary flex items-center justify-center text-on-primary shrink-0">
+                  <span class="material-symbols-outlined">rebase_edit</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h4 class="text-body-lg font-bold text-on-surface">开始您的创作</h4>
+                  <p class="text-body-sm text-on-surface-variant">点击前往设计画布，添加属于你的印花</p>
+                </div>
+                <span class="material-symbols-outlined text-outline">chevron_right</span>
               </div>
-              <div class="flex-1 min-w-0">
-                <h4 class="text-body-lg font-bold text-on-surface">开始您的创作</h4>
-                <p class="text-body-sm text-on-surface-variant">点击前往设计画布，添加属于你的印花</p>
-              </div>
-              <span class="material-symbols-outlined text-outline">chevron_right</span>
-            </div>
-          </a>
+            </a>
+          )}
 
           <section class="px-container-margin md:px-0 mb-stack-lg">
             <div class="mb-stack-lg">
               <h5 class="text-label-md text-on-surface mb-stack-sm">颜色选择</h5>
               <div class="flex gap-stack-sm flex-wrap">
-                {COLORS.map((color) => (
+                {p().colors.map((color) => (
                   <button
                     type="button"
                     onClick={() => setSelectedColor(color)}
                     class={`px-4 py-2 rounded-lg text-body-sm tap-target transition-colors ${
                       selectedColor() === color
                         ? 'border-2 border-primary text-on-surface bg-surface'
-                        : 'border border-outline-variant text-on-surface hover:bg-surface-container'
+                        : 'border border-outline-variant text-on-surface hover:bg-primary/10 hover:border-primary'
                     }`}
                     aria-pressed={selectedColor() === color}
                   >
@@ -168,14 +211,14 @@ export default function ProductContent() {
                 </button>
               </div>
               <div class="grid grid-cols-5 gap-stack-sm">
-                {SIZES.map((size) => (
+                {p().sizes.map((size) => (
                   <button
                     type="button"
                     onClick={() => setSelectedSize(size)}
                     class={`py-2 rounded-lg text-center text-body-sm tap-target transition-colors ${
                       selectedSize() === size
                         ? 'border-2 border-primary bg-surface text-on-surface'
-                        : 'border border-outline-variant text-on-surface hover:bg-surface-container'
+                        : 'border border-outline-variant text-on-surface hover:bg-primary/10 hover:border-primary'
                     }`}
                     aria-pressed={selectedSize() === size}
                   >
@@ -188,7 +231,7 @@ export default function ProductContent() {
 
           <section class="mx-container-margin md:mx-0 p-stack-md bg-surface-container-lowest rounded-lg border border-outline-variant mb-stack-lg space-y-4">
             <div class="flex items-start gap-stack-md">
-              <span class="material-symbols-outlined text-primary">local_shipping</span>
+              <span class="material-symbols-outlined text-accent">local_shipping</span>
               <div>
                 <p class="font-bold text-on-surface">免费配送</p>
                 <p class="text-body-sm text-on-surface-variant">所有定制订单均享顺丰包邮服务</p>
@@ -207,22 +250,20 @@ export default function ProductContent() {
             <div class="border-t border-outline-variant pt-stack-lg">
               <h5 class="text-title-md mb-stack-md text-on-surface">商品详情</h5>
               <div class="space-y-stack-md text-body-sm text-on-surface-variant">
-                <div class="flex justify-between border-b border-outline-variant pb-2">
-                  <span>材质</span><span class="text-on-surface font-semibold">100% 精梳棉</span>
-                </div>
-                <div class="flex justify-between border-b border-outline-variant pb-2">
-                  <span>克重</span><span class="text-on-surface font-semibold">220g 重磅</span>
-                </div>
-                <div class="flex justify-between border-b border-outline-variant pb-2">
-                  <span>版型</span><span class="text-on-surface font-semibold">宽松落肩</span>
-                </div>
+                {Object.entries(p().details).map(([key, val]) => (
+                  <div class="flex justify-between border-b border-outline-variant pb-2">
+                    <span>{key}</span><span class="text-on-surface font-semibold">{val}</span>
+                  </div>
+                ))}
               </div>
-              <div class="mt-stack-lg p-stack-md bg-surface-container-low rounded-lg">
-                <h6 class="font-bold text-on-surface mb-2">设计师寄语</h6>
-                <p class="text-body-sm leading-relaxed italic text-on-surface-variant">
-                  "这不仅是一件 T恤，更是你表达自我的画布。我们致力于提供最高品质的基础款，让你的每一个设计都能完美呈现。"
-                </p>
-              </div>
+              {p().designerQuote && (
+                <div class="mt-stack-lg p-stack-md bg-surface-container-low rounded-lg">
+                  <h6 class="font-bold text-on-surface mb-2">{p().designer ? `${p().designer} 寄语` : '设计师寄语'}</h6>
+                  <p class="text-body-sm leading-relaxed italic text-on-surface-variant">
+                    "{p().designerQuote}"
+                  </p>
+                </div>
+              )}
             </div>
           </section>
         </div>
@@ -243,7 +284,7 @@ export default function ProductContent() {
           <button
             type="button"
             onClick={toggleFavorite}
-            class={`flex flex-col items-center justify-center px-2 tap-target ${favorited() ? 'text-error' : 'text-secondary'}`}
+            class={`flex flex-col items-center justify-center px-2 tap-target ${favorited() ? 'text-accent' : 'text-secondary'}`}
             aria-label={favorited() ? '取消收藏' : '加入收藏'}
             aria-pressed={favorited()}
           >
@@ -260,7 +301,7 @@ export default function ProductContent() {
               type="button"
               onClick={handleAddToCart}
               disabled={adding()}
-              class="flex-1 py-3 rounded-lg border border-primary font-bold text-primary text-body-lg active:scale-95 transition-transform bg-surface tap-target disabled:opacity-60"
+              class="flex-1 py-3 rounded-lg border border-primary font-bold text-primary text-body-lg hover:scale-[1.02] active:scale-95 transition-transform duration-200 bg-surface tap-target disabled:opacity-60"
             >
               {adding() ? '已加入' : '加入购物车'}
             </button>
@@ -268,33 +309,15 @@ export default function ProductContent() {
               type="button"
               onClick={handleBuyNow}
               disabled={buying()}
-              class="flex-1 py-3 rounded-lg bg-primary font-bold text-on-primary text-body-lg active:scale-95 transition-transform tap-target disabled:opacity-60"
+              class="flex-1 py-3 rounded-lg bg-accent font-bold text-on-accent text-body-lg hover:scale-[1.02] active:scale-95 transition-transform duration-200 tap-target disabled:opacity-60"
             >
               {buying() ? '跳转中...' : '立即购买'}
             </button>
-          </div>
         </div>
       </div>
 
-      {/* Tablet action bar */}
-      <div class="hidden md:flex fixed bottom-0 left-0 w-full bg-surface border-t border-outline-variant z-40 px-container-margin py-4 justify-end gap-4">
-        <button
-          type="button"
-          onClick={handleAddToCart}
-          disabled={adding()}
-          class="px-8 py-3 rounded-lg border border-primary font-bold text-primary bg-surface hover:bg-primary-container transition-colors tap-target disabled:opacity-60"
-        >
-          {adding() ? '已加入' : '加入购物车'}
-        </button>
-        <button
-          type="button"
-          onClick={handleBuyNow}
-          disabled={buying()}
-          class="px-8 py-3 rounded-lg bg-primary font-bold text-on-primary hover:opacity-90 transition-opacity tap-target disabled:opacity-60"
-        >
-          {buying() ? '跳转中...' : '立即购买'}
-        </button>
-      </div>
+    </div>
+    </div>
     </div>
   )
 }

@@ -23,7 +23,7 @@ export default function FavoriteButton(props: Props) {
   return (
     <button
       type="button"
-      class={`absolute top-3 right-3 flex items-center justify-center bg-surface/80 backdrop-blur-md rounded-full text-on-surface tap-target transition-transform active:scale-90 hover:bg-surface ${sizeClass} ${props.class || ''}`}
+      class={`absolute top-3 right-3 flex items-center justify-center bg-surface backdrop-blur-md rounded-full ${filled() ? 'text-accent' : 'text-on-surface'} tap-target transition-transform duration-200 active:scale-90 hover:bg-surface-container ${sizeClass} ${props.class || ''}`}
       onClick={toggle}
       aria-label={filled() ? '取消收藏' : '加入收藏'}
       aria-pressed={filled()}

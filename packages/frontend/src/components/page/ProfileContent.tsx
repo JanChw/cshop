@@ -1,6 +1,7 @@
 import { createSignal } from 'solid-js'
 import ProductImage from '../ui/ProductImage'
 import ThemeToggle from '../ui/ThemeToggle'
+import ConfirmDialog from '../ui/ConfirmDialog'
 import { showToast } from '../../lib/toast'
 
 const STATS = [
@@ -32,6 +33,7 @@ const SETTINGS = [
 
 export default function ProfileContent() {
   const [activeWorkTab, setActiveWorkTab] = createSignal<'drafts' | 'ordered'>('drafts')
+  const [showLogoutConfirm, setShowLogoutConfirm] = createSignal(false)
 
   const handleSettingClick = (href: string) => {
     if (href === '#') {
@@ -40,9 +42,12 @@ export default function ProfileContent() {
   }
 
   const handleLogout = () => {
-    if (confirm('确定要退出登录吗？')) {
-      showToast('已退出登录')
-    }
+    setShowLogoutConfirm(true)
+  }
+
+  const confirmLogout = () => {
+    setShowLogoutConfirm(false)
+    showToast('已退出登录')
   }
 
   return (
@@ -178,7 +183,7 @@ export default function ProfileContent() {
                   <a
                     href={setting.href}
                     onClick={setting.href === '#' ? (e) => { e.preventDefault(); handleSettingClick(setting.href) } : undefined}
-                    class="flex items-center justify-between p-stack-md hover:bg-surface-container-low transition-colors cursor-pointer group tap-target"
+                    class="flex items-center justify-between p-stack-md hover:bg-primary/10 transition-colors cursor-pointer group tap-target"
                   >
                     <div class="flex items-center gap-stack-md">
                       <span class="material-symbols-outlined text-secondary group-hover:text-primary">{setting.icon}</span>
@@ -195,7 +200,7 @@ export default function ProfileContent() {
                   <span class="material-symbols-outlined text-secondary">dark_mode</span>
                   <span class="text-body-lg">深色模式</span>
                 </div>
-                <ThemeToggle class="w-10 h-10 text-on-surface-variant hover:text-primary hover:bg-surface-container-low" />
+                <ThemeToggle class="w-10 h-10 text-on-surface-variant hover:text-primary hover:bg-primary/10" />
               </div>
             </div>
           </section>
@@ -209,6 +214,16 @@ export default function ProfileContent() {
           </button>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={showLogoutConfirm()}
+        title="确认退出"
+        message="确定要退出当前登录吗？"
+        confirmText="退出"
+        variant="danger"
+        onConfirm={confirmLogout}
+        onCancel={() => setShowLogoutConfirm(false)}
+      />
     </main>
   )
 }

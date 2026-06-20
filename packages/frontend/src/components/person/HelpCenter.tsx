@@ -21,20 +21,19 @@ export default function HelpCenter() {
     <div class="bg-background min-h-screen pb-24 text-on-surface md:pt-16">
       <header class="sticky top-0 md:top-16 z-50 bg-surface h-16 flex justify-between items-center px-4 border-b border-outline-variant">
         <div class="flex items-center gap-4">
-          <button
-            type="button"
-            onClick={() => history.back()}
-            class="tap-target p-2 hover:bg-surface-container-high transition-colors rounded-full"
+          <a
+            href="/person"
+            class="tap-target p-2 hover:bg-primary/10 hover:text-primary transition-colors rounded-full"
             aria-label="返回"
           >
             <span class="material-symbols-outlined text-primary">arrow_back</span>
-          </button>
+          </a>
           <h1 class="text-lg font-bold text-primary">帮助中心</h1>
         </div>
         <button
           type="button"
           onClick={() => showToast('暂无新消息')}
-          class="tap-target p-2 hover:bg-surface-container-high transition-colors rounded-full"
+          class="tap-target p-2 hover:bg-primary/10 hover:text-primary transition-colors rounded-full"
           aria-label="通知"
         >
           <span class="material-symbols-outlined text-primary">notifications</span>
@@ -55,7 +54,7 @@ export default function HelpCenter() {
             <button
               type="button"
               onClick={() => showToast(`${cat.title}详情即将上线`)}
-              class="bg-surface-container-low p-6 md:p-8 rounded-xl border border-outline-variant/40 hover:border-outline transition-colors cursor-pointer text-left tap-target"
+              class="bg-surface-container-low p-6 md:p-8 rounded-xl border border-outline-variant/40 hover:border-outline hover:-translate-y-0.5 transition-colors transition-transform duration-200 cursor-pointer text-left tap-target"
             >
               <div class={`w-12 h-12 bg-${cat.color}/10 rounded-lg flex items-center justify-center mb-6`}>
                 <span class={`material-symbols-outlined text-${cat.color}`}>{cat.icon}</span>
@@ -90,7 +89,7 @@ export default function HelpCenter() {
             <button
               type="button"
               onClick={() => showToast('正在连接在线客服...')}
-              class="relative z-10 px-8 py-4 bg-surface text-primary font-bold rounded-lg hover:bg-surface-container-high transition-colors flex items-center gap-2 tap-target shrink-0"
+              class="relative z-10 px-8 py-4 bg-surface text-primary font-bold rounded-lg hover:bg-primary-container transition-colors flex items-center gap-2 tap-target shrink-0"
             >
               <span class="material-symbols-outlined">support_agent</span>联系在线客服
             </button>

@@ -1,69 +1,13 @@
-import { createSignal, createMemo, Show, onMount, onCleanup } from 'solid-js'
+import { createSignal, createMemo, createEffect, Show, onMount, onCleanup } from 'solid-js'
 import ProductCard from '../ui/ProductCard'
 import CategoryChips from '../ui/CategoryChips'
 import ScrollRow from '../ui/ScrollRow'
 import SkeletonCard from '../ui/SkeletonCard'
 import { useInfiniteScroll } from '../../lib/useInfiniteScroll'
-
-
-interface Product {
-  id: string
-  name: string
-  price: number
-  image: string
-  category: string
-  tags?: string[]
-  fabric: string
-  fit: string
-  sizes: string[]
-}
+import { FABRIC_OPTS, FIT_OPTS, SIZE_OPTS, PRICE_OPTS, SORT_OPTS, type SortMode, type Product, matchPrice } from '../../lib/shopFilters'
 
 interface Props {
   products: Product[]
-}
-
-const FABRIC_OPTS = [
-  { value: '', label: '全部面料' },
-  { value: '棉质', label: '棉质' },
-  { value: '涤纶', label: '涤纶' },
-  { value: '混纺', label: '混纺' },
-]
-
-const FIT_OPTS = [
-  { value: '', label: '全部版型' },
-  { value: '宽松', label: '宽松' },
-  { value: '修身', label: '修身' },
-  { value: '常规', label: '常规' },
-]
-
-const SIZE_OPTS = [
-  { value: '', label: '全部尺码' },
-  { value: 'S', label: 'S' },
-  { value: 'M', label: 'M' },
-  { value: 'L', label: 'L' },
-  { value: 'XL', label: 'XL' },
-  { value: 'XXL', label: 'XXL' },
-]
-
-const PRICE_OPTS = [
-  { value: '', label: '全部价格' },
-  { value: '0-100', label: '¥0-100' },
-  { value: '100-200', label: '¥100-200' },
-  { value: '200+', label: '¥200+' },
-]
-
-const SORT_OPTS = [
-  { value: 'default', label: '综合排序' },
-  { value: 'price-asc', label: '价格从低到高' },
-  { value: 'newest', label: '最新上架' },
-] as const
-
-function matchPrice(price: number, range: string): boolean {
-  if (!range) return true
-  if (range === '0-100') return price <= 100
-  if (range === '100-200') return price > 100 && price <= 200
-  if (range === '200+') return price > 200
-  return true
 }
 
 const categoryMap: Record<string, string> = {
@@ -80,10 +24,39 @@ export default function ShopContent(props: Props) {
   const [filterFit, setFilterFit] = createSignal('')
   const [filterSize, setFilterSize] = createSignal('')
   const [filterPrice, setFilterPrice] = createSignal('')
-  const [sortMode, setSortMode] = createSignal<'default' | 'price-asc' | 'newest'>('default')
+  const [sortMode, setSortMode] = createSignal<SortMode>('default')
   const [filterPanelOpen, setFilterPanelOpen] = createSignal(false)
 
   const [showScrollTop, setShowScrollTop] = createSignal(false)
+
+  let dialogRef: HTMLDivElement | undefined
+
+  createEffect(() => {
+    if (filterOpen()) {
+      queueMicrotask(() => dialogRef?.focus())
+    }
+  })
+
+  const trapDialogFocus = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      setFilterOpen(false)
+      return
+    }
+    if (e.key !== 'Tab' || !dialogRef) return
+    const focusable = dialogRef.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    )
+    if (focusable.length === 0) return
+    const first = focusable[0]
+    const last = focusable[focusable.length - 1]
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault()
+      last.focus()
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault()
+      first.focus()
+    }
+  }
 
   onMount(() => {
     const params = new URLSearchParams(window.location.search)
@@ -148,8 +121,6 @@ export default function ShopContent(props: Props) {
     setSortMode('default')
   }
 
-
-
   const FilterGroup = (p: {
     title: string
     options: { value: string; label: string }[]
@@ -185,10 +156,10 @@ export default function ShopContent(props: Props) {
         <div class="container-content relative">
           <div class="flex items-center justify-between">
             <div class="min-w-0">
-              <span class="text-label-md tracking-wider text-on-surface-variant uppercase">Shop</span>
+              <span class="text-label-md text-on-surface-variant">商店</span>
               <div class="flex items-center gap-4">
                 <h1 class="font-headline text-headline-lg-mobile md:text-headline-lg text-on-surface">探索精品</h1>
-                <div class="w-8 h-0.5 bg-primary rounded-full hidden md:block shrink-0" />
+                <div class="w-8 h-0.5 bg-red-500 rounded-full hidden md:block shrink-0" />
               </div>
             </div>
             <a href="/search" class="md:hidden flex items-center justify-center w-10 h-10 text-on-surface-variant hover:text-on-surface transition-colors tap-target shrink-0" aria-label="搜索">
@@ -224,33 +195,33 @@ export default function ShopContent(props: Props) {
             <div class="flex items-center gap-1 flex-1 min-w-0 overflow-x-auto hide-scrollbar">
               <Show when={activeFilterCount() > 0}>
                 <Show when={filterFabric()}>
-                  <span class="inline-flex items-center gap-1 pl-2 pr-1 py-1 rounded-lg bg-primary-container text-primary text-label-md font-medium whitespace-nowrap shrink-0">
+                  <span class="inline-flex items-center gap-1 pl-2 pr-1 py-1 rounded-lg bg-accent-container text-on-accent-container text-label-md font-medium whitespace-nowrap shrink-0">
                     面料: {filterLabel(FABRIC_OPTS, filterFabric())}
-                    <button type="button" onClick={() => setFilterFabric('')} class="flex items-center justify-center w-5 h-5 rounded-full hover:bg-primary/20 transition-colors">
+                    <button type="button" onClick={() => setFilterFabric('')} class="flex items-center justify-center w-8 h-8 rounded-full hover:bg-accent/20 transition-colors tap-target" aria-label="清除面料筛选">
                       <span class="material-symbols-outlined text-sm">close</span>
                     </button>
                   </span>
                 </Show>
                 <Show when={filterFit()}>
-                  <span class="inline-flex items-center gap-1 pl-2 pr-1 py-1 rounded-lg bg-primary-container text-primary text-label-md font-medium whitespace-nowrap shrink-0">
+                  <span class="inline-flex items-center gap-1 pl-2 pr-1 py-1 rounded-lg bg-accent-container text-on-accent-container text-label-md font-medium whitespace-nowrap shrink-0">
                     版型: {filterLabel(FIT_OPTS, filterFit())}
-                    <button type="button" onClick={() => setFilterFit('')} class="flex items-center justify-center w-5 h-5 rounded-full hover:bg-primary/20 transition-colors">
+                    <button type="button" onClick={() => setFilterFit('')} class="flex items-center justify-center w-8 h-8 rounded-full hover:bg-accent/20 transition-colors tap-target" aria-label="清除版型筛选">
                       <span class="material-symbols-outlined text-sm">close</span>
                     </button>
                   </span>
                 </Show>
                 <Show when={filterSize()}>
-                  <span class="inline-flex items-center gap-1 pl-2 pr-1 py-1 rounded-lg bg-primary-container text-primary text-label-md font-medium whitespace-nowrap shrink-0">
+                  <span class="inline-flex items-center gap-1 pl-2 pr-1 py-1 rounded-lg bg-accent-container text-on-accent-container text-label-md font-medium whitespace-nowrap shrink-0">
                     尺码: {filterLabel(SIZE_OPTS, filterSize())}
-                    <button type="button" onClick={() => setFilterSize('')} class="flex items-center justify-center w-5 h-5 rounded-full hover:bg-primary/20 transition-colors">
+                    <button type="button" onClick={() => setFilterSize('')} class="flex items-center justify-center w-8 h-8 rounded-full hover:bg-accent/20 transition-colors tap-target" aria-label="清除尺码筛选">
                       <span class="material-symbols-outlined text-sm">close</span>
                     </button>
                   </span>
                 </Show>
                 <Show when={filterPrice()}>
-                  <span class="inline-flex items-center gap-1 pl-2 pr-1 py-1 rounded-lg bg-primary-container text-primary text-label-md font-medium whitespace-nowrap shrink-0">
+                  <span class="inline-flex items-center gap-1 pl-2 pr-1 py-1 rounded-lg bg-accent-container text-on-accent-container text-label-md font-medium whitespace-nowrap shrink-0">
                     价格: {filterLabel(PRICE_OPTS, filterPrice())}
-                    <button type="button" onClick={() => setFilterPrice('')} class="flex items-center justify-center w-5 h-5 rounded-full hover:bg-primary/20 transition-colors">
+                    <button type="button" onClick={() => setFilterPrice('')} class="flex items-center justify-center w-8 h-8 rounded-full hover:bg-accent/20 transition-colors tap-target" aria-label="清除价格筛选">
                       <span class="material-symbols-outlined text-sm">close</span>
                     </button>
                   </span>
@@ -290,7 +261,7 @@ export default function ShopContent(props: Props) {
           </div>
 
           <Show when={filterPanelOpen()}>
-            <div class="fixed inset-0 z-20" onClick={() => setFilterPanelOpen(false)} />
+            <div class="fixed inset-0 z-20" onClick={() => setFilterPanelOpen(false)} aria-hidden="true" />
             <div class="absolute left-0 right-0 top-full mt-1 z-30 bg-surface-container-low rounded-xl p-5 space-y-4 shadow-elevated">
               <FilterGroup title="面料" options={FABRIC_OPTS} value={filterFabric()} onChange={setFilterFabric} />
               <FilterGroup title="版型" options={FIT_OPTS} value={filterFit()} onChange={setFilterFit} />
@@ -321,7 +292,7 @@ export default function ShopContent(props: Props) {
         {/* Tablet: Categories sidebar */}
         <aside class="hidden md:block w-36 shrink-0">
           <div class="sticky top-20 bg-surface-container-low rounded-xl p-4">
-            <h3 class="text-label-md font-bold text-on-surface mb-3">分类</h3>
+            <h2 class="text-label-md font-bold text-on-surface mb-3">分类</h2>
             <div class="space-y-1">
               <button
                 type="button"
@@ -329,7 +300,7 @@ export default function ShopContent(props: Props) {
                 class={`w-full text-left px-3 py-2 rounded-lg text-body-sm transition-colors tap-target ${
                   activeCategory() === 'all'
                     ? 'text-primary font-bold bg-primary/10'
-                    : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'
+                    : 'text-on-surface-variant hover:text-primary hover:bg-primary/10'
                 }`}
               >
                 全部
@@ -341,7 +312,7 @@ export default function ShopContent(props: Props) {
                   class={`w-full text-left px-3 py-2 rounded-lg text-body-sm transition-colors tap-target ${
                     activeCategory() === en
                       ? 'text-primary font-bold bg-primary/10'
-                      : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'
+                      : 'text-on-surface-variant hover:text-primary hover:bg-primary/10'
                   }`}
                 >
                   {zh}
@@ -353,7 +324,7 @@ export default function ShopContent(props: Props) {
 
         <div class="flex-1 min-w-0 md:min-h-[60vh]">
           {/* Mobile filter bar */}
-          <section class="px-container-margin md:px-0 py-3 flex items-center justify-between sticky top-0 md:static bg-background/80 backdrop-blur-lg z-30">
+          <section class="px-container-margin md:px-0 py-3 flex items-center justify-between sticky top-0 md:static bg-background/95 z-30">
             <div class="flex items-center gap-2 overflow-x-auto hide-scrollbar md:hidden" style={{ '-ms-overflow-style': 'none', 'scrollbar-width': 'none' }}>
               <span class="text-label-md text-on-surface-variant whitespace-nowrap mr-1">{filteredProducts().length}件</span>
               {SORT_OPTS.map((opt, i) => [
@@ -387,7 +358,7 @@ export default function ShopContent(props: Props) {
             <Show when={filteredProducts().length === 0}>
               <div class="col-span-full flex flex-col items-center justify-center py-20 text-center">
                 <span class="material-symbols-outlined text-outline text-5xl mb-4">search_off</span>
-                <p class="text-on-surface-variant font-headline text-body-lg">没有符合条件的商品</p>
+                <p class="text-on-surface-variant text-body-lg">没有符合条件的商品</p>
                 <button
                   type="button"
                   onClick={resetFilters}
@@ -413,7 +384,7 @@ export default function ShopContent(props: Props) {
 
           {/* All loaded */}
           <Show when={allLoaded() && filteredProducts().length > 0}>
-            <p class="text-center font-headline text-body-sm text-on-surface-variant/50 py-8">
+            <p class="text-center text-body-sm text-on-surface-variant py-8">
               — 已展示全部 {filteredProducts().length} 件商品 —
             </p>
           </Show>
@@ -423,8 +394,16 @@ export default function ShopContent(props: Props) {
       {/* Bottom Sheet */}
       <Show when={filterOpen()}>
         <div class="fixed inset-0 z-50 flex items-end">
-          <div class="absolute inset-0 bg-black/60" onClick={() => setFilterOpen(false)} />
-          <div class="relative w-full bg-surface rounded-t-3xl max-h-[80vh] overflow-y-auto hide-scrollbar shadow-2xl">
+          <div class="absolute inset-0 bg-black/60" onClick={() => setFilterOpen(false)} aria-hidden="true" />
+          <div
+            ref={dialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="筛选"
+            tabIndex={-1}
+            onKeyDown={trapDialogFocus}
+            class="relative w-full bg-surface rounded-t-3xl max-h-[80vh] overflow-y-auto hide-scrollbar shadow-2xl outline-none"
+          >
             <div class="sticky top-0 bg-surface rounded-t-3xl px-6 py-3 border-b border-outline-variant flex flex-col items-center z-10">
               <div class="w-9 h-1 bg-outline-variant/40 rounded-full mb-3" />
               <div class="flex justify-between items-center w-full">
@@ -432,7 +411,8 @@ export default function ShopContent(props: Props) {
                 <button
                   type="button"
                   onClick={() => setFilterOpen(false)}
-                  class="tap-target p-1 rounded-full hover:bg-surface-container-high transition-colors"
+                  class="tap-target p-1 rounded-full hover:bg-primary/10 hover:text-primary transition-colors"
+                  aria-label="关闭筛选"
                 >
                   <span class="material-symbols-outlined text-on-surface-variant">close</span>
                 </button>
@@ -457,7 +437,7 @@ export default function ShopContent(props: Props) {
               <button
                 type="button"
                 onClick={() => setFilterOpen(false)}
-                class="flex-1 py-3 rounded-lg bg-primary text-on-primary font-bold tap-target active:scale-95 transition-transform"
+                class="flex-1 py-3 rounded-lg bg-primary text-on-primary font-bold tap-target hover:scale-[1.02] active:scale-95 transition-transform duration-200"
               >
                 确认（{filteredProducts().length}件）
               </button>
@@ -471,7 +451,7 @@ export default function ShopContent(props: Props) {
         <button
           type="button"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          class="fixed right-6 bottom-[11.5rem] w-14 h-14 bg-surface-container-high text-on-surface-variant rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-colors transition-transform tap-target z-40 hover:bg-primary hover:text-on-primary"
+          class="fixed right-6 bottom-[11.5rem] w-14 h-14 bg-surface-container-high text-on-surface-variant rounded-full shadow-lg flex items-center justify-center hover:scale-[1.08] active:scale-95 transition-transform tap-target z-40 hover:bg-primary hover:text-on-primary"
           aria-label="回到顶部"
         >
           <span class="material-symbols-outlined">arrow_upward</span>
@@ -481,7 +461,7 @@ export default function ShopContent(props: Props) {
       {/* Mobile cart FAB */}
       <a
         href="/cart"
-        class="md:hidden fixed right-6 bottom-24 w-14 h-14 bg-primary text-on-primary rounded-full shadow-xl flex items-center justify-center active:scale-95 transition-transform tap-target z-40 before:absolute before:-inset-4 before:rounded-full before:bg-primary/20 before:blur-xl before:-z-10"
+        class="md:hidden fixed right-6 bottom-24 w-14 h-14 bg-primary text-on-primary rounded-full shadow-xl flex items-center justify-center hover:scale-[1.08] active:scale-95 transition-transform duration-200 tap-target z-40"
         aria-label="购物车"
       >
         <span class="material-symbols-outlined">shopping_cart</span>

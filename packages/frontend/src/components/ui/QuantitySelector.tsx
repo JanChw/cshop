@@ -18,10 +18,10 @@ export default function QuantitySelector(props: Props) {
   }
 
   return (
-    <div class="flex items-center border border-outline-variant rounded-lg">
-      <button class="px-3 py-1 text-on-surface hover:bg-surface-container transition-colors active:scale-95" onClick={() => update(-1)}>-</button>
-      <span class="px-4 py-1 font-bold text-body-sm">{value()}</span>
-      <button class="px-3 py-1 text-on-surface hover:bg-surface-container transition-colors active:scale-95" onClick={() => update(1)}>+</button>
+    <div class="flex items-center border border-outline-variant rounded-lg" role="group" aria-label="数量选择">
+      <button class="tap-target flex items-center justify-center min-w-[44px] text-on-surface hover:bg-surface-container transition-colors active:scale-95" onClick={() => update(-1)} aria-label="减少数量">-</button>
+      <span class="w-10 text-center font-bold text-body-sm" aria-live="polite">{value()}</span>
+      <button class="tap-target flex items-center justify-center min-w-[44px] text-on-surface hover:bg-surface-container transition-colors active:scale-95" onClick={() => update(1)} aria-label="增加数量">+</button>
     </div>
   )
 }

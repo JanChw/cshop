@@ -1,4 +1,5 @@
 import { createSignal, createMemo } from 'solid-js'
+import ConfirmDialog from '../ui/ConfirmDialog'
 import { showToast } from '../../lib/toast'
 
 export default function ProfileForm() {
@@ -7,6 +8,7 @@ export default function ProfileForm() {
   const [birthday, setBirthday] = createSignal('1995-08-24')
   const [bio, setBio] = createSignal('在这里发现极简主义之美。Sahara 风格探索者，专注于温润的质感与光影艺术。ByChooow 社区资深创作者。')
   const [saving, setSaving] = createSignal(false)
+  const [showLogoutConfirm, setShowLogoutConfirm] = createSignal(false)
   const charCount = createMemo(() => bio().length)
   let fileInput: HTMLInputElement | undefined
 
@@ -17,7 +19,12 @@ export default function ProfileForm() {
   }
 
   const logout = () => {
-    if (confirm('确定要退出当前登录吗？')) showToast('已退出登录')
+    setShowLogoutConfirm(true)
+  }
+
+  const confirmLogout = () => {
+    setShowLogoutConfirm(false)
+    showToast('已退出登录')
   }
 
   return (
@@ -26,7 +33,7 @@ export default function ProfileForm() {
         <button
           type="button"
           onClick={() => history.back()}
-          class="tap-target p-2 hover:bg-surface-container-high rounded-full transition-colors"
+          class="tap-target p-2 hover:bg-primary/10 hover:text-primary transition-colors rounded-full"
           aria-label="返回"
         >
           <span class="material-symbols-outlined text-primary">arrow_back</span>
@@ -129,7 +136,7 @@ export default function ProfileForm() {
 
             <a href="/person/address">
               <div
-                class="bg-surface-container-low rounded-xl p-5 border border-outline-variant/40 flex items-center justify-between group cursor-pointer hover:bg-surface-container transition-colors shadow-card tap-target"
+                class="bg-surface-container-low rounded-xl p-5 border border-outline-variant/40 flex items-center justify-between group cursor-pointer hover:bg-primary/10 transition-colors shadow-card tap-target"
               >
                 <div class="flex items-center gap-4">
                   <div class="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center text-primary">
@@ -152,11 +159,21 @@ export default function ProfileForm() {
               >
                 <span class="material-symbols-outlined text-lg">logout</span>退出当前登录
               </button>
-              <p class="text-label-md text-on-surface-variant/50">UID: BC88240951 | ByChooow 2.4.0</p>
+              <p class="text-label-md text-on-surface-variant">UID: BC88240951 | ByChooow 2.4.0</p>
             </footer>
           </section>
         </div>
       </main>
+
+      <ConfirmDialog
+        open={showLogoutConfirm()}
+        title="确认退出"
+        message="确定要退出当前登录吗？"
+        confirmText="退出"
+        variant="danger"
+        onConfirm={confirmLogout}
+        onCancel={() => setShowLogoutConfirm(false)}
+      />
     </div>
   )
 }

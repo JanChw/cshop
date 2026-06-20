@@ -35,7 +35,7 @@ export default function SearchInput(props: Props) {
         <button
           type="button"
           onClick={() => props.onClear?.()}
-          class={`absolute top-1/2 -translate-y-1/2 tap-target flex items-center justify-center text-on-surface-variant hover:text-on-surface rounded-full hover:bg-surface-container ${
+          class={`absolute top-1/2 -translate-y-1/2 tap-target flex items-center justify-center text-on-surface-variant hover:text-primary rounded-full hover:bg-primary/10 ${
             props.size === 'sm' ? 'right-1.5 w-6 h-6' : 'right-3 w-7 h-7'
           }`}
           aria-label="清除"

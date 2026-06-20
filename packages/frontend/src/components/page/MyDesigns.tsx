@@ -1,5 +1,7 @@
 import { createSignal, For, onMount, Show } from 'solid-js'
 import ProductImage from '../ui/ProductImage'
+import SkeletonCard from '../ui/SkeletonCard'
+import ConfirmDialog from '../ui/ConfirmDialog'
 import { api, type DesignItem } from '../../lib/api'
 import { showToast } from '../../lib/toast'
 
@@ -7,6 +9,8 @@ export default function MyDesigns() {
   const [items, setItems] = createSignal<DesignItem[]>([])
   const [loading, setLoading] = createSignal(true)
   const [error, setError] = createSignal<string | null>(null)
+  const [showDeleteConfirm, setShowDeleteConfirm] = createSignal(false)
+  const [pendingDeleteId, setPendingDeleteId] = createSignal<number | null>(null)
 
   const load = async () => {
     setLoading(true)
@@ -25,8 +29,16 @@ export default function MyDesigns() {
     load()
   })
 
-  const remove = async (id: number) => {
-    if (!confirm('确定删除这个设计？')) return
+  const requestDelete = (id: number) => {
+    setPendingDeleteId(id)
+    setShowDeleteConfirm(true)
+  }
+
+  const confirmDelete = async () => {
+    const id = pendingDeleteId()
+    if (id === null) return
+    setShowDeleteConfirm(false)
+    setPendingDeleteId(null)
     try {
       await api.designs.remove(id)
       setItems(items().filter(i => i.id !== id))
@@ -49,19 +61,21 @@ export default function MyDesigns() {
   return (
     <div class="bg-background min-h-screen pb-24 text-on-surface md:pt-16">
       <header class="md:top-16 bg-surface sticky top-0 z-50 flex justify-between items-center px-4 h-16 border-b border-outline-variant">
-        <a href="/person" class="tap-target p-2 hover:bg-surface-container-high rounded-full transition-colors" aria-label="返回">
+        <a href="/person" class="tap-target p-2 hover:bg-primary/10 hover:text-primary transition-colors rounded-full" aria-label="返回">
           <span class="material-symbols-outlined text-primary">arrow_back</span>
         </a>
         <h1 class="text-lg font-bold text-primary">我的设计</h1>
-        <a href="/design" class="tap-target p-2 hover:bg-surface-container-high rounded-full transition-colors" aria-label="新建设计">
+        <a href="/design" class="tap-target p-2 hover:bg-primary/10 hover:text-primary transition-colors rounded-full" aria-label="新建设计">
           <span class="material-symbols-outlined text-primary">add</span>
         </a>
       </header>
 
       <main class="container-content pt-4 space-y-4">
         <Show when={!loading()} fallback={
-          <div class="text-center py-20 text-secondary">
-            <span class="material-symbols-outlined animate-spin text-3xl">progress_activity</span>
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <For each={[1, 2, 3, 4, 5, 6]}>
+              {() => <SkeletonCard />}
+            </For>
           </div>
         }>
           <Show when={!error()} fallback={
@@ -93,7 +107,7 @@ export default function MyDesigns() {
               <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
                 <For each={items()}>
                   {(item) => (
-                    <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden flex flex-col aspect-[4/5] hover:border-primary transition-colors group">
+                    <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden flex flex-col aspect-[4/5] hover:border-primary transition-colors transition-transform hover:-translate-y-0.5 duration-200 group">
                       <a href={`/design?design=${item.id}`} class="flex-1 bg-surface-variant/30 overflow-hidden relative">
                         <Show
                           when={item.previewImage}
@@ -122,7 +136,7 @@ export default function MyDesigns() {
                         <button
                           type="button"
                           class="tap-target p-2 rounded-lg hover:bg-error-container/30 hover:text-error text-on-surface-variant transition-colors shrink-0"
-                          onClick={() => remove(item.id)}
+                          onClick={() => requestDelete(item.id)}
                           aria-label="删除"
                         >
                           <span class="material-symbols-outlined text-base">delete</span>
@@ -136,6 +150,16 @@ export default function MyDesigns() {
           </Show>
         </Show>
       </main>
+
+      <ConfirmDialog
+        open={showDeleteConfirm()}
+        title="确认删除"
+        message="确定删除这个设计？"
+        confirmText="删除"
+        variant="danger"
+        onConfirm={confirmDelete}
+        onCancel={() => { setShowDeleteConfirm(false); setPendingDeleteId(null) }}
+      />
     </div>
   )
 }

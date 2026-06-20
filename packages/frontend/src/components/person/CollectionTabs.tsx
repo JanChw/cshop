@@ -45,19 +45,18 @@ export default function CollectionTabs() {
   return (
     <div class="bg-background min-h-screen pb-24 text-on-surface md:pt-16">
       <header class="sticky top-0 md:top-16 z-50 bg-surface h-16 flex justify-between items-center px-4 border-b border-outline-variant">
-        <button
-          type="button"
-          onClick={() => history.back()}
-          class="tap-target p-2 hover:bg-surface-container-high rounded-full transition-colors"
+        <a
+          href="/person"
+          class="tap-target p-2 hover:bg-primary/10 hover:text-primary transition-colors rounded-full"
           aria-label="返回"
         >
           <span class="material-symbols-outlined text-primary">arrow_back</span>
-        </button>
+        </a>
         <h1 class="text-lg font-bold text-primary">收藏与草稿</h1>
         <button
           type="button"
           onClick={() => showToast('搜索功能即将上线')}
-          class="tap-target p-2 hover:bg-surface-container-high rounded-full transition-colors"
+          class="tap-target p-2 hover:bg-primary/10 hover:text-primary transition-colors rounded-full"
           aria-label="搜索"
         >
           <span class="material-symbols-outlined text-primary">search</span>
@@ -69,14 +68,14 @@ export default function CollectionTabs() {
           <button
             type="button"
             onClick={() => setActiveTab('favorites')}
-            class={`pb-3 text-lg font-medium transition-colors tap-target ${activeTab() === 'favorites' ? 'text-primary border-b-2 border-primary font-bold' : 'text-on-surface-variant/60 hover:text-on-surface-variant'}`}
+            class={`pb-3 text-lg font-medium transition-colors tap-target ${activeTab() === 'favorites' ? 'text-primary border-b-2 border-primary font-bold' : 'text-on-surface-variant hover:text-on-surface'}`}
           >
             我的收藏
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('drafts')}
-            class={`pb-3 text-lg font-medium transition-colors tap-target ${activeTab() === 'drafts' ? 'text-primary border-b-2 border-primary font-bold' : 'text-on-surface-variant/60 hover:text-on-surface-variant'}`}
+            class={`pb-3 text-lg font-medium transition-colors tap-target ${activeTab() === 'drafts' ? 'text-primary border-b-2 border-primary font-bold' : 'text-on-surface-variant hover:text-on-surface'}`}
           >
             设计草稿
           </button>
@@ -85,7 +84,7 @@ export default function CollectionTabs() {
         {activeTab() === 'favorites' && (
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
             {mockFavorites.map((item) => (
-              <div class="bg-surface-container-low rounded-xl overflow-hidden border border-outline-variant/40 group hover:border-outline transition-colors">
+              <div class="bg-surface-container-low rounded-xl overflow-hidden border border-outline-variant/40 group hover:border-outline hover:-translate-y-0.5 transition-colors transition-transform duration-200">
                 <div class="aspect-[4/5] relative overflow-hidden bg-surface-container">
                   <ProductImage
                     src={item.image}
@@ -126,12 +125,12 @@ export default function CollectionTabs() {
         {activeTab() === 'drafts' && (
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
             <a href="/design"
-              class="bg-surface-container-highest border-2 border-dashed border-outline-variant flex flex-col items-center justify-center p-8 rounded-xl h-[400px] hover:border-primary transition-colors group">
+              class="bg-surface-container-highest border-2 border-dashed border-outline-variant flex flex-col items-center justify-center p-8 rounded-xl min-h-[400px] hover:border-primary transition-colors group">
               <span class="material-symbols-outlined text-4xl text-on-surface-variant mb-4 group-hover:text-primary">add_circle</span>
               <p class="font-medium text-on-surface-variant">开启新创作</p>
             </a>
             {mockDrafts.map((draft) => (
-              <div class="bg-surface-container-low rounded-xl overflow-hidden border border-outline-variant/40 relative h-[400px]">
+              <div class="bg-surface-container-low rounded-xl overflow-hidden border border-outline-variant/40 relative min-h-[400px]">
                 <div class="h-2/3 bg-surface-container overflow-hidden">
                   <ProductImage
                     src={draft.image}
@@ -152,7 +151,7 @@ export default function CollectionTabs() {
                     <button
                       type="button"
                       onClick={() => showToast('编辑功能即将上线')}
-                      class="tap-target material-symbols-outlined text-primary hover:bg-surface-container-high p-2 rounded-full"
+                      class="tap-target material-symbols-outlined text-primary hover:bg-primary/10 p-2 rounded-full"
                       aria-label="编辑"
                     >
                       edit
@@ -168,7 +167,7 @@ export default function CollectionTabs() {
       {showFab() && (
         <button
           type="button"
-          class="fixed right-6 bottom-24 w-14 h-14 bg-primary text-on-primary rounded-xl flex items-center justify-center active:scale-95 transition-transform z-40 tap-target"
+          class="fixed right-6 bottom-24 w-14 h-14 bg-primary text-on-primary rounded-xl flex items-center justify-center hover:scale-[1.08] active:scale-95 transition-transform duration-200 z-40 tap-target"
           onClick={() => showToast('创作功能即将上线')}
           aria-label="新建创作"
         >

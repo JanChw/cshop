@@ -63,14 +63,7 @@ export default function DesignWorkshop() {
   const [quantity, setQuantity] = createSignal(1)
   const [addingCart, setAddingCart] = createSignal(false)
 
-  const colorToName: Record<string, string> = {
-    '#ffffff': '白色',
-    '#1a1a1a': '黑色',
-    '#b5b5b5': '灰色',
-    '#c2652a': '棕色',
-    '#2d4a3e': '绿色',
-    '#8c3c3c': '红色'
-  }
+  const colorToName: Record<string, string> = Object.fromEntries(TSHIRT_COLORS.map(c => [c.hex, c.name]))
 
   let canvasAPI: CanvasAPI | null = null
   let nameInputRef: HTMLInputElement | undefined
@@ -315,7 +308,7 @@ export default function DesignWorkshop() {
     <div class="bg-background min-h-screen pb-24 md:pb-0 text-on-surface">
       <header class="bg-surface sticky top-0 md:top-16 z-40 flex justify-between items-center px-4 h-16 w-full border-b border-outline-variant">
         <button
-          class="p-2 hover:bg-surface-container-high rounded-full transition-colors active:scale-95 duration-100"
+          class="p-2 hover:bg-primary/10 hover:text-primary rounded-full transition-colors transition-transform active:scale-95 duration-200"
           onClick={() => setDrawerOpen(true)}
           aria-label="菜单"
         >
@@ -359,7 +352,7 @@ export default function DesignWorkshop() {
           </div>
         </div>
         <button
-          class="p-2 hover:bg-surface-container-high rounded-full transition-colors active:scale-95 duration-100"
+          class="p-2 hover:bg-primary/10 hover:text-primary rounded-full transition-colors transition-transform active:scale-95 duration-200"
           onClick={() => void save()}
           aria-label="保存"
           disabled={saveState() === 'saving'}
@@ -390,6 +383,7 @@ export default function DesignWorkshop() {
               </div>
               <div class="flex items-center gap-2 mt-2">
                 <select
+                  aria-label="尺码"
                   value={selectedSize()}
                   onChange={(e) => setSelectedSize(e.currentTarget.value)}
                   class="h-10 pl-2 pr-6 rounded-lg bg-surface border border-outline-variant text-body-sm font-bold text-on-surface focus:outline-none focus:border-primary"
@@ -400,7 +394,7 @@ export default function DesignWorkshop() {
                 </select>
                 <div class="flex items-center gap-1">
                   <button
-                    class="w-9 h-9 rounded-lg border border-outline-variant flex items-center justify-center text-on-surface hover:bg-surface-container transition-colors tap-target"
+                    class="w-9 h-9 rounded-lg border border-outline-variant flex items-center justify-center text-on-surface hover:bg-primary/10 hover:text-primary transition-colors tap-target"
                     onClick={() => setQuantity(q => Math.max(1, q - 1))}
                     aria-label="减少数量"
                   >
@@ -408,7 +402,7 @@ export default function DesignWorkshop() {
                   </button>
                   <span class="w-5 text-center text-body-sm font-bold text-on-surface">{quantity()}</span>
                   <button
-                    class="w-9 h-9 rounded-lg border border-outline-variant flex items-center justify-center text-on-surface hover:bg-surface-container transition-colors tap-target"
+                    class="w-9 h-9 rounded-lg border border-outline-variant flex items-center justify-center text-on-surface hover:bg-primary/10 hover:text-primary transition-colors tap-target"
                     onClick={() => setQuantity(q => q + 1)}
                     aria-label="增加数量"
                   >
@@ -426,6 +420,7 @@ export default function DesignWorkshop() {
               </div>
               <div class="flex items-center gap-2 shrink-0">
                 <select
+                  aria-label="尺码"
                   value={selectedSize()}
                   onChange={(e) => setSelectedSize(e.currentTarget.value)}
                   class="h-10 pl-2 pr-6 rounded-lg bg-surface border border-outline-variant text-body-sm font-bold text-on-surface focus:outline-none focus:border-primary"
@@ -436,7 +431,7 @@ export default function DesignWorkshop() {
                 </select>
                 <div class="flex items-center gap-1">
                   <button
-                    class="w-9 h-9 rounded-lg border border-outline-variant flex items-center justify-center text-on-surface hover:bg-surface-container transition-colors tap-target"
+                    class="w-9 h-9 rounded-lg border border-outline-variant flex items-center justify-center text-on-surface hover:bg-primary/10 hover:text-primary transition-colors tap-target"
                     onClick={() => setQuantity(q => Math.max(1, q - 1))}
                     aria-label="减少数量"
                   >
@@ -444,7 +439,7 @@ export default function DesignWorkshop() {
                   </button>
                   <span class="w-5 text-center text-body-sm font-bold text-on-surface">{quantity()}</span>
                   <button
-                    class="w-9 h-9 rounded-lg border border-outline-variant flex items-center justify-center text-on-surface hover:bg-surface-container transition-colors tap-target"
+                    class="w-9 h-9 rounded-lg border border-outline-variant flex items-center justify-center text-on-surface hover:bg-primary/10 hover:text-primary transition-colors tap-target"
                     onClick={() => setQuantity(q => q + 1)}
                     aria-label="增加数量"
                   >
@@ -472,9 +467,11 @@ export default function DesignWorkshop() {
           onChange={handleCanvasChange}
         />
 
-        <nav class="mt-6 flex overflow-x-auto gap-6 border-b border-outline-variant/30 pb-2 md:hidden" style={{ '-ms-overflow-style': 'none', 'scrollbar-width': 'none' }}>
+        <nav class="mt-6 flex overflow-x-auto gap-6 border-b border-outline-variant/30 pb-2 md:hidden tab-scroll-hint" role="tablist" style={{ '-ms-overflow-style': 'none', 'scrollbar-width': 'none' }}>
           {DESIGN_TABS.map((t) => (
             <button
+              role="tab"
+              aria-selected={activeTab() === t.key}
               class={`flex-shrink-0 text-sm font-body whitespace-nowrap pb-2 transition-colors ${
                 activeTab() === t.key
                   ? 'text-primary font-bold border-b-2 border-primary'
@@ -493,7 +490,7 @@ export default function DesignWorkshop() {
           ))}
         </nav>
 
-        <div class="md:hidden">
+        <div class="md:hidden" role="tabpanel">
           <Show when={activeTab() === 'color'}>
             <ColorPanel selectedColor={tshirtColor()} onColorChange={handleColorChange} />
           </Show>
@@ -547,14 +544,16 @@ export default function DesignWorkshop() {
         </div>
 
         <div class="md:w-1/3 md:order-1 md:sticky md:top-36 md:self-start md:max-h-[calc(100vh-10rem)] md:overflow-y-auto hide-scrollbar">
-          <nav class="hidden md:flex md:flex-col gap-2 mb-6">
+          <nav class="hidden md:flex md:flex-col gap-2 mb-6" role="tablist">
             {DESIGN_TABS.map((t) => (
               <button
                 type="button"
+                role="tab"
+                aria-selected={activeTab() === t.key}
                 class={`text-left px-4 py-3 rounded-lg text-body-sm font-medium transition-colors tap-target ${
                   activeTab() === t.key
                     ? 'bg-primary-container text-primary font-bold'
-                    : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high'
+                    : 'bg-surface-container text-on-surface-variant hover:bg-primary/10 hover:text-primary'
                 }`}
                 onClick={() => {
                   if (t.key === 'text') {
@@ -568,7 +567,7 @@ export default function DesignWorkshop() {
               </button>
             ))}
           </nav>
-          <div class="hidden md:block">
+          <div class="hidden md:block" role="tabpanel">
             <Show when={activeTab() === 'color'}>
               <ColorPanel selectedColor={tshirtColor()} onColorChange={handleColorChange} />
             </Show>
@@ -634,19 +633,19 @@ export default function DesignWorkshop() {
             </div>
           </div>
           <nav class="space-y-1">
-            <a class="flex items-center gap-4 p-4 text-on-surface-variant hover:bg-surface-container-high rounded-xl transition-colors" href="/person/designs">
+            <a class="flex items-center gap-4 p-4 text-on-surface-variant hover:bg-primary/10 hover:text-primary rounded-xl transition-colors" href="/person/designs">
               <span class="material-symbols-outlined">palette</span>
               我的设计
             </a>
-            <a class="flex items-center gap-4 p-4 text-on-surface-variant hover:bg-surface-container-high rounded-xl transition-colors" href="/order">
+            <a class="flex items-center gap-4 p-4 text-on-surface-variant hover:bg-primary/10 hover:text-primary rounded-xl transition-colors" href="/order">
               <span class="material-symbols-outlined">package_2</span>
               订单查询
             </a>
-            <a class="flex items-center gap-4 p-4 text-on-surface-variant hover:bg-surface-container-high rounded-xl transition-colors" href="/person/collection">
+            <a class="flex items-center gap-4 p-4 text-on-surface-variant hover:bg-primary/10 hover:text-primary rounded-xl transition-colors" href="/person/collection">
               <span class="material-symbols-outlined">favorite</span>
               收藏夹
             </a>
-            <a class="flex items-center gap-4 p-4 text-on-surface-variant hover:bg-surface-container-high rounded-xl transition-colors" href="/person">
+            <a class="flex items-center gap-4 p-4 text-on-surface-variant hover:bg-primary/10 hover:text-primary rounded-xl transition-colors" href="/person">
               <span class="material-symbols-outlined">settings</span>
               设置
             </a>
@@ -657,34 +656,6 @@ export default function DesignWorkshop() {
         class={`fixed inset-0 bg-black/60 z-40 transition-opacity duration-300 ${drawerOpen() ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
         onClick={() => setDrawerOpen(false)}
       />
-
-      <style>{`
-        input[type="range"] {
-          accent-color: var(--color-primary);
-          -webkit-appearance: none;
-          background: var(--color-outline-variant);
-          height: 4px;
-          border-radius: 2px;
-        }
-        input[type="range"]::-webkit-slider-thumb {
-          -webkit-appearance: none;
-          height: 18px;
-          width: 18px;
-          border-radius: 50%;
-          background: var(--color-primary);
-          cursor: pointer;
-          border: 2px solid var(--color-surface);
-          box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-        }
-        input[type="range"]::-moz-range-thumb {
-          height: 18px;
-          width: 18px;
-          border-radius: 50%;
-          background: var(--color-primary);
-          cursor: pointer;
-          border: 2px solid var(--color-surface);
-        }
-      `}</style>
     </div>
   )
 }

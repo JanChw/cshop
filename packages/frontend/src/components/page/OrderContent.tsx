@@ -68,7 +68,7 @@ export default function OrderContent(props: Props) {
                 <button
                   type="button"
                   onClick={() => { setSearchOpen(false); setQuery('') }}
-                  class="tap-target p-2 hover:bg-surface-container-high rounded-full transition-colors shrink-0"
+                  class="tap-target p-2 hover:bg-primary/10 hover:text-primary transition-colors rounded-full shrink-0"
                   aria-label="关闭搜索"
                 >
                   <span class="material-symbols-outlined text-primary">arrow_back</span>
@@ -89,7 +89,7 @@ export default function OrderContent(props: Props) {
               <button
                 type="button"
                 onClick={() => history.back()}
-                class="tap-target p-2 hover:bg-surface-container-high rounded-full transition-colors shrink-0"
+                class="tap-target p-2 hover:bg-primary/10 hover:text-primary transition-colors rounded-full shrink-0"
                 aria-label="返回"
               >
                 <span class="material-symbols-outlined text-primary">arrow_back</span>
@@ -99,7 +99,7 @@ export default function OrderContent(props: Props) {
             <button
               type="button"
               onClick={() => setSearchOpen(true)}
-              class="tap-target p-2 hover:bg-surface-container-high rounded-full transition-colors"
+              class="tap-target p-2 hover:bg-primary/10 hover:text-primary transition-colors rounded-full"
               aria-label="搜索订单"
             >
               <span class="material-symbols-outlined text-primary">search</span>

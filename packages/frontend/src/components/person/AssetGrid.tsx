@@ -1,5 +1,7 @@
 import { createSignal, For, onMount, Show } from 'solid-js'
 import ProductImage from '../ui/ProductImage'
+import SkeletonCard from '../ui/SkeletonCard'
+import ConfirmDialog from '../ui/ConfirmDialog'
 import { api, type UploadItem } from '../../lib/api'
 import { showToast } from '../../lib/toast'
 
@@ -8,6 +10,8 @@ export default function AssetGrid() {
   const [loading, setLoading] = createSignal(true)
   const [search, setSearch] = createSignal('')
   const [error, setError] = createSignal<string | null>(null)
+  const [showDeleteConfirm, setShowDeleteConfirm] = createSignal(false)
+  const [pendingDeleteId, setPendingDeleteId] = createSignal<number | null>(null)
   let fileInput: HTMLInputElement | undefined
 
   const load = async () => {
@@ -42,8 +46,16 @@ export default function AssetGrid() {
     }
   }
 
-  const remove = async (id: number) => {
-    if (!confirm('确定删除此素材？')) return
+  const requestDelete = (id: number) => {
+    setPendingDeleteId(id)
+    setShowDeleteConfirm(true)
+  }
+
+  const confirmDelete = async () => {
+    const id = pendingDeleteId()
+    if (id === null) return
+    setShowDeleteConfirm(false)
+    setPendingDeleteId(null)
     try {
       await api.uploads.remove(id)
       setItems(items().filter(i => i.id !== id))
@@ -62,13 +74,13 @@ export default function AssetGrid() {
   return (
     <div class="bg-background min-h-screen pb-24 text-on-surface md:pt-16">
       <header class="sticky top-0 md:top-16 z-50 bg-surface h-16 flex justify-between items-center px-4 border-b border-outline-variant">
-        <a href="/person" class="tap-target p-2 hover:bg-surface-container-high rounded-full transition-colors" aria-label="返回">
+        <a href="/person" class="tap-target p-2 hover:bg-primary/10 hover:text-primary transition-colors rounded-full" aria-label="返回">
           <span class="material-symbols-outlined text-primary">arrow_back</span>
         </a>
         <h1 class="text-lg font-bold text-primary">个人素材库</h1>
         <button
           type="button"
-          class="tap-target p-2 hover:bg-surface-container-high rounded-full transition-colors"
+          class="tap-target p-2 hover:bg-primary/10 hover:text-primary transition-colors rounded-full"
           onClick={() => fileInput?.click()}
           aria-label="上传"
         >
@@ -89,8 +101,10 @@ export default function AssetGrid() {
         </div>
 
         <Show when={!loading()} fallback={
-          <div class="text-center py-20 text-secondary">
-            <span class="material-symbols-outlined animate-spin text-3xl">progress_activity</span>
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <For each={[1, 2, 3, 4, 5, 6]}>
+              {() => <SkeletonCard />}
+            </For>
           </div>
         }>
           <Show when={!error()} fallback={
@@ -116,7 +130,7 @@ export default function AssetGrid() {
               <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
                 <For each={filtered()}>
                   {(item) => (
-                    <div class="group relative bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden flex flex-col aspect-[4/5] hover:border-primary transition-colors">
+                    <div class="group relative bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden flex flex-col aspect-[4/5] hover:border-primary transition-colors transition-transform hover:-translate-y-0.5 duration-200">
                       <div class="flex-1 bg-surface-variant/30 overflow-hidden relative">
                         <ProductImage
                           src={item.thumbUrl}
@@ -130,7 +144,7 @@ export default function AssetGrid() {
                         <button
                           type="button"
                           class="absolute top-2 right-2 bg-surface/90 backdrop-blur-md p-2 rounded-lg text-on-surface-variant hover:text-error transition-colors tap-target"
-                          onClick={() => remove(item.id)}
+                          onClick={() => requestDelete(item.id)}
                           aria-label="删除"
                         >
                           <span class="material-symbols-outlined text-base">delete</span>
@@ -150,6 +164,16 @@ export default function AssetGrid() {
           </Show>
         </Show>
       </main>
+
+      <ConfirmDialog
+        open={showDeleteConfirm()}
+        title="确认删除"
+        message="确定删除此素材？"
+        confirmText="删除"
+        variant="danger"
+        onConfirm={confirmDelete}
+        onCancel={() => { setShowDeleteConfirm(false); setPendingDeleteId(null) }}
+      />
 
       <input
         ref={fileInput}

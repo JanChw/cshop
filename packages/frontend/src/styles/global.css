@@ -45,6 +45,9 @@
   --t-warning: #facc15;
   --t-on-warning: #0c0c0c;
   --t-accent: #ef4444;
+  --t-on-accent: #ffffff;
+  --t-accent-container: #450a0a;
+  --t-on-accent-container: #fca5a5;
   --t-info: #3b82f6;
   --t-on-info: #ffffff;
 
@@ -99,6 +102,9 @@
   --t-info: #2563eb;
   --t-on-info: #ffffff;
   --t-accent: #ef4444;
+  --t-on-accent: #ffffff;
+  --t-accent-container: #fee2e2;
+  --t-on-accent-container: #991b1b;
 
   --t-shadow-card: 0 1px 0 rgba(0, 0, 0, 0.03) inset;
   --t-shadow-elevated: 0 0 0 1px rgba(0, 0, 0, 0.05);
@@ -146,6 +152,9 @@
   --color-info: var(--t-info);
   --color-on-info: var(--t-on-info);
   --color-accent: var(--t-accent);
+  --color-on-accent: var(--t-on-accent);
+  --color-accent-container: var(--t-accent-container);
+  --color-on-accent-container: var(--t-on-accent-container);
 
   --color-error: var(--t-error);
   --color-on-error: var(--t-on-error);

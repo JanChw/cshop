@@ -1,7 +1,8 @@
 ---
 import MobileNavBar from '../components/layout/MobileNavBar.tsx'
 import TabletNavBar from '../components/layout/TabletNavBar.tsx'
-import ThemeInitializer from '../components/layout/ThemeInitializer.tsx'
+import { ClientRouter } from 'astro:transitions'
+import '../styles/global.css'
 
 interface Props {
   title: string
@@ -15,29 +16,35 @@ const { title, hideNav = false } = Astro.props
 <html lang="zh-CN" data-theme="dark">
   <head>
     <meta charset="utf-8" />
-    <ThemeInitializer client:only="solid-js" />
+<script is:inline>
+(function(){
+  try{var t=localStorage.getItem('cshop-theme');if(t==='light')document.documentElement.setAttribute('data-theme','light')}catch(e){}
+  document.addEventListener('astro:after-swap',function(){try{var t=localStorage.getItem('cshop-theme');if(t==='light')document.documentElement.setAttribute('data-theme','light')}catch(e){}})
+})()</script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block" rel="stylesheet" />
+    <ClientRouter fallback="animate" />
     <title>{title} - ByChooow</title>
   </head>
   <body class="bg-background text-on-surface antialiased overflow-x-hidden">
     {!hideNav && (
       <>
-        <TabletNavBar client:load />
-        <MobileNavBar client:load />
+        <TabletNavBar client:load transition:persist currentPath={Astro.url.pathname} />
+        <MobileNavBar client:load transition:persist currentPath={Astro.url.pathname} />
       </>
     )}
-    <slot />
+    <div transition:animate="fade">
+      <slot />
+    </div>
   </body>
 </html>
 
 <style is:global>
-  @import '../styles/global.css';
-
   .material-symbols-outlined {
     font-family: 'Material Symbols Outlined';
     font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;

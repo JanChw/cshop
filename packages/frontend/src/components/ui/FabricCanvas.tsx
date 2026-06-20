@@ -514,6 +514,8 @@ export default function FabricCanvas(props: Props) {
     <canvas
       ref={canvasEl}
       class="w-full h-full"
+      role="img"
+      aria-label="设计画布"
     />
   )
 }

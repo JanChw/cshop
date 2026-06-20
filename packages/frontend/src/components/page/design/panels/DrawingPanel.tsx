@@ -24,7 +24,7 @@ export default function DrawingPanel(props: Props) {
           class={`flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold transition-colors ${
             props.mode === 'brush'
               ? 'bg-primary text-on-primary shadow-sm'
-              : 'text-on-surface-variant hover:bg-surface-container-high'
+              : 'text-on-surface-variant hover:bg-primary/10 hover:text-primary'
           }`}
           onClick={() => props.onModeChange('brush')}
         >
@@ -35,7 +35,7 @@ export default function DrawingPanel(props: Props) {
           class={`flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold transition-colors ${
             props.mode === 'move'
               ? 'bg-primary text-on-primary shadow-sm'
-              : 'text-on-surface-variant hover:bg-surface-container-high'
+              : 'text-on-surface-variant hover:bg-primary/10 hover:text-primary'
           }`}
           onClick={() => props.onModeChange('move')}
         >
@@ -86,7 +86,7 @@ export default function DrawingPanel(props: Props) {
                     class={`flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-bold transition-colors ${
                       selected()
                         ? 'bg-primary text-on-primary shadow-sm'
-                        : 'text-on-surface-variant hover:bg-surface-container-high'
+                        : 'text-on-surface-variant hover:bg-primary/10 hover:text-primary'
                     }`}
                     onClick={() => props.onStyleChange(s.key)}
                     aria-label={s.label}

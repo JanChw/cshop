@@ -36,7 +36,7 @@ export function useInfiniteScroll<T>(
           timer = setTimeout(() => {
             setVisibleCount(c => c + pageSize)
             setLoading(false)
-          }, 600)
+          }, 100)
         }
       },
       { rootMargin: '400px' }

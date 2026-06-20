@@ -112,7 +112,7 @@ export default function LoginForm() {
               <button
                 type="submit"
                 disabled={loading()}
-                class="w-full bg-primary text-on-primary py-4 px-6 rounded-lg font-bold tracking-wide flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-opacity transition-transform group shadow-lg shadow-primary/10 tap-target disabled:opacity-60"
+                class="w-full bg-primary text-on-primary py-4 px-6 rounded-lg font-bold tracking-wide flex items-center justify-center gap-2 hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] transition-opacity transition-transform duration-200 group shadow-lg shadow-primary/10 tap-target disabled:opacity-60"
               >
                 <Show when={!loading()}>
                   <span>登录</span>
@@ -135,7 +135,7 @@ export default function LoginForm() {
                 <button
                   type="button"
                   onClick={() => socialLogin('微信')}
-                  class="flex items-center justify-center gap-3 py-3 px-4 border border-outline-variant rounded-lg hover:bg-surface-variant transition-colors group tap-target"
+                  class="flex items-center justify-center gap-3 py-3 px-4 border border-outline-variant rounded-lg hover:bg-surface-variant transition-colors transition-transform active:scale-95 duration-200 group tap-target"
                 >
                   <div class="w-6 h-6 flex items-center justify-center rounded-full" style={`background-color: ${SOCIAL_BRAND_COLORS.wechat}`}>
                     <span class="material-symbols-outlined text-on-primary text-base" style="font-variation-settings: 'FILL' 1">chat</span>
@@ -145,7 +145,7 @@ export default function LoginForm() {
                 <button
                   type="button"
                   onClick={() => socialLogin('QQ')}
-                  class="flex items-center justify-center gap-3 py-3 px-4 border border-outline-variant rounded-lg hover:bg-surface-variant transition-colors group tap-target"
+                  class="flex items-center justify-center gap-3 py-3 px-4 border border-outline-variant rounded-lg hover:bg-surface-variant transition-colors transition-transform active:scale-95 duration-200 group tap-target"
                 >
                   <div class="w-6 h-6 flex items-center justify-center rounded-full" style={`background-color: ${SOCIAL_BRAND_COLORS.qq}`}>
                     <span class="material-symbols-outlined text-on-primary text-base" style="font-variation-settings: 'FILL' 1">person</span>

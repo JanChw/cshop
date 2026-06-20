@@ -110,19 +110,18 @@ export default function AddressManager() {
   return (
     <div class="bg-background min-h-screen pb-24 text-on-surface md:pt-16">
       <header class="sticky top-0 md:top-16 z-50 bg-surface h-16 flex justify-between items-center px-4 border-b border-outline-variant">
-        <button
-          type="button"
-          onClick={() => history.back()}
-          class="tap-target p-2 hover:bg-surface-container-high rounded-full transition-colors"
+        <a
+          href="/person"
+          class="tap-target p-2 hover:bg-primary/10 hover:text-primary transition-colors rounded-full"
           aria-label="返回"
         >
           <span class="material-symbols-outlined text-primary">arrow_back</span>
-        </button>
+        </a>
         <h1 class="text-lg font-bold text-primary">收货地址</h1>
         <button
           type="button"
           onClick={() => showToast('帮助功能即将上线')}
-          class="tap-target p-2 hover:bg-surface-container-high rounded-full transition-colors"
+          class="tap-target p-2 hover:bg-primary/10 hover:text-primary transition-colors rounded-full"
           aria-label="帮助"
         >
           <span class="material-symbols-outlined text-primary">help_outline</span>
@@ -132,7 +131,7 @@ export default function AddressManager() {
       <main class="pt-4 py-8 container-content">
         {addresses().length === 0 ? (
           <div class="flex flex-col items-center justify-center py-20 text-center">
-            <span class="material-symbols-outlined text-6xl text-outline-variant/50 mb-4">location_on</span>
+            <span class="material-symbols-outlined text-6xl text-on-surface-variant/30 mb-4">location_on</span>
             <h3 class="font-headline text-xl text-on-surface-variant">暂无收货地址</h3>
             <p class="text-sm text-outline mt-2">点击下方按钮添加您的第一个地址</p>
           </div>
@@ -185,7 +184,7 @@ export default function AddressManager() {
         <button
           type="button"
           onClick={openAdd}
-          class="w-full h-14 bg-primary hover:opacity-90 active:scale-95 transition-opacity transition-transform rounded-xl flex items-center justify-center gap-2 text-on-primary shadow-lg tap-target disabled:opacity-60 md:max-w-md md:mx-auto"
+          class="w-full h-14 bg-primary hover:opacity-90 hover:scale-[1.02] active:scale-95 transition-opacity transition-transform duration-200 rounded-xl flex items-center justify-center gap-2 text-on-primary shadow-lg tap-target disabled:opacity-60 md:max-w-md md:mx-auto"
         >
           <span class="material-symbols-outlined">add</span>
           <span class="font-bold tracking-widest">添加新地址</span>
@@ -194,7 +193,12 @@ export default function AddressManager() {
 
       {formOpen() && (
         <div class="fixed inset-0 z-50 flex items-end">
-          <div class="absolute inset-0 bg-black/60" onClick={closeForm} />
+          <div
+            class="absolute inset-0 bg-black/60"
+            onClick={closeForm}
+            onKeyDown={(e) => e.key === 'Enter' && closeForm()}
+            role="presentation"
+          />
           <div class="relative w-full bg-surface rounded-t-2xl max-h-[85vh] overflow-y-auto hide-scrollbar shadow-2xl">
             <div class="sticky top-0 bg-surface rounded-t-2xl z-10">
               <div class="flex justify-center pt-3 pb-1">
@@ -207,7 +211,7 @@ export default function AddressManager() {
                 <button
                   type="button"
                   onClick={closeForm}
-                  class="tap-target p-1 rounded-full hover:bg-surface-container-high transition-colors"
+                  class="tap-target p-1 rounded-full hover:bg-primary/10 hover:text-primary transition-colors"
                   aria-label="关闭"
                 >
                   <span class="material-symbols-outlined text-on-surface-variant">close</span>
@@ -295,7 +299,7 @@ export default function AddressManager() {
                 type="button"
                 onClick={save}
                 disabled={saving()}
-                class="w-full h-12 bg-primary hover:opacity-90 active:scale-95 transition-opacity transition-transform rounded-xl text-on-primary font-bold tracking-wider tap-target disabled:opacity-60"
+                class="w-full h-12 bg-primary hover:opacity-90 hover:scale-[1.02] active:scale-95 transition-opacity transition-transform duration-200 rounded-xl text-on-primary font-bold tracking-wider tap-target disabled:opacity-60"
               >
                 {saving() ? '保存中...' : '保存'}
               </button>
@@ -305,7 +309,12 @@ export default function AddressManager() {
       )}
 
       {deleteId() !== null && (
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-6" onClick={cancelDelete}>
+        <div
+          class="fixed inset-0 z-50 flex items-center justify-center p-6"
+          onClick={cancelDelete}
+          onKeyDown={(e) => e.key === 'Enter' && cancelDelete()}
+          role="presentation"
+        >
           <div class="absolute inset-0 bg-black/60" />
           <div
             class="relative bg-surface rounded-2xl w-full max-w-xs p-6 shadow-elevated flex flex-col items-center text-center"
@@ -320,7 +329,7 @@ export default function AddressManager() {
               <button
                 type="button"
                 onClick={cancelDelete}
-                class="flex-1 h-11 border border-outline rounded-xl text-on-surface-variant font-bold text-label-md hover:bg-surface-container transition-colors tap-target"
+                class="flex-1 h-11 border border-outline rounded-xl text-on-surface-variant font-bold text-label-md hover:bg-primary/10 hover:text-primary transition-colors tap-target"
               >
                 取消
               </button>

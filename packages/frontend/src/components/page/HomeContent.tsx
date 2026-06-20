@@ -1,6 +1,6 @@
-import { onMount, onCleanup } from 'solid-js'
 import ProductCard from '../ui/ProductCard'
 import ProductImage from '../ui/ProductImage'
+import ScrollRow from '../ui/ScrollRow'
 
 
 interface Product {
@@ -68,22 +68,6 @@ const COLLABS = [
 
 export default function HomeContent(props: Props) {
 
-  let scrollContainers: HTMLElement[] = []
-
-  onMount(() => {
-    const handler = (evt: WheelEvent) => {
-      const target = evt.currentTarget as HTMLElement
-      if (target.scrollWidth > target.clientWidth) {
-        evt.preventDefault()
-        target.scrollLeft += evt.deltaY
-      }
-    }
-    scrollContainers.forEach((el) => el.addEventListener('wheel', handler))
-    onCleanup(() => {
-      scrollContainers.forEach((el) => el.removeEventListener('wheel', handler))
-    })
-  })
-
   return (
     <main class="pb-[calc(64px+env(safe-area-inset-bottom))] md:pb-0 md:pt-16">
       {/* Hero */}
@@ -108,20 +92,20 @@ export default function HomeContent(props: Props) {
 
         <div class="relative container-content h-full flex flex-col justify-end md:justify-center pb-10 md:pb-0 md:min-h-[320px]">
           <div class="md:max-w-[45%]">
-            <p class="text-label-md text-on-surface-variant mb-3 tracking-wider uppercase">ByChooow Studio</p>
+            <p class="text-label-md text-red-500 mb-3 tracking-wider uppercase">ByChooow Studio</p>
             <h2 class="font-headline text-headline-lg-mobile md:text-headline-lg text-on-surface mb-5 md:mb-6 leading-[1.1]">
               将创意，转化为高级成衣。
             </h2>
             <div class="flex flex-col sm:flex-row gap-stack-sm">
               <a
                 href="/design"
-                class="bg-primary text-on-primary px-8 py-3.5 rounded-lg font-bold text-center hover:opacity-90 transition-opacity tap-target flex items-center justify-center"
+                class="bg-primary text-on-primary px-8 py-3.5 rounded-lg font-bold text-center hover:scale-[1.03] transition-transform duration-300 tap-target flex items-center justify-center"
               >
                 开始设计
               </a>
               <a
                 href="/shop"
-                class="bg-surface-container-high border border-outline-variant text-on-surface px-8 py-3.5 rounded-lg font-bold text-center hover:bg-surface-variant transition-colors tap-target flex items-center justify-center"
+                class="bg-surface-container-high border border-outline-variant text-on-surface px-8 py-3.5 rounded-lg font-bold text-center hover:bg-surface-variant hover:scale-[1.03] transition-colors transition-transform duration-300 tap-target flex items-center justify-center"
               >
                 探索商店
               </a>
@@ -133,24 +117,24 @@ export default function HomeContent(props: Props) {
       {/* 教学视频 */}
       <section class="mt-16 container-content">
         <div class="mb-stack-md">
-          <p class="text-label-md text-on-surface-variant tracking-wider uppercase mb-1">Learn</p>
+          <p class="text-label-md text-red-500 tracking-wider uppercase mb-1 border-l-2 border-l-accent pl-2">Learn</p>
           <h3 class="font-headline text-title-md text-on-surface">教学视频</h3>
         </div>
         <div class="flex flex-col md:grid md:grid-cols-2 gap-gutter">
           {VIDEOS.map((video, idx) => (
             <div class={`group cursor-pointer ${idx === 0 ? '' : 'md:mt-auto'}`}>
-              <div class="aspect-video bg-surface-container-low rounded-lg overflow-hidden mb-stack-sm relative">
-                <ProductImage
-                  src={video.image}
-                  alt={video.title}
-                  aspect="aspect-video"
-                  rounded="rounded-lg"
-                  fallbackLabel={video.title}
-                  class="group-hover:opacity-90 transition-opacity duration-500"
-                />
-                <div class="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/20 transition-colors">
-                  <span class="material-symbols-outlined text-white text-5xl relative z-10">play_circle</span>
-                </div>
+                <div class="aspect-video bg-surface-container-low rounded-lg overflow-hidden mb-stack-sm relative">
+                  <ProductImage
+                    src={video.image}
+                    alt={video.title}
+                    aspect="aspect-video"
+                    rounded="rounded-lg"
+                    fallbackLabel={video.title}
+                    class="group-hover:opacity-75 transition-opacity duration-200"
+                  />
+                  <div class="absolute inset-0 flex items-center justify-center bg-black/60 group-hover:bg-black/80 transition-colors duration-300">
+                    <span class="material-symbols-outlined text-white text-5xl relative z-10 group-hover:scale-110 transition-transform duration-200">play_circle</span>
+                  </div>
                 <span class="absolute bottom-2 right-2 bg-black/60 text-white text-label-md px-2 py-0.5 rounded">
                   {video.duration}
                 </span>
@@ -167,11 +151,11 @@ export default function HomeContent(props: Props) {
       <section class="mt-stack-lg bg-surface-container-low -mx-container-margin px-container-margin md:mx-0 md:px-0 md:rounded-xl py-stack-lg">
         <div class="flex justify-between items-end mb-stack-md">
           <div>
-            <h3 class="font-headline text-title-md text-on-surface">基础系列</h3>
-            <p class="text-body-sm text-on-surface-variant mt-1">专为二次创作优化的极简底衫</p>
+            <h3 class="font-headline text-title-md text-red-500 border-l-2 border-l-accent pl-2">Basics</h3>
+            <p class="text-body-sm text-on-surface-variant mt-1">二次创作</p>
           </div>
           <a href="/shop?category=Basics" class="text-on-surface-variant font-medium flex items-center gap-1 hover:text-primary transition-colors tap-target text-label-md">
-            全部 <span class="material-symbols-outlined text-base">arrow_forward</span>
+            全部 <span class="material-symbols-outlined text-base text-red-500">arrow_forward</span>
           </a>
         </div>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-gutter">
@@ -185,7 +169,7 @@ export default function HomeContent(props: Props) {
       {/* 必备单品 */}
       <section class="mt-16 container-content">
         <div class="mb-stack-md">
-          <p class="text-label-md text-on-surface-variant tracking-wider uppercase mb-1">Essentials</p>
+          <p class="text-label-md text-red-500 tracking-wider uppercase mb-1 border-l-2 border-l-accent pl-2">Essentials</p>
           <h3 class="font-headline text-title-md text-on-surface">必备单品</h3>
         </div>
         <div class="grid grid-cols-2 md:grid-cols-2 md:items-center gap-gutter">
@@ -199,11 +183,11 @@ export default function HomeContent(props: Props) {
               aspect="aspect-square"
               rounded="rounded-lg"
               fallbackLabel={ESSENTIALS[0].title}
-              class="absolute inset-0 w-full h-full object-cover group-hover:opacity-90 transition-opacity duration-700"
+              class="absolute inset-0 w-full h-full object-cover group-hover:opacity-75 transition-opacity duration-200"
             />
-            <div class="absolute inset-0 bg-gradient-to-t from-background/70 via-background/20 to-transparent flex flex-col justify-end p-6 md:p-8">
-              <span class="inline-block bg-primary/90 backdrop-blur-sm text-on-primary text-label-md px-3 py-1 rounded-full mb-3 w-fit">{ESSENTIALS[0].subtitle}</span>
-              <h4 class="text-on-surface font-headline text-headline-lg">{ESSENTIALS[0].title}</h4>
+            <div class="absolute inset-0 bg-gradient-to-t from-background via-background/75 to-transparent flex flex-col justify-end p-6 md:p-8">
+              <span class="inline-block bg-primary/90 backdrop-blur-sm text-on-primary text-label-md px-3 py-1 rounded-full mb-3 w-fit group-hover:scale-110 transition-transform duration-200">{ESSENTIALS[0].subtitle}</span>
+              <h4 class="text-on-surface font-headline text-headline-lg group-hover:translate-y-[-2px] transition-transform duration-200" style="text-shadow: 0 2px 6px rgba(0,0,0,0.85)">{ESSENTIALS[0].title}</h4>
             </div>
           </a>
           {ESSENTIALS.slice(1).map((item) => (
@@ -217,10 +201,10 @@ export default function HomeContent(props: Props) {
                 aspect="aspect-square"
                 rounded="rounded-lg"
                 fallbackLabel={item.title}
-                class="absolute inset-0 w-full h-full object-cover group-hover:opacity-90 transition-opacity duration-700"
+                class="absolute inset-0 w-full h-full object-cover group-hover:opacity-75 transition-opacity duration-200"
               />
-              <div class="absolute inset-0 bg-gradient-to-t from-background/60 via-background/10 to-transparent flex flex-col justify-end p-4 md:p-6">
-                <h4 class="text-on-surface font-headline text-title-md">{item.title}</h4>
+              <div class="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent flex flex-col justify-end p-4 md:p-6">
+                <h4 class="text-on-surface font-headline text-title-md group-hover:translate-y-[-2px] transition-transform duration-200" style="text-shadow: 0 1px 3px rgba(0,0,0,0.8)">{item.title}</h4>
               </div>
             </a>
           ))}
@@ -230,35 +214,32 @@ export default function HomeContent(props: Props) {
       {/* 联名工坊 */}
       <section class="mt-stack-lg mb-12 container-content">
         <div class="mb-stack-md">
-          <p class="text-label-md text-on-surface-variant tracking-wider uppercase mb-1">Collaborations</p>
+          <p class="text-label-md text-red-500 tracking-wider uppercase mb-1 border-l-2 border-l-accent pl-2">Collaborations</p>
           <h3 class="font-headline text-title-md text-on-surface">联名工坊</h3>
         </div>
-        <div
-          ref={(el) => { if (el) scrollContainers.push(el) }}
-          class="flex md:grid md:grid-cols-3 overflow-x-auto hide-scrollbar gap-gutter snap-x"
-        >
+        <ScrollRow class="flex md:grid md:grid-cols-3 overflow-x-auto hide-scrollbar gap-gutter">
           {COLLABS.map((collab) => (
-            <div class="flex-none w-[min(64vw,280px)] md:w-auto snap-start">
+            <div class="flex-none w-[min(64vw,280px)] md:w-auto">
               <a href="/shop?category=Designer" class="block relative rounded-lg overflow-hidden group">
                 <div class="aspect-[3/4] overflow-hidden">
-                  <span class="absolute top-3 right-3 bg-primary text-on-primary text-label-md px-2.5 py-1 rounded-full z-10">限定</span>
+                  <span class="absolute top-3 right-3 bg-accent text-on-accent text-label-md px-2.5 py-1 rounded-full z-10 group-hover:scale-110 transition-transform duration-300">限定</span>
                   <ProductImage
                     src={collab.image}
                     alt={collab.name}
                     aspect="aspect-[3/4]"
                     rounded="rounded-none"
                     fallbackLabel={collab.name}
-                    class="absolute inset-0 w-full h-full object-cover group-hover:opacity-90 transition-opacity duration-700"
+                    class="absolute inset-0 w-full h-full object-cover group-hover:opacity-75 transition-opacity duration-200"
                   />
-                  <div class="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent flex flex-col justify-end p-4">
-                    <h5 class="text-on-surface font-headline text-title-md">{collab.name}</h5>
-                    <p class="text-label-md text-primary mt-1">{collab.series}</p>
+                  <div class="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent flex flex-col justify-end p-4">
+                    <h5 class="text-on-surface font-headline text-title-md group-hover:translate-y-[-2px] transition-transform duration-200" style="text-shadow: 0 1px 3px rgba(0,0,0,0.8)">{collab.name}</h5>
+                    <p class="text-label-md text-primary mt-1 group-hover:translate-y-[-2px] transition-transform duration-200" style="text-shadow: 0 1px 3px rgba(0,0,0,0.8)">{collab.series}</p>
                   </div>
                 </div>
               </a>
             </div>
           ))}
-        </div>
+        </ScrollRow>
       </section>
     </main>
   )

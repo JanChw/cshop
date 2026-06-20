@@ -47,7 +47,7 @@ export default function ColorPanel(props: Props) {
 
           <button
             type="button"
-            class="flex items-center justify-center w-11 h-11 rounded-full hover:bg-surface-container-high text-secondary hover:text-primary transition-colors"
+            class="flex items-center justify-center w-11 h-11 rounded-full hover:bg-primary/10 text-secondary hover:text-primary transition-colors"
             onClick={() => copyHex(displayHex())}
             title="点击复制色号"
             aria-label="复制色号"

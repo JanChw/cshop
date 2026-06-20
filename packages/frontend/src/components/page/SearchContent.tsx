@@ -1,68 +1,13 @@
-import { createSignal, createMemo, For, Show } from 'solid-js'
+import { createSignal, createMemo, createEffect, For, Show } from 'solid-js'
 import SearchInput from '../ui/SearchInput'
 import ProductCard from '../ui/ProductCard'
 import ScrollRow from '../ui/ScrollRow'
 import SkeletonCard from '../ui/SkeletonCard'
 import { useInfiniteScroll } from '../../lib/useInfiniteScroll'
-
-interface Product {
-  id: string
-  name: string
-  price: number
-  image: string
-  category: string
-  description?: string
-  fabric: string
-  fit: string
-  sizes: string[]
-}
+import { FABRIC_OPTS, FIT_OPTS, SIZE_OPTS, PRICE_OPTS, SORT_OPTS, type SortMode, type Product, matchPrice } from '../../lib/shopFilters'
 
 interface Props {
   products: Product[]
-}
-
-const FABRIC_OPTS = [
-  { value: '', label: '全部面料' },
-  { value: '棉质', label: '棉质' },
-  { value: '涤纶', label: '涤纶' },
-  { value: '混纺', label: '混纺' },
-]
-
-const FIT_OPTS = [
-  { value: '', label: '全部版型' },
-  { value: '宽松', label: '宽松' },
-  { value: '修身', label: '修身' },
-  { value: '常规', label: '常规' },
-]
-
-const SIZE_OPTS = [
-  { value: '', label: '全部尺码' },
-  { value: 'S', label: 'S' },
-  { value: 'M', label: 'M' },
-  { value: 'L', label: 'L' },
-  { value: 'XL', label: 'XL' },
-  { value: 'XXL', label: 'XXL' },
-]
-
-const PRICE_OPTS = [
-  { value: '', label: '全部价格' },
-  { value: '0-100', label: '¥0-100' },
-  { value: '100-200', label: '¥100-200' },
-  { value: '200+', label: '¥200+' },
-]
-
-const SORT_OPTS = [
-  { value: 'default', label: '综合排序' },
-  { value: 'price-asc', label: '价格从低到高' },
-  { value: 'newest', label: '最新上架' },
-] as const
-
-function matchPrice(price: number, range: string): boolean {
-  if (!range) return true
-  if (range === '0-100') return price <= 100
-  if (range === '100-200') return price > 100 && price <= 200
-  if (range === '200+') return price > 200
-  return true
 }
 
 const CATEGORY_CHIPS = [
@@ -82,8 +27,37 @@ export default function SearchContent(props: Props) {
   const [filterFit, setFilterFit] = createSignal('')
   const [filterSize, setFilterSize] = createSignal('')
   const [filterPrice, setFilterPrice] = createSignal('')
-  const [sortMode, setSortMode] = createSignal<'default' | 'price-asc' | 'newest'>('default')
+  const [sortMode, setSortMode] = createSignal<SortMode>('default')
   const [filterTab, setFilterTab] = createSignal<'面料' | '版型' | '尺码' | '价格'>('面料')
+
+  let dialogRef: HTMLDivElement | undefined
+
+  createEffect(() => {
+    if (filterOpen()) {
+      queueMicrotask(() => dialogRef?.focus())
+    }
+  })
+
+  const trapDialogFocus = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      setFilterOpen(false)
+      return
+    }
+    if (e.key !== 'Tab' || !dialogRef) return
+    const focusable = dialogRef.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    )
+    if (focusable.length === 0) return
+    const first = focusable[0]
+    const last = focusable[focusable.length - 1]
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault()
+      last.focus()
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault()
+      first.focus()
+    }
+  }
 
   const filteredProducts = createMemo(() => {
     let result = props.products
@@ -181,11 +155,12 @@ export default function SearchContent(props: Props) {
             />
           </div>
           <div class="w-px bg-outline-variant shrink-0" />
-          <div class="relative flex items-center pl-3 pr-1 shrink-0 cursor-pointer">
+          <div class="relative flex items-center pl-3 pr-1 shrink-0">
             <select
               value={activeChip()}
               onChange={(e) => setActiveChip(e.currentTarget.value)}
-              class="appearance-none bg-transparent text-on-surface text-body-sm focus:outline-none cursor-pointer py-[0.875rem] pr-5"
+              class="appearance-none bg-transparent text-on-surface text-body-sm focus:outline-none cursor-pointer py-[0.875rem] pr-5 text-center"
+              aria-label="分类筛选"
             >
               {CATEGORY_CHIPS.map(c => (
                 <option value={c.zh}>{c.zh}</option>
@@ -205,7 +180,7 @@ export default function SearchContent(props: Props) {
               onClick={() => setFilterTab(tab)}
               class={`pb-2 text-label-md font-bold tap-target transition-colors border-b-2 -mb-[1px] ${
                 filterTab() === tab
-                  ? 'text-primary border-primary'
+                  ? 'text-primary border-red-500'
                   : 'text-on-surface-variant border-transparent hover:text-on-surface'
               }`}
             >
@@ -287,12 +262,11 @@ export default function SearchContent(props: Props) {
       <div class="md:flex md:container-content md:gap-6">
         <aside class="hidden md:block w-44 shrink-0">
           <div class="sticky top-20 space-y-6">
-
             <div>
-              <h3 class="text-body-lg font-bold text-on-surface mb-3">排序</h3>
+              <h2 class="text-body-lg font-bold text-on-surface mb-3">排序</h2>
               <div class="space-y-2">
                 {SORT_OPTS.map(opt => (
-                  <label class="flex items-center gap-2 text-body-sm text-on-surface-variant cursor-pointer tap-target">
+                  <label class="flex items-center gap-2 text-body-sm text-on-surface-variant tap-target">
                     <input
                       type="radio"
                       name="search-sort"
@@ -320,7 +294,7 @@ export default function SearchContent(props: Props) {
 
         <div class="flex-1 min-w-0">
           <section class="px-container-margin md:px-0 py-stack-md flex items-center justify-between border-y border-outline-variant/30 md:border-t-0">
-            <p class="text-on-surface-variant text-sm">为您找到 {filteredProducts().length} 个结果</p>
+            <p class="text-on-surface-variant text-body-sm">为您找到 {filteredProducts().length} 个结果</p>
             <button
               type="button"
               onClick={() => setFilterOpen(true)}
@@ -366,7 +340,6 @@ export default function SearchContent(props: Props) {
             </Show>
           </section>
 
-          {/* Loading skeleton */}
           <Show when={loading() && filteredProducts().length > 0}>
             <div class="px-container-margin md:px-0 grid grid-cols-2 md:grid-cols-3 gap-gutter">
               <SkeletonCard />
@@ -374,12 +347,10 @@ export default function SearchContent(props: Props) {
             </div>
           </Show>
 
-          {/* Sentinel */}
           <div ref={sentinelRef} class="h-px" />
 
-          {/* All loaded */}
           <Show when={allLoaded() && filteredProducts().length > 0}>
-            <p class="text-center font-headline text-body-sm text-on-surface-variant/50 py-8">
+            <p class="text-center text-body-sm text-on-surface-variant py-8">
               — 已展示全部 {filteredProducts().length} 件商品 —
             </p>
           </Show>
@@ -388,14 +359,23 @@ export default function SearchContent(props: Props) {
 
       <Show when={filterOpen()}>
         <div class="fixed inset-0 z-50 flex items-end">
-          <div class="absolute inset-0 bg-black/60" onClick={() => setFilterOpen(false)} />
-          <div class="relative w-full bg-surface rounded-t-2xl max-h-[80vh] overflow-y-auto hide-scrollbar shadow-2xl">
+          <div class="absolute inset-0 bg-black/60" onClick={() => setFilterOpen(false)} aria-hidden="true" />
+          <div
+            ref={dialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="筛选"
+            tabIndex={-1}
+            onKeyDown={trapDialogFocus}
+            class="relative w-full bg-surface rounded-t-2xl max-h-[80vh] overflow-y-auto hide-scrollbar shadow-2xl outline-none"
+          >
             <div class="sticky top-0 bg-surface rounded-t-2xl px-6 py-4 border-b border-outline-variant flex justify-between items-center z-10">
               <h3 class="text-title-md font-bold text-on-surface">筛选</h3>
               <button
                 type="button"
                 onClick={() => setFilterOpen(false)}
-                class="tap-target p-1 rounded-full hover:bg-surface-container-high transition-colors"
+                class="tap-target p-1 rounded-full hover:bg-primary/10 hover:text-primary transition-colors"
+                aria-label="关闭筛选"
               >
                 <span class="material-symbols-outlined text-on-surface-variant">close</span>
               </button>

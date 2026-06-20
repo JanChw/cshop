@@ -130,20 +130,20 @@ export default function DesignCanvas(props: Props) {
           </div>
         </Show>
         <Show when={props.drawing.enabled}>
-          <div class="bg-tertiary/90 text-on-tertiary px-3 py-1 rounded-full text-xs font-bold shadow-lg pointer-events-auto">
+          <div class="bg-surface-container-high/90 text-on-surface px-3 py-1 rounded-full text-xs font-bold shadow-lg border border-outline-variant/30 pointer-events-auto">
             {props.drawing.mode === 'brush' ? '画笔模式' : '移动模式'}
           </div>
         </Show>
         <div class="flex items-center gap-1 pointer-events-auto">
           <button
-            class="w-8 h-8 flex items-center justify-center rounded-full bg-surface/80 backdrop-blur hover:bg-surface transition-colors"
+            class="w-11 h-11 flex items-center justify-center rounded-full bg-surface/80 backdrop-blur hover:bg-surface transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
             onClick={zoomIn}
             aria-label="放大"
           >
             <span class="material-symbols-outlined text-lg">zoom_in</span>
           </button>
           <button
-            class="w-8 h-8 flex items-center justify-center rounded-full bg-surface/80 backdrop-blur hover:bg-surface transition-colors transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+            class="w-11 h-11 flex items-center justify-center rounded-full bg-surface/80 backdrop-blur hover:bg-surface transition-colors transition-opacity disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
             onClick={zoomOut}
             disabled={previewScale() <= 1}
             aria-label="缩小"
@@ -151,7 +151,7 @@ export default function DesignCanvas(props: Props) {
             <span class="material-symbols-outlined text-lg">zoom_out</span>
           </button>
           <button
-            class="w-8 h-8 flex items-center justify-center rounded-full bg-surface/80 backdrop-blur hover:bg-surface transition-colors"
+            class="w-11 h-11 flex items-center justify-center rounded-full bg-surface/80 backdrop-blur hover:bg-surface transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
             onClick={resetPreview}
             aria-label="重置视图"
           >
@@ -164,7 +164,7 @@ export default function DesignCanvas(props: Props) {
         {(text) => (
           <div class="absolute bottom-20 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-surface/95 backdrop-blur px-3 py-2 rounded-full shadow-lg border border-outline-variant/30 z-10 max-w-[92vw] overflow-x-auto" style={{ '-ms-overflow-style': 'none', 'scrollbar-width': 'none' }}>
             <label
-              class="relative w-8 h-8 rounded-full overflow-hidden shrink-0 cursor-pointer ring-1 ring-outline-variant"
+              class="relative w-11 h-11 rounded-full overflow-hidden shrink-0 cursor-pointer ring-1 ring-outline-variant"
               style={{ 'background-color': text().color }}
               aria-label="文字颜色"
             >
@@ -180,7 +180,8 @@ export default function DesignCanvas(props: Props) {
             </label>
 
             <select
-              class="h-8 px-2 rounded-lg bg-surface-container-high text-xs font-medium border border-outline-variant outline-none"
+              class="h-11 px-2 rounded-lg bg-surface-container-high text-xs font-medium border border-outline-variant outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+              aria-label="字体"
               value={text().font}
               onChange={(e) => {
                 canvasAPI?.setTextFont(e.currentTarget.value)
@@ -194,7 +195,7 @@ export default function DesignCanvas(props: Props) {
 
             <div class="flex items-center bg-surface-container-high rounded-lg border border-outline-variant overflow-hidden">
               <button
-                class="w-8 h-8 flex items-center justify-center text-secondary hover:text-primary hover:bg-surface-container transition-colors"
+                class="w-11 h-11 flex items-center justify-center text-secondary hover:text-primary hover:bg-primary/10 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-[-2px]"
                 onClick={() => {
                   canvasAPI?.setTextSize(-2)
                   setSelectedText(canvasAPI?.getSelectedText() || null)
@@ -205,7 +206,7 @@ export default function DesignCanvas(props: Props) {
               </button>
               <span class="text-xs font-bold px-1 min-w-[2ch] text-center">{Math.round(text().size)}</span>
               <button
-                class="w-8 h-8 flex items-center justify-center text-secondary hover:text-primary hover:bg-surface-container transition-colors"
+                class="w-11 h-11 flex items-center justify-center text-secondary hover:text-primary hover:bg-primary/10 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-[-2px]"
                 onClick={() => {
                   canvasAPI?.setTextSize(2)
                   setSelectedText(canvasAPI?.getSelectedText() || null)
@@ -217,10 +218,10 @@ export default function DesignCanvas(props: Props) {
             </div>
 
             <button
-              class={`w-8 h-8 flex items-center justify-center rounded-lg border transition-colors ${
+              class={`w-11 h-11 flex items-center justify-center rounded-lg border transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-[-2px] ${
                 text().bold
                   ? 'bg-primary text-on-primary border-primary'
-                  : 'bg-surface-container-high text-secondary border-outline-variant hover:bg-surface-container'
+                  : 'bg-surface-container-high text-secondary border-outline-variant hover:bg-primary/10 hover:text-primary'
               }`}
               onClick={() => {
                 canvasAPI?.setTextBold(!text().bold)
@@ -232,10 +233,10 @@ export default function DesignCanvas(props: Props) {
             </button>
 
             <button
-              class={`w-8 h-8 flex items-center justify-center rounded-lg border transition-colors ${
+              class={`w-11 h-11 flex items-center justify-center rounded-lg border transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-[-2px] ${
                 text().italic
                   ? 'bg-primary text-on-primary border-primary'
-                  : 'bg-surface-container-high text-secondary border-outline-variant hover:bg-surface-container'
+                  : 'bg-surface-container-high text-secondary border-outline-variant hover:bg-primary/10 hover:text-primary'
               }`}
               onClick={() => {
                 canvasAPI?.setTextItalic(!text().italic)
@@ -248,7 +249,7 @@ export default function DesignCanvas(props: Props) {
 
             <div class="flex items-center bg-surface-container-high rounded-lg border border-outline-variant overflow-hidden">
               <button
-                class="w-8 h-8 flex items-center justify-center text-secondary hover:text-primary hover:bg-surface-container transition-colors"
+                class="w-11 h-11 flex items-center justify-center text-secondary hover:text-primary hover:bg-primary/10 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-[-2px]"
                 onClick={() => {
                   canvasAPI?.setTextLetterSpacing(-0.02)
                   setSelectedText(canvasAPI?.getSelectedText() || null)
@@ -258,7 +259,7 @@ export default function DesignCanvas(props: Props) {
                 <span class="material-symbols-outlined text-sm">compress</span>
               </button>
               <button
-                class="w-8 h-8 flex items-center justify-center text-secondary hover:text-primary hover:bg-surface-container transition-colors"
+                class="w-11 h-11 flex items-center justify-center text-secondary hover:text-primary hover:bg-primary/10 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-[-2px]"
                 onClick={() => {
                   canvasAPI?.setTextLetterSpacing(0.02)
                   setSelectedText(canvasAPI?.getSelectedText() || null)
@@ -272,7 +273,7 @@ export default function DesignCanvas(props: Props) {
             <div class="w-px h-6 bg-outline-variant mx-1" />
 
             <button
-              class="w-8 h-8 flex items-center justify-center rounded-lg text-error hover:bg-error/10 transition-colors"
+              class="w-11 h-11 flex items-center justify-center rounded-lg text-error hover:bg-error/10 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-[-2px]"
               onClick={() => canvasAPI?.removeSelected()}
               aria-label="删除文字"
             >
@@ -285,7 +286,7 @@ export default function DesignCanvas(props: Props) {
       <Show when={hasSelection() && !selectedText()}>
         <div class="absolute bottom-20 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-surface/95 backdrop-blur px-3 py-2 rounded-full shadow-lg border border-outline-variant/30 z-10">
           <button
-            class="flex items-center gap-1 text-sm font-bold text-on-surface px-2 py-1 rounded-lg hover:bg-surface-container transition-colors"
+            class="flex items-center gap-1 text-sm font-bold text-on-surface px-2 py-1 rounded-lg hover:bg-primary/10 transition-colors"
             onClick={() => canvasAPI?.bringToFront()}
             aria-label="置顶"
           >
@@ -293,7 +294,7 @@ export default function DesignCanvas(props: Props) {
             置顶
           </button>
           <button
-            class="flex items-center gap-1 text-sm font-bold text-on-surface px-2 py-1 rounded-lg hover:bg-surface-container transition-colors"
+            class="flex items-center gap-1 text-sm font-bold text-on-surface px-2 py-1 rounded-lg hover:bg-primary/10 transition-colors"
             onClick={() => canvasAPI?.sendToBack()}
             aria-label="置底"
           >

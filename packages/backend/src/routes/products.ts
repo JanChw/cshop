@@ -91,8 +91,8 @@ app.get('/:id/base-design', async (c) => {
     .where(eq(productBaseDesigns.productId, productId))
     .limit(1)
   return success(c, design
-    ? { originalImage: design.originalImage, frontImage: design.frontImage, maskImage: design.maskImage }
-    : { originalImage: null, frontImage: null, maskImage: null })
+    ? { originalImage: design.originalImage, frontImage: design.frontImage, maskImage: design.maskImage, inverseMask: design.inverseMask }
+    : { originalImage: null, frontImage: null, maskImage: null, inverseMask: null })
 })
 
 export default app

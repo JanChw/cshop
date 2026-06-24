@@ -13,7 +13,7 @@ import { validateJson } from '../utils/validate'
 import { productSchema, productVariantSchema, orderStatusSchema, variantBatchDeleteSchema, variantBatchUpdateSchema, productVariantOptionSchema, productVariantOptionUpdateSchema, productBatchDeleteSchema } from '../validators'
 import { trackBusinessEvent } from '../utils/track'
 import { canTransition } from '../utils/orderTransitions'
-import { processImage, removeBackground, generateMask } from '../utils/image'
+import { processImage, removeBackground, generateMask, flattenOnWhite } from '../utils/image'
 import { config } from '../config'
 import backupRoutes from './admin/backup'
 import { adminStickerRoutes } from './stickers'
@@ -214,13 +214,15 @@ app.post('/products/:id/front-image', requirePermission('product.update'), async
 
   let debgPath: string | null = null
   let maskPath: string | null = null
+  let flatPath: string | null = null
 
   try {
     debgPath = await removeBackground(tmpPath)
     const frontPath = debgPath ?? tmpPath
     maskPath = await generateMask(frontPath)
 
-    const frontVariants = await processImage(frontPath)
+    flatPath = await flattenOnWhite(frontPath)
+    const frontVariants = await processImage(flatPath)
     const maskVariants = await processImage(maskPath)
 
     const frontUrl = `/api/v1/uploads/${frontVariants.large.path}`
@@ -273,6 +275,7 @@ app.post('/products/:id/front-image', requirePermission('product.update'), async
     await unlink(tmpPath).catch(() => {})
     if (debgPath) await unlink(debgPath).catch(() => {})
     if (maskPath) await unlink(maskPath).catch(() => {})
+    if (flatPath) await unlink(flatPath).catch(() => {})
   }
 })
 
@@ -302,6 +305,7 @@ app.post('/products/:id/base-design', requirePermission('product.update'), async
 
   let debgPath: string | null = null
   let maskPath: string | null = null
+  let flatPath: string | null = null
 
   try {
     const originalVariants = await processImage(tmpPath)
@@ -326,7 +330,8 @@ app.post('/products/:id/base-design', requirePermission('product.update'), async
     debgPath = await removeBackground(tmpPath)
     const frontPath = debgPath ?? tmpPath
 
-    const frontVariants = await processImage(frontPath)
+    flatPath = await flattenOnWhite(frontPath)
+    const frontVariants = await processImage(flatPath)
     const frontUrl = `/api/v1/uploads/${frontVariants.large.path}`
     await db.insert(uploads).values({
       userId: c.get('userId'),
@@ -393,6 +398,7 @@ app.post('/products/:id/base-design', requirePermission('product.update'), async
     await unlink(tmpPath).catch(() => {})
     if (debgPath) await unlink(debgPath).catch(() => {})
     if (maskPath) await unlink(maskPath).catch(() => {})
+    if (flatPath) await unlink(flatPath).catch(() => {})
   }
 })
 

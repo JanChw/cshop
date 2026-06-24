@@ -70,3 +70,21 @@ await sharp(out, { raw: { width: w, height: h, channels: 4 } })
   .toFile(output)
 const outMeta = await sharp(output).metadata()
 console.log(`Output: ${output} (${outMeta.size} bytes)`)
+
+// generate inverse mask (clothing=transparent, bg=white)
+const invOutput = output.replace(/-mask\.png$/, '-inverse-mask.png')
+const invOut = Buffer.alloc(w * h * 4)
+for (let i = 0; i < data.length; i += 4) {
+  const r = data[i], g = data[i + 1], b = data[i + 2]
+  const avg = (r + g + b) / 3
+  if (avg >= threshold) {
+    invOut[i] = 0; invOut[i + 1] = 0; invOut[i + 2] = 0; invOut[i + 3] = 0
+  } else {
+    invOut[i] = 255; invOut[i + 1] = 255; invOut[i + 2] = 255; invOut[i + 3] = 255
+  }
+}
+await sharp(invOut, { raw: { width: w, height: h, channels: 4 } })
+  .png()
+  .toFile(invOutput)
+const invMeta = await sharp(invOutput).metadata()
+console.log(`Inverse mask: ${invOutput} (${invMeta.size} bytes)`)

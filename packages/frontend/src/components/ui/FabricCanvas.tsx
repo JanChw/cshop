@@ -6,6 +6,7 @@ import {
   FabricObject,
   IText,
   PencilBrush,
+  Rect,
   SprayBrush,
   filters
 } from 'fabric'
@@ -64,6 +65,7 @@ interface Props {
 }
 
 const TSHIRT_LAYER_KEY = 'tshirt'
+const WHITE_BG_KEY = 'white-bg'
 const DRAWING_LAYER_KEY = 'drawing'
 const RENDER_RATIO = 2
 
@@ -71,7 +73,6 @@ export default function FabricCanvas(props: Props) {
   let canvasEl: HTMLCanvasElement | undefined
   let fabricCanvas: Canvas | undefined
   let tshirtBase: FabricImage | undefined
-  let tshirtMask: FabricImage | undefined
   let colorFilter: filters.BlendColor | undefined
   const drawingPaths: FabricObject[] = []
   const changeListeners: Array<() => void> = []
@@ -87,7 +88,9 @@ export default function FabricCanvas(props: Props) {
   }
 
   const isTshirtLayer = (obj: FabricObject | undefined) =>
-    obj !== undefined && (obj === tshirtBase || obj === tshirtMask)
+    obj !== undefined && obj === tshirtBase
+  const isBgLayer = (obj: FabricObject | undefined) =>
+    obj !== undefined && (obj as any).data?.kind === WHITE_BG_KEY
 
   const fireChange = () => {
     if (swappingProduct) return
@@ -123,6 +126,16 @@ export default function FabricCanvas(props: Props) {
       preserveObjectStacking: true,
       enableRetinaScaling: false
     })
+
+    const whiteBg = new Rect({
+      left: 0, top: 0,
+      width, height,
+      fill: '#ffffff',
+      selectable: false, evented: false,
+      excludeFromExport: true
+    })
+    ;(whiteBg as any).data = { kind: WHITE_BG_KEY }
+    fabricCanvas.add(whiteBg)
 
     canvasEl.style.width = logicalWidth + 'px'
     canvasEl.style.height = logicalHeight + 'px'
@@ -176,31 +189,26 @@ export default function FabricCanvas(props: Props) {
     baseImg.onload = () => {
       diag('onMount baseImg.onload', { src: initImgSrc, nw: baseImg.naturalWidth, nh: baseImg.naturalHeight })
       if (!fabricCanvas) { diag('onMount baseImg.onload: no fabricCanvas!'); return }
-      const naturalW = baseImg.naturalWidth || 1024
-      const naturalH = baseImg.naturalHeight || 1024
-      const scale = Math.min(logicalWidth / naturalW, logicalHeight / naturalH) * 0.52 * RENDER_RATIO
-
-      tshirtBase = new FabricImage(baseImg, {
-        scaleX: scale,
-        scaleY: scale,
-        left: width / 2,
-        top: height / 2,
-        originX: 'center',
-        originY: 'center',
-        selectable: false,
-        evented: false,
-        objectCaching: false
-      })
-      ;(tshirtBase as any).data = { kind: TSHIRT_LAYER_KEY }
-        fabricCanvas.add(tshirtBase)
-        diag('onMount tshirtBase added to canvas')
 
       const maskImg = new Image()
       maskImg.onload = () => {
         diag('onMount maskImg.onload', { src: initMaskSrc, nw: maskImg.naturalWidth, nh: maskImg.naturalHeight })
         if (!fabricCanvas) { diag('onMount maskImg.onload: no fabricCanvas!'); return }
-        if (!tshirtBase) { diag('onMount maskImg.onload: no tshirtBase!'); return }
-        tshirtMask = new FabricImage(maskImg, {
+
+        const naturalW = baseImg.naturalWidth || maskImg.naturalWidth || 1024
+        const naturalH = baseImg.naturalHeight || maskImg.naturalHeight || 1024
+        const scale = Math.min(logicalWidth / naturalW, logicalHeight / naturalH) * 0.52 * RENDER_RATIO
+
+        const tmpCanvas = document.createElement('canvas')
+        tmpCanvas.width = naturalW
+        tmpCanvas.height = naturalH
+        const ctx = tmpCanvas.getContext('2d')!
+        ctx.drawImage(baseImg, 0, 0, naturalW, naturalH)
+        ctx.globalCompositeOperation = 'destination-in'
+        ctx.drawImage(maskImg, 0, 0, naturalW, naturalH)
+        ctx.globalCompositeOperation = 'source-over'
+
+        tshirtBase = new FabricImage(tmpCanvas, {
           scaleX: scale,
           scaleY: scale,
           left: width / 2,
@@ -209,22 +217,21 @@ export default function FabricCanvas(props: Props) {
           originY: 'center',
           selectable: false,
           evented: false,
-          objectCaching: false,
-          globalCompositeOperation: 'multiply'
+          objectCaching: false
         })
-        ;(tshirtMask as any).data = { kind: TSHIRT_LAYER_KEY }
+        ;(tshirtBase as any).data = { kind: TSHIRT_LAYER_KEY }
+        fabricCanvas.add(tshirtBase)
 
         colorFilter = new filters.BlendColor({
           color: props.tshirtColor,
           mode: 'multiply',
           alpha: 1
         })
-        tshirtMask.filters = [colorFilter]
-        tshirtMask.applyFilters()
+        tshirtBase.filters = [colorFilter]
+        tshirtBase.applyFilters()
 
-        fabricCanvas.add(tshirtMask)
         fabricCanvas.renderAll()
-        diag('onMount canvas rendered (both images loaded)')
+        diag('onMount canvas rendered (precomposed FabricImage)')
         loadedImgSrc = initImgSrc
         loadedMaskSrc = initMaskSrc
         props.onReady?.(buildAPI())
@@ -248,9 +255,9 @@ export default function FabricCanvas(props: Props) {
 
   createEffect(() => {
     const color = props.tshirtColor
-    if (!tshirtMask || !fabricCanvas || !colorFilter) return
+    if (!tshirtBase || !fabricCanvas || !colorFilter) return
     colorFilter.color = color
-    tshirtMask.applyFilters()
+    tshirtBase.applyFilters()
     fabricCanvas.renderAll()
   })
 
@@ -297,7 +304,7 @@ export default function FabricCanvas(props: Props) {
     if (!fabricCanvas) { diag('reloadBaseImages: no fabricCanvas!'); return }
     swappingProduct = true
 
-    const userObjects = fabricCanvas.getObjects().filter(o => !isTshirtLayer(o))
+    const userObjects = fabricCanvas.getObjects().filter(o => !isTshirtLayer(o) && !isBgLayer(o))
     for (const obj of userObjects) {
       const idx = drawingPaths.indexOf(obj)
       if (idx >= 0) drawingPaths.splice(idx, 1)
@@ -305,9 +312,7 @@ export default function FabricCanvas(props: Props) {
     }
 
     if (tshirtBase) fabricCanvas.remove(tshirtBase)
-    if (tshirtMask) fabricCanvas.remove(tshirtMask)
     tshirtBase = undefined
-    tshirtMask = undefined
 
     const parent = canvasEl?.parentElement
     const logicalWidth = parent?.clientWidth || 300
@@ -329,44 +334,44 @@ export default function FabricCanvas(props: Props) {
     baseImg.onload = () => {
       diag('reloadBase baseImg.onload', { src: imgSrc, nw: baseImg.naturalWidth, nh: baseImg.naturalHeight })
       if (!fabricCanvas) { diag('reloadBase baseImg.onload: no fabricCanvas!'); return }
-      const naturalW = baseImg.naturalWidth || 1024
-      const naturalH = baseImg.naturalHeight || 1024
-      const scale = Math.min(logicalWidth / naturalW, logicalHeight / naturalH) * 0.52 * RENDER_RATIO
-
-      tshirtBase = new FabricImage(baseImg, {
-        scaleX: scale, scaleY: scale,
-        left: width / 2, top: height / 2,
-        originX: 'center', originY: 'center',
-        selectable: false, evented: false, objectCaching: false
-      })
-      ;(tshirtBase as any).data = { kind: TSHIRT_LAYER_KEY }
-      fabricCanvas.add(tshirtBase)
 
       const maskImg = new Image()
       maskImg.onload = () => {
         diag('reloadBase maskImg.onload', { src: maskSrc, nw: maskImg.naturalWidth, nh: maskImg.naturalHeight })
         if (!fabricCanvas) { diag('reloadBase maskImg.onload: no fabricCanvas!'); return }
-        if (!tshirtBase) { diag('reloadBase maskImg.onload: no tshirtBase!'); return }
-        tshirtMask = new FabricImage(maskImg, {
+
+        const naturalW = baseImg.naturalWidth || maskImg.naturalWidth || 1024
+        const naturalH = baseImg.naturalHeight || maskImg.naturalHeight || 1024
+        const scale = Math.min(logicalWidth / naturalW, logicalHeight / naturalH) * 0.52 * RENDER_RATIO
+
+        const tmpCanvas = document.createElement('canvas')
+        tmpCanvas.width = naturalW
+        tmpCanvas.height = naturalH
+        const ctx = tmpCanvas.getContext('2d')!
+        ctx.drawImage(baseImg, 0, 0, naturalW, naturalH)
+        ctx.globalCompositeOperation = 'destination-in'
+        ctx.drawImage(maskImg, 0, 0, naturalW, naturalH)
+        ctx.globalCompositeOperation = 'source-over'
+
+        tshirtBase = new FabricImage(tmpCanvas, {
           scaleX: scale, scaleY: scale,
           left: width / 2, top: height / 2,
           originX: 'center', originY: 'center',
-          selectable: false, evented: false, objectCaching: false,
-          globalCompositeOperation: 'multiply'
+          selectable: false, evented: false, objectCaching: false
         })
-        ;(tshirtMask as any).data = { kind: TSHIRT_LAYER_KEY }
+        ;(tshirtBase as any).data = { kind: TSHIRT_LAYER_KEY }
+        fabricCanvas.add(tshirtBase)
 
         colorFilter = new filters.BlendColor({
           color: props.tshirtColor,
           mode: 'multiply',
           alpha: 1
         })
-        tshirtMask.filters = [colorFilter]
-        tshirtMask.applyFilters()
+        tshirtBase.filters = [colorFilter]
+        tshirtBase.applyFilters()
 
-        fabricCanvas.add(tshirtMask)
         fabricCanvas.renderAll()
-        diag('reloadBase canvas rendered')
+        diag('reloadBase canvas rendered (precomposed FabricImage)')
         swappingProduct = false
       }
       maskImg.onerror = () => {

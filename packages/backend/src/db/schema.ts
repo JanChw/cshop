@@ -111,6 +111,7 @@ export const productBaseDesigns = sqliteTable('product_base_designs', {
   originalImage: text('original_image'),
   frontImage: text('front_image'),
   maskImage: text('mask_image'),
+  inverseMask: text('inverse_mask'),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
   updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`)
 }, (t) => ({

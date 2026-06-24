@@ -27,7 +27,8 @@ async function tryRefresh(): Promise<boolean> {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ refreshToken: rt })
     })
-    const json: ApiResponse<{ accessToken: string; refreshToken: string }> = await res.json()
+    const text = await res.text()
+    const json: ApiResponse<{ accessToken: string; refreshToken: string }> = text ? JSON.parse(text) : { success: false, data: null, error: '服务器返回空响应' }
     if (json.success && json.data?.accessToken) {
       setToken(json.data.accessToken)
       if (json.data.refreshToken) {
@@ -78,7 +79,8 @@ async function request<T>(
         return { success: false, data: null, error: '登录已过期，请重新登录' }
       }
     }
-    const json: ApiResponse<T> = await res.json()
+    const text = await res.text()
+    const json: ApiResponse<T> = text ? JSON.parse(text) : { success: false, data: null, error: '服务器返回空响应' }
     return json
   } catch (err: any) {
     return { success: false, data: null, error: err.message || '网络错误' }

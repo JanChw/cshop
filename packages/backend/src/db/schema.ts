@@ -291,3 +291,30 @@ export const productVariantOptions = sqliteTable('product_variant_options', {
 }, (t) => ({
   productTypeIdx: index('product_variant_options_product_type_idx').on(t.productId, t.type, t.sort)
 }))
+
+export const homeSections = sqliteTable('home_sections', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  type: text('type', { enum: ['hero', 'videos', 'product_row', 'card_grid', 'designer_grid'] }).notNull(),
+  title: text('title'),
+  subTitle: text('sub_title'),
+  data: text('data').notNull(),
+  sort: integer('sort').notNull().default(0),
+  isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`)
+}, (t) => ({
+  sortIdx: index('home_sections_sort_idx').on(t.sort)
+}))
+
+export const designConfigs = sqliteTable('design_configs', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  configGroup: text('config_group', { enum: ['tshirt_color', 'text_palette', 'font', 'brush_color', 'brush_style'] }).notNull(),
+  name: text('name').notNull(),
+  value: text('value').notNull(),
+  extra: text('extra'),
+  sort: integer('sort').notNull().default(0),
+  isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`)
+}, (t) => ({
+  groupIdx: index('design_configs_group_idx').on(t.configGroup, t.sort)
+}))

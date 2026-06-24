@@ -1,15 +1,8 @@
 ---
 import MainLayout from '../layouts/MainLayout.astro'
 import HomeContent from '../components/page/HomeContent.tsx'
-
-const basicProducts = [
-  { id: 'p2', name: '重磅廓形圆领衫', price: 199, image: 'https://picsum.photos/seed/3c604c9a1e87/400/500', category: '基础系列', tags: ['Canvas Ready'] },
-  { id: 'p3', name: '极简连帽卫衣', price: 399, image: 'https://picsum.photos/seed/8a17ad401514/400/500', category: '基础系列' },
-  { id: 'p4', name: '阔腿束口短裤', price: 159, image: 'https://picsum.photos/seed/ef2c5fff6450/400/500', category: '基础系列' },
-  { id: 'p5', name: '精梳棉长袖', price: 249, image: 'https://picsum.photos/seed/c8d4d08aa439/400/500', category: '基础系列' }
-]
 ---
 
 <MainLayout title="创作者的服装工坊">
-  <HomeContent basicProducts={basicProducts} client:load />
+  <HomeContent client:load />
 </MainLayout>

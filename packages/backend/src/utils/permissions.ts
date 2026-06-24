@@ -9,6 +9,8 @@ export type PermissionCode =
   | 'sticker.create' | 'sticker.update' | 'sticker.delete'
   | 'backup.create' | 'backup.download' | 'backup.delete'
   | 'menu.read' | 'menu.create' | 'menu.update' | 'menu.delete'
+  | 'home-sections.read' | 'home-sections.update'
+  | 'design-configs.read' | 'design-configs.create' | 'design-configs.update' | 'design-configs.delete'
 
 export const SYSTEM_ROLE_NAMES = {
   SUPER_ADMIN: 'super_admin',
@@ -56,5 +58,11 @@ export const ALL_PERMISSIONS: Array<{ code: PermissionCode; module: string; desc
   { code: 'menu.read', module: 'menu', description: '查看菜单' },
   { code: 'menu.create', module: 'menu', description: '创建菜单' },
   { code: 'menu.update', module: 'menu', description: '更新/排序菜单' },
-  { code: 'menu.delete', module: 'menu', description: '删除菜单' }
+  { code: 'menu.delete', module: 'menu', description: '删除菜单' },
+  { code: 'home-sections.read', module: 'home-sections', description: '查看首页区块' },
+  { code: 'home-sections.update', module: 'home-sections', description: '更新/重排首页区块' },
+  { code: 'design-configs.read', module: 'design-configs', description: '查看设计页配置' },
+  { code: 'design-configs.create', module: 'design-configs', description: '创建设计页配置' },
+  { code: 'design-configs.update', module: 'design-configs', description: '更新设计页配置' },
+  { code: 'design-configs.delete', module: 'design-configs', description: '删除设计页配置' }
 ]

@@ -84,55 +84,64 @@ app.post('/register', registerThrottle, validateJson(registerSchema), async (c) 
 })
 
 app.post('/login', loginThrottle, validateJson(loginSchema), async (c) => {
-  const { email, password } = c.req.valid('json')
-  const ip = c.req.header('x-forwarded-for')?.split(',')[0].trim() || c.req.header('x-real-ip') || 'unknown'
-  const userAgent = c.req.header('user-agent') ?? null
+  try {
+    const { email, password } = c.req.valid('json')
+    const ip = c.req.header('x-forwarded-for')?.split(',')[0].trim() || c.req.header('x-real-ip') || 'unknown'
+    const userAgent = c.req.header('user-agent') ?? null
 
-  const lockout = checkLockout(email)
-  if (lockout.locked) {
-    return fail(c, formatLockedWaitMessage(lockout.remainingMs), 423)
-  }
-
-  const [user] = db.select().from(users).where(eq(users.email, email)).limit(1).all()
-  if (!user) {
-    return fail(c, '邮箱或密码错误', 401)
-  }
-
-  if (user.status === 'disabled') {
-    return fail(c, '账号已被禁用，请联系管理员', 403)
-  }
-  if (user.status === 'deactivated') {
-    return fail(c, '账号已注销', 403)
-  }
-
-  const valid = await Bun.password.verify(password, user.passwordHash, 'bcrypt')
-  if (!valid) {
-    const result = recordFailure(email, ip, userAgent)
-    if (result.locked) {
-      return fail(c, formatLockMessage(result.lockMinutes), 423)
+    const lockout = checkLockout(email)
+    if (lockout.locked) {
+      return fail(c, formatLockedWaitMessage(lockout.remainingMs), 423)
     }
-    return fail(c, formatRemainingMessage(result.remainingAttempts), 401)
+
+    const [user] = db.select().from(users).where(eq(users.email, email)).limit(1).all()
+    if (!user) {
+      return fail(c, '邮箱或密码错误', 401)
+    }
+
+    if (user.status === 'disabled') {
+      return fail(c, '账号已被禁用，请联系管理员', 403)
+    }
+    if (user.status === 'deactivated') {
+      return fail(c, '账号已注销', 403)
+    }
+
+    if (!user.passwordHash) {
+      return fail(c, '账号未设置密码，请使用找回密码功能', 400)
+    }
+
+    const valid = await Bun.password.verify(password, user.passwordHash, 'bcrypt')
+    if (!valid) {
+      const result = recordFailure(email, ip, userAgent)
+      if (result.locked) {
+        return fail(c, formatLockMessage(result.lockMinutes), 423)
+      }
+      return fail(c, formatRemainingMessage(result.remainingAttempts), 401)
+    }
+
+    recordSuccess(email, ip, userAgent)
+
+    await cleanupExpiredSessions(user.id)
+
+    await db.update(users).set({ lastLoginAt: new Date().toISOString() }).where(eq(users.id, user.id))
+
+    const tokens = await issueTokensForUser(user.id)
+
+    trackLogin({ c, userId: user.id })
+
+    return success(c, {
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      user: { id: user.id, email: user.email, name: user.name },
+      isStaff: tokens.isStaff,
+      roleId: tokens.roleId,
+      roleName: tokens.roleName,
+      permissions: tokens.permissions
+    })
+  } catch (err) {
+    console.error('[login] unexpected error:', err)
+    return fail(c, '服务器内部错误', 500)
   }
-
-  recordSuccess(email, ip, userAgent)
-
-  await cleanupExpiredSessions(user.id)
-
-  await db.update(users).set({ lastLoginAt: new Date().toISOString() }).where(eq(users.id, user.id))
-
-  const tokens = await issueTokensForUser(user.id)
-
-  trackLogin({ c, userId: user.id })
-
-  return success(c, {
-    accessToken: tokens.accessToken,
-    refreshToken: tokens.refreshToken,
-    user: { id: user.id, email: user.email, name: user.name },
-    isStaff: tokens.isStaff,
-    roleId: tokens.roleId,
-    roleName: tokens.roleName,
-    permissions: tokens.permissions
-  })
 })
 
 app.post('/refresh', validateJson(refreshSchema), async (c) => {

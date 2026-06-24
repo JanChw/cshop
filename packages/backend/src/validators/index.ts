@@ -157,3 +157,43 @@ export const productVariantOptionUpdateSchema = z.object({
   value: z.string().min(1).optional(),
   sort: z.number().int().min(0).optional()
 }).refine(d => Object.keys(d).length > 0, '至少修改一个字段')
+
+export const homeSectionSchema = z.object({
+  type: z.enum(['hero', 'videos', 'product_row', 'card_grid', 'designer_grid']),
+  data: z.string().min(1, '数据不能为空'),
+  title: z.string().optional(),
+  subTitle: z.string().optional(),
+  sort: z.number().int().min(0).optional(),
+  isActive: z.boolean().optional()
+})
+
+export const homeSectionUpdateSchema = z.object({
+  data: z.string().min(1).optional(),
+  title: z.string().optional(),
+  subTitle: z.string().optional(),
+  sort: z.number().int().min(0).optional(),
+  isActive: z.boolean().optional(),
+  type: z.enum(['hero', 'videos', 'product_row', 'card_grid', 'designer_grid']).optional()
+}).refine(d => Object.keys(d).length > 0, '至少修改一个字段')
+
+export const homeSectionReorderSchema = z.array(z.object({
+  id: z.number().int().positive(),
+  sort: z.number().int().min(0)
+})).min(1)
+
+export const designConfigSchema = z.object({
+  group: z.enum(['tshirt_color', 'text_palette', 'font', 'brush_color', 'brush_style']),
+  name: z.string().min(1, '名称不能为空'),
+  value: z.string().min(1, '值不能为空'),
+  extra: z.string().optional(),
+  sort: z.number().int().min(0).optional(),
+  isActive: z.boolean().optional()
+})
+
+export const designConfigUpdateSchema = z.object({
+  name: z.string().min(1).optional(),
+  value: z.string().min(1).optional(),
+  extra: z.string().nullable().optional(),
+  sort: z.number().int().min(0).optional(),
+  isActive: z.boolean().optional()
+}).refine(d => Object.keys(d).length > 0, '至少修改一个字段')

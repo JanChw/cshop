@@ -9,7 +9,8 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' }
   const token = getToken()
   if (token) headers['Authorization'] = `Bearer ${token}`
-  const res = await fetch(`${API_BASE}${path}`, { headers, ...options })
+  const base = typeof window !== 'undefined' ? '' : 'http://localhost:3001'
+  const res = await fetch(`${base}${API_BASE}${path}`, { headers, ...options })
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
     throw new Error(body.error || `API error: ${res.status}`)
@@ -63,7 +64,21 @@ export interface StickerItem {
   url: string
 }
 
+export interface HomeSection {
+  id: number
+  type: 'hero' | 'videos' | 'product_row' | 'card_grid' | 'designer_grid'
+  title: string | null
+  subTitle: string | null
+  data: any
+  sort: number
+  isActive: boolean
+}
+
 export const api = {
+  homeSections: {
+    list: () => request<{ success: boolean; data: { items: HomeSection[] } }>('/home-sections'),
+    get: (id: number) => request<{ success: boolean; data: HomeSection }>(`/home-sections/${id}`)
+  },
   products: {
     list: (params?: { category?: string; search?: string }) =>
       request<{ success: boolean; data: any[] }>('/products', { method: 'GET' }),

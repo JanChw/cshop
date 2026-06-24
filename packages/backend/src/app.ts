@@ -13,6 +13,8 @@ import adminRoutes from './routes/admin'
 import { stickerRoutes } from './routes/stickers'
 import { categoryRoutes } from './routes/categories'
 import menuRoutes from './routes/menus'
+import homeRoutes from './routes/home'
+import designConfigRoutesPublic from './routes/design-config'
 import { variantOptionsRoutes, adminVariantOptionsRoutes } from './routes/variantOptions'
 
 export function createApp() {
@@ -34,6 +36,8 @@ export function createApp() {
   app.route('/api/v1/categories', categoryRoutes)
   app.route('/api/v1/menus', menuRoutes)
   app.route('/api/v1/variant-options', variantOptionsRoutes)
+  app.route('/api/v1/home-sections', homeRoutes)
+  app.route('/api/v1/design-configs', designConfigRoutesPublic)
 
   app.get('/api/v1/health', (c) => {
     return c.json({ success: true, data: { status: 'ok' }, error: null })

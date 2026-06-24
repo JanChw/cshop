@@ -15,6 +15,8 @@ const routes = [
   { path: '/settings', component: () => import('../pages/SettingsPage.vue'), meta: { requiresAuth: true } },
   { path: '/backups', component: () => import('../pages/BackupsPage.vue'), meta: { requiresAuth: true } },
   { path: '/roles', component: () => import('../pages/RolesPage.vue'), meta: { requiresAuth: true } },
+  { path: '/home-content', component: () => import('../pages/HomeContentPage.vue'), meta: { requiresAuth: true } },
+  { path: '/design-content', component: () => import('../pages/DesignContentPage.vue'), meta: { requiresAuth: true } },
 ]
 
 const router = createRouter({

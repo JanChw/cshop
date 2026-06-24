@@ -24,6 +24,8 @@ import rolesRoutes from './admin/roles'
 import usersRoutes from './admin/users'
 import uploadsRoutes from './admin/uploads'
 import menusRoutes from './admin/menus'
+import homeRoutes from './admin/home'
+import designConfigRoutes from './admin/design-config'
 import { adminVariantOptionsRoutes } from './variantOptions'
 import type { AppEnv } from '../types/hono'
 
@@ -562,5 +564,7 @@ app.route('/users', usersRoutes)
 app.route('/uploads', uploadsRoutes)
 app.route('/menus', menusRoutes)
 app.route('/variant-options', adminVariantOptionsRoutes)
+app.route('/home-sections', homeRoutes)
+app.route('/design-configs', designConfigRoutes)
 
 export default app

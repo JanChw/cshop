@@ -113,6 +113,20 @@
       "when": 1781518700000,
       "tag": "0016_user_lock",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "6",
+      "when": 1781600000000,
+      "tag": "0017_home_sections_design_configs",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "6",
+      "when": 1781600100000,
+      "tag": "0018_add_sub_title",
+      "breakpoints": true
     }
   ]
 }

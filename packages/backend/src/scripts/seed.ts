@@ -1,5 +1,5 @@
 import { db } from '../db'
-import { categories, products, productVariants, orders, orderItems, users } from '../db/schema'
+import { categories, products, productVariants, productBaseDesigns, orders, orderItems, users } from '../db/schema'
 import { eq, sql } from 'drizzle-orm'
 
 function main() {
@@ -18,6 +18,8 @@ function main() {
   const [p1] = db.insert(products).values({
     name: '经典圆领T恤', description: '100%纯棉，舒适透气', basePrice: 99, categoryId: cat1.id, stock: 200, isActive: true,
   }).returning().all()
+  const now = sql`datetime('now')`
+  db.insert(productBaseDesigns).values({ productId: p1.id, frontImage: '/tshirt.png', maskImage: '/tshirt-mask.png', createdAt: now, updatedAt: now }).run()
 
   const [p2] = db.insert(products).values({
     name: '潮流连帽卫衣', description: '加绒保暖，潮流设计', basePrice: 299, categoryId: cat1.id, stock: 150, isActive: true,

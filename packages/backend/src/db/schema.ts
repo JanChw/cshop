@@ -81,7 +81,7 @@ export const products = sqliteTable('products', {
   description: text('description'),
   basePrice: real('base_price').notNull(),
   categoryId: integer('category_id').references(() => categories.id),
-  image: text('image'),
+  images: text('images'),
   stock: integer('stock').notNull().default(0),
   isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
@@ -105,6 +105,18 @@ export const productVariants = sqliteTable('product_variants', {
   productIdx: index('variants_product_idx').on(t.productId)
 }))
 
+export const productBaseDesigns = sqliteTable('product_base_designs', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  productId: integer('product_id').references(() => products.id, { onDelete: 'cascade' }).notNull().unique(),
+  originalImage: text('original_image'),
+  frontImage: text('front_image'),
+  maskImage: text('mask_image'),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`)
+}, (t) => ({
+  productIdx: index('base_design_product_idx').on(t.productId)
+}))
+
 export const designs = sqliteTable('designs', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
@@ -117,6 +129,21 @@ export const designs = sqliteTable('designs', {
   updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`)
 }, (t) => ({
   userIdx: index('designs_user_idx').on(t.userId)
+}))
+
+export const designDrafts = sqliteTable('design_drafts', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  productId: integer('product_id').references(() => products.id).notNull(),
+  variantId: integer('variant_id').references(() => productVariants.id),
+  name: text('name'),
+  canvasData: text('canvas_data').notNull(),
+  previewImage: text('preview_image'),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`)
+}, (t) => ({
+  userIdx: index('design_drafts_user_idx').on(t.userId),
+  productIdx: index('design_drafts_product_idx').on(t.productId)
 }))
 
 export const cartItems = sqliteTable('cart_items', {

@@ -16,7 +16,7 @@
           class="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer border-b border-border/50"
           @click="addItem(p)"
         >
-          <img v-if="p.image" :src="p.image" class="w-8 h-8 rounded object-cover shrink-0" />
+          <img v-if="p.images?.[0]" :src="p.images[0]" class="w-8 h-8 rounded object-cover shrink-0" />
           <div v-else class="w-8 h-8 rounded bg-gray-100 shrink-0" />
           <div class="flex-1 min-w-0">
             <p class="text-xs font-medium text-text-primary truncate">{{ p.name }}</p>
@@ -71,7 +71,7 @@ interface ContentItem {
   name?: string
   series?: string
 }
-interface ProductSummary { id: number; name: string; basePrice: number; image: string | null }
+interface ProductSummary { id: number; name: string; basePrice: number; images: string[] }
 
 const props = defineProps<{
   modelValue: ContentItem[]

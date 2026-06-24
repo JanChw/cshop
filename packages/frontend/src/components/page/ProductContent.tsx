@@ -163,8 +163,8 @@ export default function ProductContent(props: Props) {
             </p>
           </section>
 
-          {p().customizable && (
-            <a href="/design"
+{p().customizable && (
+    <a href={`/design?product=${p().id}`}
               class="block mx-container-margin md:mx-0 mb-stack-lg p-stack-md bg-surface-container-low rounded-lg border border-outline-variant cursor-pointer hover:border-primary transition-colors">
               <div class="flex items-center gap-stack-md">
                 <div class="w-12 h-12 rounded-lg bg-primary flex items-center justify-center text-on-primary shrink-0">

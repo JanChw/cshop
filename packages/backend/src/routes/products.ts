@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { db } from '../db'
-import { products, productVariants, productVariantOptions } from '../db/schema'
+import { products, productVariants, productVariantOptions, productBaseDesigns } from '../db/schema'
 import { eq, and, count, asc, isNull, type SQL, sql } from 'drizzle-orm'
 import { success, fail } from '../utils/response'
 import { trackBusinessEvent } from '../utils/track'
@@ -35,7 +35,7 @@ app.get('/', async (c) => {
     db.select({ n: count() }).from(products).where(where)
   ])
 
-  return success(c, { items, total, page, limit })
+  return success(c, { items: items.map(i => ({ ...i, images: i.images ? JSON.parse(i.images) : [] })), total, page, limit })
 })
 
 app.get('/:id', async (c) => {
@@ -62,6 +62,7 @@ app.get('/:id', async (c) => {
     metadata: { productId: id, productName: product.name }
   })
 
+  product.images = product.images ? JSON.parse(product.images) : []
   return success(c, { ...product, variants })
 })
 
@@ -80,6 +81,18 @@ app.get('/:id/variant-options', async (c) => {
     .orderBy(asc(productVariantOptions.sort), asc(productVariantOptions.id))
     .all()
   return success(c, { items })
+})
+
+app.get('/:id/base-design', async (c) => {
+  const productId = parseInt(c.req.param('id'))
+  const [design] = await db
+    .select()
+    .from(productBaseDesigns)
+    .where(eq(productBaseDesigns.productId, productId))
+    .limit(1)
+  return success(c, design
+    ? { originalImage: design.originalImage, frontImage: design.frontImage, maskImage: design.maskImage }
+    : { originalImage: null, frontImage: null, maskImage: null })
 })
 
 export default app

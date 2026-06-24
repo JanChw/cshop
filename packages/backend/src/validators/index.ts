@@ -46,12 +46,20 @@ export const orderSchema = z.object({
   address: z.string().min(1, '地址不能为空')
 })
 
+export const designDraftSchema = z.object({
+  productId: z.number(),
+  variantId: z.number().nullable().optional(),
+  name: z.string().optional(),
+  canvasData: z.string().min(1),
+  previewImage: z.string().nullable().optional()
+})
+
 export const productSchema = z.object({
   name: z.string().min(1),
   description: z.string().optional(),
   basePrice: z.number().min(0),
   categoryId: z.number().optional(),
-  image: z.string().optional(),
+  images: z.array(z.string()).optional(),
   stock: z.number().int().min(0).optional(),
   isActive: z.boolean().optional()
 })

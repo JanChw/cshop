@@ -238,6 +238,70 @@
         </div>
       </div>
 
+      <div v-show="currentStep === 1 && isBaseProduct" class="bg-card border border-border rounded-md px-6 py-5 flex flex-col gap-4">
+        <div>
+          <h2 class="text-base font-semibold text-text-primary">底款设计图</h2>
+          <p class="text-xs text-text-muted mt-1">上传原始设计图，系统将自动去除背景并生成遮罩</p>
+        </div>
+        <div class="flex gap-6">
+          <div class="flex flex-col gap-2">
+            <span class="text-xs font-medium text-text-muted">原始图片（可上传/删除）</span>
+            <div
+              class="w-[160px] h-[160px] rounded border border-dashed border-primary bg-background flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-gray-100 transition-colors relative group"
+            >
+              <img
+                v-if="baseDesign?.originalImage"
+                :src="baseDesign.originalImage"
+                class="absolute inset-0 w-full h-full object-cover rounded"
+              />
+              <template v-if="!baseDesign?.originalImage">
+                <span class="text-2xl text-text-muted">+</span>
+                <span class="text-xs text-text-muted">上传图片</span>
+              </template>
+              <button
+                v-if="baseDesign?.originalImage"
+                class="absolute top-1 right-1 w-6 h-6 rounded bg-black/50 text-white text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                @click.stop="removeBaseDesign"
+              >
+                ×
+              </button>
+              <input
+                type="file"
+                accept="image/*"
+                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                @change="handleBaseDesignUpload"
+              />
+            </div>
+          </div>
+          <div class="flex flex-col gap-2">
+            <span class="text-xs font-medium text-text-muted">去除背景图（只读）</span>
+            <div
+              class="w-[160px] h-[160px] rounded border border-border bg-background flex items-center justify-center overflow-hidden"
+            >
+              <img
+                v-if="baseDesign?.frontImage"
+                :src="baseDesign.frontImage"
+                class="w-full h-full object-contain"
+              />
+              <span v-else class="text-xs text-text-muted">待生成</span>
+            </div>
+          </div>
+          <div class="flex flex-col gap-2">
+            <span class="text-xs font-medium text-text-muted">遮罩图（只读）</span>
+            <div
+              class="w-[160px] h-[160px] rounded border border-border bg-background flex items-center justify-center overflow-hidden"
+            >
+              <img
+                v-if="baseDesign?.maskImage"
+                :src="baseDesign.maskImage"
+                class="w-full h-full object-contain"
+              />
+              <span v-else class="text-xs text-text-muted">待生成</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div v-show="currentStep === 2" class="bg-card border border-border rounded-md px-6 py-5 flex flex-col gap-4">
         <div>
           <h2 class="text-base font-semibold text-text-primary">规格管理</h2>
@@ -586,8 +650,11 @@ const form = reactive({
   description: '',
 })
 
+const isBaseProduct = computed(() => true)
+
 const images = ref<(string | null)[]>([null, null, null])
 const imageFiles = ref<(File | null)[]>([null, null, null])
+const baseDesign = ref<{ originalImage: string; frontImage: string; maskImage: string } | null>(null)
 const categories = ref<{ id: number; name: string }[]>([])
 const saving = ref(false)
 const originalVariantIds = ref(new Set<number>())
@@ -609,7 +676,7 @@ async function loadProduct() {
     categoryName: string
     stock: number
     isActive: boolean
-    image: string
+    images: string[]
   }>(`/admin/products/${route.params.id}`)
   if (!res.success || !res.data) return
   const d = res.data
@@ -618,7 +685,20 @@ async function loadProduct() {
   form.price = String(d.basePrice)
   form.category = String(d.categoryId)
   form.status = d.isActive ? '上架' : '下架'
-  if (d.image) images.value[0] = d.image
+  if (d.images?.length) {
+    images.value = [...d.images, null, null, null].slice(0, 3)
+  }
+}
+
+async function loadBaseDesign() {
+  const res = await api.get<{
+    originalImage: string | null
+    frontImage: string | null
+    maskImage: string | null
+  } | null>(`/admin/products/${route.params.id}/base-design`)
+  if (res.success && res.data) {
+    baseDesign.value = res.data
+  }
 }
 
 async function loadVariants() {
@@ -661,6 +741,35 @@ function handleImageUpload(event: Event, index: number) {
 function removeImage(index: number) {
   images.value[index] = null
   imageFiles.value[index] = null
+}
+
+async function handleBaseDesignUpload(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+  input.value = ''
+
+  const fd = new FormData()
+  fd.append('file', file)
+  const res = await api.upload<{
+    originalImage: string
+    frontImage: string
+    maskImage: string
+  }>(`/admin/products/${route.params.id}/base-design`, fd)
+  if (res.success && res.data) {
+    baseDesign.value = res.data
+  } else {
+    toast.error(res.error || '底款设计图上传失败')
+  }
+}
+
+async function removeBaseDesign() {
+  const res = await api.delete(`/admin/products/${route.params.id}/base-design`)
+  if (res.success) {
+    baseDesign.value = null
+  } else {
+    toast.error(res.error || '删除失败')
+  }
 }
 
 async function saveStep1(): Promise<number | null> {
@@ -1142,7 +1251,7 @@ function batchGenerate() {
 onMounted(async () => {
   await loadCategories()
   if (isEdit.value) {
-    await Promise.all([loadProduct(), loadProductOptions(), loadVariants()])
+    await Promise.all([loadProduct(), loadProductOptions(), loadVariants(), loadBaseDesign()])
   }
 })
 </script>

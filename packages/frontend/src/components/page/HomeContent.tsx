@@ -5,7 +5,7 @@ import ScrollRow from '../ui/ScrollRow'
 import { api, type HomeSection } from '../../lib/api'
 
 interface ProductData {
-  id: number; name: string; basePrice: number; image: string | null; categoryId: number | null
+  id: number; name: string; basePrice: number; images: string[]; categoryId: number | null
 }
 
 type SectionRendererProps = {
@@ -100,7 +100,7 @@ function ProductRowSection(props: SectionRendererProps) {
                   id: String(product.id),
                   name: product.name,
                   price: product.basePrice,
-                  image: item.cover || product.image || '',
+                  image: item.cover || product.images?.[0] || '',
                   category: ''
                 }} variant="home" />
               )

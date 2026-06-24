@@ -8,6 +8,13 @@ export interface DesignTextDraft {
   italic: boolean
 }
 
+export type MasterTab = 'select' | 'design'
+
+export const MASTER_TABS: { key: MasterTab; label: string }[] = [
+  { key: 'select', label: '选择服装' },
+  { key: 'design', label: '设计服装' }
+]
+
 export type DesignTab = 'color' | 'text' | 'assets' | 'drawing'
 
 export const DESIGN_TABS: { key: DesignTab; label: string }[] = [

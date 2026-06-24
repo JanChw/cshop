@@ -2,7 +2,7 @@ import { createSignal } from 'solid-js'
 import { showToast } from '../../lib/toast'
 import SearchInput from '../ui/SearchInput'
 
-export default function HelpCenter() {
+export default function HelpCenter () {
   const [searchQuery, setSearchQuery] = createSignal('')
 
   const faqs = [
@@ -18,80 +18,80 @@ export default function HelpCenter() {
   ]
 
   return (
-    <div class="bg-background min-h-screen pb-24 text-on-surface md:pt-16">
-      <header class="sticky top-0 md:top-16 z-50 bg-surface h-16 flex justify-between items-center px-4 border-b border-outline-variant">
-        <div class="flex items-center gap-4">
+    <div class='bg-background min-h-screen pb-24 text-on-surface md:pt-16'>
+      <header class='sticky top-0 md:top-16 z-50 bg-surface h-16 flex justify-between items-center px-4 border-b border-outline-variant'>
+        <div class='flex items-center gap-4'>
           <a
-            href="/person"
-            class="tap-target p-2 hover:bg-primary/10 hover:text-primary transition-colors rounded-full"
-            aria-label="返回"
+            href='/person'
+            class='tap-target p-2 hover:bg-primary/10 hover:text-primary transition-colors rounded-full'
+            aria-label='返回'
           >
-            <span class="material-symbols-outlined text-primary">arrow_back</span>
+            <span class='material-symbols-outlined text-primary'>arrow_back</span>
           </a>
-          <h1 class="text-lg font-bold text-primary">帮助中心</h1>
+          <h1 class='text-lg font-bold text-primary'>帮助中心</h1>
         </div>
         <button
-          type="button"
+          type='button'
           onClick={() => showToast('暂无新消息')}
-          class="tap-target p-2 hover:bg-primary/10 hover:text-primary transition-colors rounded-full"
-          aria-label="通知"
+          class='tap-target p-2 hover:bg-primary/10 hover:text-primary transition-colors rounded-full'
+          aria-label='通知'
         >
-          <span class="material-symbols-outlined text-primary">notifications</span>
+          <span class='material-symbols-outlined text-primary'>notifications</span>
         </button>
       </header>
 
-      <main class="container-content py-8 pb-24">
-        <section class="mb-12 text-center md:text-left">
-          <h2 class="text-3xl md:text-4xl font-headline mb-4 tracking-tight">我们能为您提供什么帮助？</h2>
-          <p class="text-on-surface-variant font-body mb-8">在这里搜索常见问题或浏览下方类别</p>
-          <div class="max-w-2xl mx-auto md:mx-0">
+      <main class='container-content py-8 pb-24'>
+        <section class='mb-12 text-center md:text-left'>
+          <h2 class='text-3xl md:text-4xl font-headline mb-4 tracking-tight'>我们能为您提供什么帮助？</h2>
+          <p class='text-on-surface-variant font-body mb-8'>在这里搜索常见问题或浏览下方类别</p>
+          <div class='max-w-2xl mx-auto md:mx-0'>
             <SearchInput placeholder='搜索关键词，如"定制"、"退货政策"...' value={searchQuery()} onInput={setSearchQuery} />
           </div>
         </section>
 
-        <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <section class='grid grid-cols-1 md:grid-cols-3 gap-6 mb-12'>
           {categories.map((cat) => (
             <button
-              type="button"
+              type='button'
               onClick={() => showToast(`${cat.title}详情即将上线`)}
-              class="bg-surface-container-low p-6 md:p-8 rounded-xl border border-outline-variant/40 hover:border-outline hover:-translate-y-0.5 transition-colors transition-transform duration-200 cursor-pointer text-left tap-target"
+              class='bg-surface-container-low p-6 md:p-8 rounded-xl border border-outline-variant/40 hover:border-outline hover:-translate-y-0.5 transition-colors transition-transform duration-200 cursor-pointer text-left tap-target'
             >
               <div class={`w-12 h-12 bg-${cat.color}/10 rounded-lg flex items-center justify-center mb-6`}>
                 <span class={`material-symbols-outlined text-${cat.color}`}>{cat.icon}</span>
               </div>
-              <h3 class="text-xl font-headline font-semibold mb-2">{cat.title}</h3>
-              <p class="text-sm text-on-surface-variant">{cat.desc}</p>
+              <h3 class='text-xl font-headline font-semibold mb-2'>{cat.title}</h3>
+              <p class='text-sm text-on-surface-variant'>{cat.desc}</p>
             </button>
           ))}
         </section>
 
-        <div class="md:flex md:gap-8">
-          <section class="mb-12 md:w-1/2">
-            <h2 class="text-2xl font-headline mb-6 border-b border-outline-variant pb-2">热门问题</h2>
-            <div class="space-y-4">
+        <div class='md:flex md:gap-8'>
+          <section class='mb-12 md:w-1/2'>
+            <h2 class='text-2xl font-headline mb-6 border-b border-outline-variant pb-2'>热门问题</h2>
+            <div class='space-y-4'>
               {faqs.map((faq) => (
-                <details class="group bg-surface-container-lowest border border-outline-variant/40 rounded-xl overflow-hidden">
-                  <summary class="flex justify-between items-center p-5 cursor-pointer list-none tap-target">
-                    <span class="font-body font-medium">{faq.q}</span>
-                    <span class="material-symbols-outlined transition-transform group-open:rotate-180">expand_more</span>
+                <details class='group bg-surface-container-lowest border border-outline-variant/40 rounded-xl overflow-hidden'>
+                  <summary class='flex justify-between items-center p-5 cursor-pointer list-none tap-target'>
+                    <span class='font-body font-medium'>{faq.q}</span>
+                    <span class='material-symbols-outlined transition-transform group-open:rotate-180'>expand_more</span>
                   </summary>
-                  <div class="px-5 pb-5 text-on-surface-variant text-sm leading-relaxed">{faq.a}</div>
+                  <div class='px-5 pb-5 text-on-surface-variant text-sm leading-relaxed'>{faq.a}</div>
                 </details>
               ))}
             </div>
           </section>
 
-          <section class="bg-primary text-on-primary rounded-2xl p-8 md:p-8 flex flex-col items-center justify-between gap-8 overflow-hidden relative md:w-1/2">
-            <div class="relative z-10 text-center md:text-left">
-              <h2 class="text-2xl md:text-3xl font-headline mb-2">仍需进一步帮助？</h2>
-              <p class="text-on-primary/80 max-w-md">我们的客服专家全天候在线，随时为您解答疑问并提供个性化建议。</p>
+          <section class='bg-primary text-on-primary rounded-2xl p-8 md:p-8 flex flex-col items-center justify-between gap-8 overflow-hidden relative md:w-1/2'>
+            <div class='relative z-10 text-center md:text-left'>
+              <h2 class='text-2xl md:text-3xl font-headline mb-2'>仍需进一步帮助？</h2>
+              <p class='text-on-primary/80 max-w-md'>我们的客服专家全天候在线，随时为您解答疑问并提供个性化建议。</p>
             </div>
             <button
-              type="button"
+              type='button'
               onClick={() => showToast('正在连接在线客服...')}
-              class="relative z-10 px-8 py-4 bg-surface text-primary font-bold rounded-lg hover:bg-primary-container transition-colors flex items-center gap-2 tap-target shrink-0"
+              class='relative z-10 px-8 py-4 bg-surface text-primary font-bold rounded-lg hover:bg-primary-container transition-colors flex items-center gap-2 tap-target shrink-0'
             >
-              <span class="material-symbols-outlined">support_agent</span>联系在线客服
+              <span class='material-symbols-outlined'>support_agent</span>联系在线客服
             </button>
           </section>
         </div>

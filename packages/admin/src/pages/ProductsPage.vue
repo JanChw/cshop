@@ -38,7 +38,7 @@
           class="h-10 rounded border border-border px-3 pr-8 text-sm text-text-primary bg-white outline-none appearance-none cursor-pointer"
         >
           <option value="">全部分类</option>
-          <option v-for="cat in categories" :key="cat.id" :value="cat.name">{{ cat.name }}</option>
+          <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
         </select>
         <ChevronDown :size="14" class="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
       </div>
@@ -221,7 +221,7 @@ import { useToast } from '@/composables/useToast'
 const toast = useToast()
 
 const searchQuery = ref('')
-const categoryFilter = ref('')
+const categoryFilter = ref<number | ''>('')
 const statusFilter = ref('')
 const currentPage = ref(1)
 const loading = ref(false)
@@ -261,17 +261,19 @@ async function fetchTrashCount() {
 async function fetchProducts() {
   loading.value = true
   try {
-    const res = await api.get<{
-      items: Array<{ id: number; name: string; basePrice: number; categoryId: number; categoryName: string; stock: number; isActive: boolean; image: string | null }>
-      total: number
-      page: number
-      limit: number
-    }>('/admin/products', {
+    const params: Record<string, any> = {
       page: currentPage.value,
       limit: 8,
       q: searchQuery.value,
       includeInactive: true,
-    })
+    }
+    if (categoryFilter.value) params.categoryId = categoryFilter.value
+    const res = await api.get<{
+      items: Array<{ id: number; name: string; basePrice: number; categoryId: number; categoryName: string; stock: number; isActive: boolean; images: string[] }>
+      total: number
+      page: number
+      limit: number
+    }>('/admin/products', params)
     if (res.success && res.data) {
       products.value = res.data.items.map((item) => ({
         id: item.id,
@@ -293,9 +295,7 @@ async function fetchProducts() {
 
 const filteredProducts = computed(() => {
   return products.value.filter((p) => {
-    const matchCategory = !categoryFilter.value || p.category === categoryFilter.value
-    const matchStatus = !statusFilter.value || p.status === statusFilter.value
-    return matchCategory && matchStatus
+    return !statusFilter.value || p.status === statusFilter.value
   })
 })
 
@@ -368,7 +368,11 @@ watch([searchQuery, categoryFilter, statusFilter, currentPage], () => {
   })
 })
 
-watch([searchQuery, currentPage], () => {
+watch([searchQuery, categoryFilter], () => {
+  currentPage.value = 1
+})
+
+watch([searchQuery, categoryFilter, currentPage], () => {
   fetchProducts()
 })
 

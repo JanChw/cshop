@@ -5,6 +5,7 @@ import { FONT_OPTIONS, TEXT_PALETTE } from './design-types'
 interface Props {
   tshirtImage: string
   tshirtColor: string
+  maskImage?: string
   bgColor: string
   drawing: { enabled: boolean; mode?: 'brush' | 'move'; color: string; size: number; style?: 'pencil' | 'marker' | 'spray' }
   interactive?: boolean
@@ -13,7 +14,7 @@ interface Props {
 }
 
 export default function DesignCanvas(props: Props) {
-  const [previewScale, setPreviewScale] = createSignal(1)
+  const [previewScale, setPreviewScale] = createSignal(1.8)
   const [previewX, setPreviewX] = createSignal(0)
   const [previewY, setPreviewY] = createSignal(0)
   const [isDragging, setIsDragging] = createSignal(false)
@@ -112,6 +113,7 @@ export default function DesignCanvas(props: Props) {
         <FabricCanvas
           tshirtImage={props.tshirtImage}
           tshirtColor={props.tshirtColor}
+          maskImage={props.maskImage}
           drawing={props.drawing}
           interactive={canvasReady() && !(props.drawing.enabled && props.drawing.mode === 'brush')}
           onReady={handleReady}

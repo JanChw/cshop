@@ -30,6 +30,18 @@ async function requestFormData<T>(path: string, formData: FormData): Promise<T> 
   return res.json()
 }
 
+export interface DesignDraftItem {
+  id: number
+  userId: number
+  productId: number
+  variantId: number | null
+  name: string | null
+  canvasData: string
+  previewImage: string | null
+  createdAt: string
+  updatedAt: string
+}
+
 export interface DesignItem {
   id: number
   userId: number
@@ -94,10 +106,19 @@ export const api = {
     get: (id: number) => request<{ success: boolean; data: HomeSection }>(`/home-sections/${id}`)
   },
   products: {
-    list: (params?: { category?: string; search?: string }) =>
-      request<{ success: boolean; data: any[] }>('/products', { method: 'GET' }),
+    list: (params?: { categoryId?: number; q?: string; page?: number; limit?: number }) => {
+      const qs = new URLSearchParams()
+      if (params?.categoryId !== undefined) qs.set('categoryId', String(params.categoryId))
+      if (params?.q) qs.set('q', params.q)
+      if (params?.page !== undefined) qs.set('page', String(params.page))
+      if (params?.limit !== undefined) qs.set('limit', String(params.limit))
+      const s = qs.toString()
+      return request<{ success: boolean; data: { items: any[]; total: number; page: number; limit: number } }>(`/products${s ? '?' + s : ''}`)
+    },
     get: (id: string) =>
-      request<{ success: boolean; data: any }>(`/products/${id}`)
+      request<{ success: boolean; data: any }>(`/products/${id}`),
+    baseDesign: (id: string) =>
+      request<{ success: boolean; data: { originalImage: string | null; frontImage: string | null; maskImage: string | null } }>(`/products/${id}/base-design`)
   },
   cart: {
     list: () => request<{ success: boolean; data: any[] }>('/cart'),
@@ -128,6 +149,20 @@ export const api = {
     get: () => request<{ success: boolean; data: any }>('/user/me'),
     update: (data: any) =>
       request('/user/me', { method: 'PATCH', body: JSON.stringify(data) })
+  },
+  designDrafts: {
+    list: (productId?: number) => {
+      const qs = productId ? `?productId=${productId}` : ''
+      return request<{ success: boolean; data: { items: DesignDraftItem[] } }>(`/design-drafts${qs}`)
+    },
+    get: (id: number) =>
+      request<{ success: boolean; data: DesignDraftItem }>(`/design-drafts/${id}`),
+    create: (data: { productId: number; variantId?: number | null; name?: string; canvasData: string; previewImage?: string | null }) =>
+      request<{ success: boolean; data: DesignDraftItem }>('/design-drafts', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id: number, data: { productId?: number; variantId?: number | null; name?: string; canvasData?: string; previewImage?: string | null }) =>
+      request<{ success: boolean; data: { previewImage: string | null } | null }>(`/design-drafts/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    remove: (id: number) =>
+      request(`/design-drafts/${id}`, { method: 'DELETE' })
   },
   designs: {
     list: () =>
@@ -168,6 +203,10 @@ export const api = {
       request<{ success: boolean; data: null }>(`/user/stickers/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     remove: (id: number) =>
       request<{ success: boolean; data: null }>(`/user/stickers/${id}`, { method: 'DELETE' })
+  },
+  categories: {
+    list: () =>
+      request<{ success: boolean; data: { items: any[] } }>('/categories')
   },
   uploads: {
     list: (params?: { page?: number; limit?: number }) => {

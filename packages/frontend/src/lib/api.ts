@@ -56,12 +56,26 @@ export interface UploadItem {
 
 export interface StickerItem {
   id: number
+  userId: number | null
   name: string
   category: string
   imagePath: string
   width: number
   height: number
   url: string
+  createdAt: string
+}
+
+export interface UserStickerItem {
+  id: number
+  userId: number
+  name: string
+  category: string
+  imagePath: string
+  width: number
+  height: number
+  url: string
+  createdAt: string
 }
 
 export interface HomeSection {
@@ -128,8 +142,32 @@ export const api = {
       request(`/designs/${id}`, { method: 'DELETE' })
   },
   stickers: {
-    list: (params?: { category?: string }) =>
-      request<{ success: boolean; data: StickerItem[] | { items: StickerItem[] } }>(`/stickers${params?.category ? `?category=${encodeURIComponent(params.category)}` : ''}`)
+    list: (params?: { category?: string; q?: string; page?: number; limit?: number }) => {
+      const qs = new URLSearchParams()
+      if (params?.category) qs.set('category', params.category)
+      if (params?.q) qs.set('q', params.q)
+      if (params?.page) qs.set('page', String(params.page))
+      if (params?.limit) qs.set('limit', String(params.limit))
+      const s = qs.toString()
+      return request<{ success: boolean; data: { items: StickerItem[]; total: number; page: number; limit: number; totalPages: number } }>(`/stickers${s ? '?' + s : ''}`)
+    }
+  },
+  userStickers: {
+    list: (params?: { category?: string }) => {
+      const qs = params?.category ? `?category=${encodeURIComponent(params.category)}` : ''
+      return request<{ success: boolean; data: { items: UserStickerItem[] } }>(`/user/stickers${qs}`)
+    },
+    create: (file: File, name: string, category?: string) => {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('name', name)
+      if (category) formData.append('category', category)
+      return requestFormData<{ success: boolean; data: UserStickerItem }>('/user/stickers', formData)
+    },
+    update: (id: number, data: { name?: string; category?: string }) =>
+      request<{ success: boolean; data: null }>(`/user/stickers/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    remove: (id: number) =>
+      request<{ success: boolean; data: null }>(`/user/stickers/${id}`, { method: 'DELETE' })
   },
   uploads: {
     list: (params?: { page?: number; limit?: number }) => {

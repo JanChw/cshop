@@ -427,6 +427,9 @@ export default function FabricCanvas(props: Props) {
           fontStyle: opts.italic ? 'italic' : 'normal',
           charSpacing: Math.round((opts.letterSpacing || 0) * 1000)
         })
+        t.initDimensions()
+        t.setCoords()
+        t.dirty = true
         fabricCanvas.renderAll()
         fireChange()
       },
@@ -434,7 +437,10 @@ export default function FabricCanvas(props: Props) {
         if (!fabricCanvas) return
         const active = fabricCanvas.getActiveObject()
         if (!active || (active as any).data?.kind !== 'text') return
-        ;(active as IText).set({ fill: hex })
+        const t = active as IText
+        t.set({ fill: hex })
+        t.dirty = true
+        t.setCoords()
         fabricCanvas.renderAll()
         fireChange()
       },
@@ -442,7 +448,11 @@ export default function FabricCanvas(props: Props) {
         if (!fabricCanvas) return
         const active = fabricCanvas.getActiveObject()
         if (!active || (active as any).data?.kind !== 'text') return
-        ;(active as IText).set({ fontFamily: font })
+        const t = active as IText
+        t.set({ fontFamily: font })
+        t.initDimensions()
+        t.setCoords()
+        t.dirty = true
         fabricCanvas.renderAll()
         fireChange()
       },
@@ -453,6 +463,9 @@ export default function FabricCanvas(props: Props) {
         const t = active as IText
         const newSize = Math.max(12, Math.min(120, (t.fontSize || 32) + delta * RENDER_RATIO))
         t.set({ fontSize: newSize })
+        t.initDimensions()
+        t.setCoords()
+        t.dirty = true
         fabricCanvas.renderAll()
         fireChange()
       },
@@ -460,7 +473,11 @@ export default function FabricCanvas(props: Props) {
         if (!fabricCanvas) return
         const active = fabricCanvas.getActiveObject()
         if (!active || (active as any).data?.kind !== 'text') return
-        ;(active as IText).set({ fontWeight: bold ? 'bold' : 'normal' })
+        const t = active as IText
+        t.set({ fontWeight: bold ? 'bold' : 'normal' })
+        t.initDimensions()
+        t.setCoords()
+        t.dirty = true
         fabricCanvas.renderAll()
         fireChange()
       },
@@ -468,7 +485,11 @@ export default function FabricCanvas(props: Props) {
         if (!fabricCanvas) return
         const active = fabricCanvas.getActiveObject()
         if (!active || (active as any).data?.kind !== 'text') return
-        ;(active as IText).set({ fontStyle: italic ? 'italic' : 'normal' })
+        const t = active as IText
+        t.set({ fontStyle: italic ? 'italic' : 'normal' })
+        t.initDimensions()
+        t.setCoords()
+        t.dirty = true
         fabricCanvas.renderAll()
         fireChange()
       },
@@ -480,6 +501,9 @@ export default function FabricCanvas(props: Props) {
         const current = (t.charSpacing || 0) / 1000
         const newSpacing = Math.max(0, Math.min(0.5, current + delta))
         t.set({ charSpacing: Math.round(newSpacing * 1000) })
+        t.initDimensions()
+        t.setCoords()
+        t.dirty = true
         fabricCanvas.renderAll()
         fireChange()
       },

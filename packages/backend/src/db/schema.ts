@@ -204,6 +204,7 @@ export const uploads = sqliteTable('uploads', {
 
 export const stickers = sqliteTable('stickers', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }),
   name: text('name').notNull(),
   category: text('category').notNull().default('general'),
   imagePath: text('image_path').notNull(),
@@ -211,7 +212,8 @@ export const stickers = sqliteTable('stickers', {
   height: integer('height').notNull().default(200),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`)
 }, (t) => ({
-  categoryIdx: index('stickers_category_idx').on(t.category)
+  categoryIdx: index('stickers_category_idx').on(t.category),
+  userIdx: index('stickers_user_idx').on(t.userId)
 }))
 
 export const activityEvents = sqliteTable('activity_events', {

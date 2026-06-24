@@ -61,6 +61,9 @@ const titleMap: Record<string, string> = {
   '/settings': '系统设置',
   '/backups': '数据备份',
   '/roles': '角色权限',
+  '/home-content': '首页内容管理',
+  '/design-content': '设计页内容管理',
+  '/stickers': '系统贴纸管理',
 }
 
 const currentPageTitle = computed(() => {

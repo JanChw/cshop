@@ -17,6 +17,7 @@ const routes = [
   { path: '/roles', component: () => import('../pages/RolesPage.vue'), meta: { requiresAuth: true } },
   { path: '/home-content', component: () => import('../pages/HomeContentPage.vue'), meta: { requiresAuth: true } },
   { path: '/design-content', component: () => import('../pages/DesignContentPage.vue'), meta: { requiresAuth: true } },
+  { path: '/stickers', component: () => import('../pages/StickersPage.vue'), meta: { requiresAuth: true } },
 ]
 
 const router = createRouter({

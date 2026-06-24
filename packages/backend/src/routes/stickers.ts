@@ -3,7 +3,7 @@ import { mkdirSync } from 'node:fs'
 import { z } from 'zod'
 import { db } from '../db'
 import { stickers } from '../db/schema'
-import { eq } from 'drizzle-orm'
+import { eq, and, isNull, like, count } from 'drizzle-orm'
 import { auth } from '../middleware/auth'
 import { requireStaff, requirePermission } from '../middleware/permission'
 import { success, fail } from '../utils/response'
@@ -19,10 +19,38 @@ const publicApp = new Hono()
 
 publicApp.get('/', async (c) => {
   const category = c.req.query('category')
-  const items = category
-    ? await db.select().from(stickers).where(eq(stickers.category, category))
-    : await db.select().from(stickers)
-  return success(c, { items })
+  const q = c.req.query('q')
+  const page = Math.max(1, parseInt(c.req.query('page') || '1'))
+  const limit = Math.min(100, Math.max(1, parseInt(c.req.query('limit') || '20')))
+
+  const conds = [isNull(stickers.userId)]
+  if (category) conds.push(eq(stickers.category, category))
+  if (q) conds.push(like(stickers.name, `%${q}%`))
+  const cond = and(...conds)
+
+  const [totalResult] = await db.select({ value: count() }).from(stickers).where(cond)
+  const total = totalResult?.value ?? 0
+  const totalPages = Math.ceil(total / limit)
+
+  const rows = await db
+    .select()
+    .from(stickers)
+    .where(cond)
+    .limit(limit)
+    .offset((page - 1) * limit)
+
+  const items = rows.map(s => ({
+    id: s.id,
+    userId: s.userId,
+    name: s.name,
+    category: s.category,
+    imagePath: s.imagePath,
+    width: s.width,
+    height: s.height,
+    createdAt: s.createdAt,
+    url: `/api/v1/stickers/${s.imagePath}`
+  }))
+  return success(c, { items, total, page, limit, totalPages })
 })
 
 publicApp.get('/:filename', async (c) => {
@@ -87,21 +115,76 @@ adminStickerApp.post('/', requirePermission('sticker.create'), async (c) => {
   return success(c, record, 201)
 })
 
-const updateStickerSchema = z.object({
-  name: z.string().min(1).optional(),
-  category: z.string().min(1).optional()
-}).refine(d => d.name !== undefined || d.category !== undefined, '至少修改一个字段')
-
-adminStickerApp.put('/:id', requirePermission('sticker.update'), validateJson(updateStickerSchema), async (c) => {
+adminStickerApp.put('/:id', requirePermission('sticker.update'), async (c) => {
   const id = parseInt(c.req.param('id'))
-  const data = c.req.valid('json')
 
   const [existing] = await db.select().from(stickers).where(eq(stickers.id, id)).limit(1)
   if (!existing) {
     return fail(c, '素材不存在', 404)
   }
 
-  await db.update(stickers).set(data).where(eq(stickers.id, id))
+  const contentType = c.req.header('content-type') || ''
+
+  if (contentType.includes('multipart/form-data')) {
+    const formData = await c.req.formData()
+    const name = formData.get('name')
+    const category = formData.get('category')
+    const file = formData.get('file')
+    const updateData: Record<string, string | number> = {}
+
+    if (typeof name === 'string' && name.length > 0) updateData.name = name
+    if (typeof category === 'string' && category.length > 0) updateData.category = category
+
+    if (file instanceof File && ALLOWED_STICKER_TYPES.includes(file.type)) {
+      if (file.size > config.stickerMaxBytes) {
+        return fail(c, `文件大小不能超过 ${Math.round(config.stickerMaxBytes / 1024 / 1024)}MB`)
+      }
+
+      const ext = file.type === 'image/png' ? 'png' : 'webp'
+      const filename = `sticker-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
+      const filePath = `${config.stickerDir}/${filename}`
+      await Bun.write(filePath, file)
+
+      let width = 200
+      let height = 200
+      try {
+        const sharp = (await import('sharp')).default
+        const meta = await sharp(filePath).metadata()
+        if (meta.width) width = meta.width
+        if (meta.height) height = meta.height
+      } catch {}
+
+      updateData.imagePath = filename
+      updateData.width = width
+      updateData.height = height
+
+      if (isSafeFilename(existing.imagePath)) {
+        const oldFile = Bun.file(`${config.stickerDir}/${existing.imagePath}`)
+        if (await oldFile.exists()) {
+          await oldFile.delete()
+        }
+      }
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return fail(c, '至少修改一个字段')
+    }
+
+    await db.update(stickers).set(updateData).where(eq(stickers.id, id))
+    return success(c, null)
+  }
+
+  const jsonSchema = z.object({
+    name: z.string().min(1).optional(),
+    category: z.string().min(1).optional()
+  }).refine(d => d.name !== undefined || d.category !== undefined, '至少修改一个字段')
+
+  const parsed = jsonSchema.safeParse(await c.req.json().catch(() => ({})))
+  if (!parsed.success) {
+    return fail(c, '至少修改一个字段')
+  }
+
+  await db.update(stickers).set(parsed.data).where(eq(stickers.id, id))
   return success(c, null)
 })
 

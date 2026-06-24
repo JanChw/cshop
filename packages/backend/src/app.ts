@@ -11,6 +11,7 @@ import cartRoutes from './routes/cart'
 import orderRoutes from './routes/orders'
 import adminRoutes from './routes/admin'
 import { stickerRoutes } from './routes/stickers'
+import userStickerRoutes from './routes/user-stickers'
 import { categoryRoutes } from './routes/categories'
 import menuRoutes from './routes/menus'
 import homeRoutes from './routes/home'
@@ -37,6 +38,7 @@ export function createApp() {
   app.route('/api/v1/menus', menuRoutes)
   app.route('/api/v1/variant-options', variantOptionsRoutes)
   app.route('/api/v1/home-sections', homeRoutes)
+  app.route('/api/v1/user/stickers', userStickerRoutes)
   app.route('/api/v1/design-configs', designConfigRoutesPublic)
 
   app.get('/api/v1/health', (c) => {

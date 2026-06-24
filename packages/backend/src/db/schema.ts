@@ -7,6 +7,11 @@ export const users = sqliteTable('users', {
   passwordHash: text('password_hash').notNull(),
   name: text('name').notNull(),
   status: text('status', { enum: ['active', 'disabled', 'deactivated'] }).notNull().default('active'),
+  avatar: text('avatar'),
+  phone: text('phone'),
+  bio: text('bio'),
+  gender: text('gender', { enum: ['male', 'female', 'other'] }),
+  birthday: text('birthday'),
   lastLoginAt: text('last_login_at'),
   emailVerifiedAt: text('email_verified_at'),
   failedAttempts: integer('failed_attempts').notNull().default(0),
@@ -81,6 +86,11 @@ export const products = sqliteTable('products', {
   description: text('description'),
   basePrice: real('base_price').notNull(),
   categoryId: integer('category_id').references(() => categories.id),
+  fabric: text('fabric'),
+  fit: text('fit'),
+  designer: text('designer'),
+  originalPrice: real('original_price'),
+  tags: text('tags'),
   images: text('images'),
   stock: integer('stock').notNull().default(0),
   isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
@@ -347,4 +357,20 @@ export const designConfigs = sqliteTable('design_configs', {
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`)
 }, (t) => ({
   groupIdx: index('design_configs_group_idx').on(t.configGroup, t.sort)
+}))
+
+export const userAddresses = sqliteTable('user_addresses', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  name: text('name').notNull(),
+  phone: text('phone').notNull(),
+  province: text('province').notNull(),
+  city: text('city').notNull(),
+  district: text('district').notNull(),
+  detail: text('detail').notNull(),
+  isDefault: integer('is_default', { mode: 'boolean' }).notNull().default(false),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`)
+}, (t) => ({
+  userIdx: index('addresses_user_idx').on(t.userId)
 }))

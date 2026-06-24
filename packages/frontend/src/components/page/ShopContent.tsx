@@ -5,9 +5,25 @@ import ScrollRow from '../ui/ScrollRow'
 import SkeletonCard from '../ui/SkeletonCard'
 import { useInfiniteScroll } from '../../lib/useInfiniteScroll'
 import { FABRIC_OPTS, FIT_OPTS, SIZE_OPTS, PRICE_OPTS, SORT_OPTS, type SortMode, type Product, matchPrice } from '../../lib/shopFilters'
+import { api } from '../../lib/api'
 
-interface Props {
-  products: Product[]
+const CATEGORY_ID_MAP: Record<number, string> = {
+  1: '基础款', 2: '核心款', 3: '设计师款', 4: '定制款', 5: '配饰',
+}
+
+function mapProduct(item: any): Product {
+  return {
+    id: String(item.id),
+    name: item.name,
+    price: item.basePrice,
+    image: Array.isArray(item.images) ? item.images[0] : (item.images ? JSON.parse(item.images)[0] : ''),
+    category: CATEGORY_ID_MAP[item.categoryId] || '',
+    description: item.description,
+    tags: item.tags ? JSON.parse(item.tags) : undefined,
+    fabric: item.fabric || '',
+    fit: item.fit || '',
+    sizes: [],
+  }
 }
 
 const categoryMap: Record<string, string> = {
@@ -17,7 +33,11 @@ const categoryMap: Record<string, string> = {
   '定制款': 'Custom'
 }
 
-export default function ShopContent(props: Props) {
+export default function ShopContent() {
+  const [products, setProducts] = createSignal<Product[]>([])
+  const [fetching, setFetching] = createSignal(true)
+  const [error, setError] = createSignal('')
+
   const [activeCategory, setActiveCategory] = createSignal('all')
   const [filterOpen, setFilterOpen] = createSignal(false)
   const [filterFabric, setFilterFabric] = createSignal('')
@@ -58,7 +78,7 @@ export default function ShopContent(props: Props) {
     }
   }
 
-  onMount(() => {
+  onMount(async () => {
     const params = new URLSearchParams(window.location.search)
     const cat = params.get('category')
     if (cat) {
@@ -70,10 +90,21 @@ export default function ShopContent(props: Props) {
     const onScroll = () => setShowScrollTop(window.scrollY > 600)
     window.addEventListener('scroll', onScroll, { passive: true })
     onCleanup(() => window.removeEventListener('scroll', onScroll))
+
+    try {
+      setFetching(true)
+      const res = await api.products.list()
+      const mapped = (res.data.items || []).map(mapProduct)
+      setProducts(mapped)
+    } catch {
+      setError('加载失败，请稍后重试')
+    } finally {
+      setFetching(false)
+    }
   })
 
   const filteredProducts = createMemo(() => {
-    let list = props.products
+    let list = products()
 
     if (activeCategory() !== 'all') {
       const catZh = Object.entries(categoryMap).find(([, en]) => en === activeCategory())?.[0]
@@ -350,12 +381,35 @@ export default function ShopContent(props: Props) {
             </button>
           </section>
 
+          {/* Loading skeleton */}
+          <Show when={fetching() && products().length === 0}>
+            <section class="px-container-margin md:px-0 py-stack-lg grid grid-cols-2 md:grid-cols-3 gap-x-gutter gap-y-stack-md">
+              <SkeletonCard /><SkeletonCard /><SkeletonCard />
+              <SkeletonCard /><SkeletonCard /><SkeletonCard />
+            </section>
+          </Show>
+
+          {/* Error state */}
+          <Show when={error()}>
+            <div class="px-container-margin md:px-0 flex flex-col items-center justify-center py-20 text-center">
+              <span class="material-symbols-outlined text-outline text-5xl mb-4">error</span>
+              <p class="text-on-surface-variant text-body-lg">{error()}</p>
+              <button
+                type="button"
+                onClick={() => window.location.reload()}
+                class="mt-4 text-primary font-bold tap-target hover:underline"
+              >
+                重试
+              </button>
+            </div>
+          </Show>
+
           {/* Product grid */}
           <section class="px-container-margin md:px-0 py-stack-lg grid grid-cols-2 md:grid-cols-3 gap-x-gutter gap-y-stack-md">
             {visibleItems().map((product) => (
               <ProductCard product={product} variant="shop" />
             ))}
-            <Show when={filteredProducts().length === 0}>
+            <Show when={filteredProducts().length === 0 && !fetching()}>
               <div class="col-span-full flex flex-col items-center justify-center py-20 text-center">
                 <span class="material-symbols-outlined text-outline text-5xl mb-4">search_off</span>
                 <p class="text-on-surface-variant text-body-lg">没有符合条件的商品</p>

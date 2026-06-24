@@ -1,13 +1,29 @@
-import { createSignal, createMemo, createEffect, For, Show } from 'solid-js'
+import { createSignal, createMemo, createEffect, For, Show, onMount } from 'solid-js'
 import SearchInput from '../ui/SearchInput'
 import ProductCard from '../ui/ProductCard'
 import ScrollRow from '../ui/ScrollRow'
 import SkeletonCard from '../ui/SkeletonCard'
 import { useInfiniteScroll } from '../../lib/useInfiniteScroll'
 import { FABRIC_OPTS, FIT_OPTS, SIZE_OPTS, PRICE_OPTS, SORT_OPTS, type SortMode, type Product, matchPrice } from '../../lib/shopFilters'
+import { api } from '../../lib/api'
 
-interface Props {
-  products: Product[]
+const CATEGORY_ID_MAP: Record<number, string> = {
+  1: '基础款', 2: '核心款', 3: '设计师款', 4: '定制款', 5: '配饰',
+}
+
+function mapProduct(item: any): Product {
+  return {
+    id: String(item.id),
+    name: item.name,
+    price: item.basePrice,
+    image: Array.isArray(item.images) ? item.images[0] : (item.images ? JSON.parse(item.images)[0] : ''),
+    category: CATEGORY_ID_MAP[item.categoryId] || '',
+    description: item.description,
+    tags: item.tags ? JSON.parse(item.tags) : undefined,
+    fabric: item.fabric || '',
+    fit: item.fit || '',
+    sizes: [],
+  }
 }
 
 const CATEGORY_CHIPS = [
@@ -19,7 +35,11 @@ const CATEGORY_CHIPS = [
   { zh: '配饰' },
 ]
 
-export default function SearchContent(props: Props) {
+export default function SearchContent() {
+  const [products, setProducts] = createSignal<Product[]>([])
+  const [fetching, setFetching] = createSignal(true)
+  const [error, setError] = createSignal('')
+
   const [query, setQuery] = createSignal('')
   const [activeChip, setActiveChip] = createSignal('全部')
   const [filterOpen, setFilterOpen] = createSignal(false)
@@ -59,8 +79,34 @@ export default function SearchContent(props: Props) {
     }
   }
 
+  onMount(async () => {
+    const params = new URLSearchParams(window.location.search)
+    const q = params.get('q')
+    const category = params.get('category')
+
+    if (q) setQuery(q)
+    if (category) setActiveChip(category)
+
+    try {
+      setFetching(true)
+      let categoryId: number | undefined
+      if (category) {
+        const slugMap: Record<string, number> = { basics: 1, essentials: 2, designer: 3, custom: 4, accessories: 5 }
+        const nameMap: Record<string, number> = { '基础款': 1, '核心款': 2, '设计师款': 3, '定制款': 4, '配饰': 5 }
+        categoryId = slugMap[category.toLowerCase()] || nameMap[category] || undefined
+      }
+      const res = await api.products.list({ q: q || undefined, categoryId, limit: 50 })
+      const mapped = (res.data.items || []).map(mapProduct)
+      setProducts(mapped)
+    } catch {
+      setError('加载失败，请稍后重试')
+    } finally {
+      setFetching(false)
+    }
+  })
+
   const filteredProducts = createMemo(() => {
-    let result = props.products
+    let result = products()
 
     const q = query().trim().toLowerCase()
     if (q) {
@@ -319,13 +365,36 @@ export default function SearchContent(props: Props) {
             ))}
           </section>
 
+          {/* Loading skeleton */}
+          <Show when={fetching() && products().length === 0}>
+            <section class="px-container-margin md:px-0 py-stack-lg grid grid-cols-2 md:grid-cols-3 gap-gutter">
+              <SkeletonCard /><SkeletonCard /><SkeletonCard />
+              <SkeletonCard /><SkeletonCard /><SkeletonCard />
+            </section>
+          </Show>
+
+          {/* Error state */}
+          <Show when={error()}>
+            <div class="px-container-margin md:px-0 col-span-2 md:col-span-3 flex flex-col items-center justify-center py-20 text-center">
+              <span class="material-symbols-outlined text-outline text-5xl mb-4">error</span>
+              <p class="text-on-surface-variant text-body-lg">{error()}</p>
+              <button
+                type="button"
+                onClick={() => window.location.reload()}
+                class="mt-4 text-primary font-bold tap-target hover:underline"
+              >
+                重试
+              </button>
+            </div>
+          </Show>
+
           <section class="px-container-margin md:px-0 py-stack-lg grid grid-cols-2 md:grid-cols-3 gap-gutter">
             <For each={visibleItems()}>
               {(product) => (
                 <ProductCard product={product} variant="search" />
               )}
             </For>
-            <Show when={filteredProducts().length === 0}>
+            <Show when={filteredProducts().length === 0 && !fetching()}>
               <div class="col-span-2 md:col-span-3 flex flex-col items-center justify-center py-20 text-center">
                 <span class="material-symbols-outlined text-outline text-5xl mb-4">search_off</span>
                 <p class="text-on-surface-variant text-body-lg">没有符合条件的商品</p>

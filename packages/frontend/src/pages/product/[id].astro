@@ -1,18 +1,8 @@
 ---
 import MainLayout from '../../layouts/MainLayout.astro'
 import ProductContent from '../../components/page/ProductContent.tsx'
-import { getProductDetail, getAllProductIds } from '../../lib/productData'
-
-export function getStaticPaths() {
-  return getAllProductIds().map(id => {
-    const product = getProductDetail(id)!
-    return { params: { id }, props: { product } }
-  })
-}
-
-const { product } = Astro.props
 ---
 
-<MainLayout title={product.name}>
-  <ProductContent product={product} client:load />
+<MainLayout title="商品详情">
+  <ProductContent client:load />
 </MainLayout>

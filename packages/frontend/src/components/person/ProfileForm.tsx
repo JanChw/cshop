@@ -1,21 +1,49 @@
-import { createSignal, createMemo } from 'solid-js'
+import { createSignal, createMemo, onMount } from 'solid-js'
 import ConfirmDialog from '../ui/ConfirmDialog'
 import { showToast } from '../../lib/toast'
+import { api } from '../../lib/api'
 
 export default function ProfileForm() {
-  const [nickname, setNickname] = createSignal('ByChooow Design')
-  const [gender, setGender] = createSignal<'female' | 'male' | 'secret'>('female')
-  const [birthday, setBirthday] = createSignal('1995-08-24')
-  const [bio, setBio] = createSignal('在这里发现极简主义之美。Sahara 风格探索者，专注于温润的质感与光影艺术。ByChooow 社区资深创作者。')
+  const [nickname, setNickname] = createSignal('')
+  const [gender, setGender] = createSignal<'female' | 'male' | 'secret'>('secret')
+  const [birthday, setBirthday] = createSignal('')
+  const [bio, setBio] = createSignal('')
   const [saving, setSaving] = createSignal(false)
   const [showLogoutConfirm, setShowLogoutConfirm] = createSignal(false)
   const charCount = createMemo(() => bio().length)
   let fileInput: HTMLInputElement | undefined
 
-  const save = () => {
+  onMount(async () => {
+    try {
+      const res = await api.user.get()
+      if (res.success) {
+        const u = res.data
+        if (u.name) setNickname(u.name)
+        if (u.bio) setBio(u.bio)
+        if (u.gender) setGender(u.gender)
+        if (u.birthday) setBirthday(u.birthday.split('T')[0])
+      }
+    } catch (e) {
+      showToast('加载用户信息失败')
+    }
+  })
+
+  const save = async () => {
     if (!nickname().trim()) { showToast('昵称不能为空'); return }
     setSaving(true)
-    setTimeout(() => { setSaving(false); showToast('保存成功') }, 600)
+    try {
+      await api.user.update({
+        name: nickname().trim(),
+        bio: bio().trim(),
+        gender: gender(),
+        birthday: birthday() || undefined
+      })
+      showToast('保存成功')
+    } catch (e: any) {
+      showToast(e.message || '保存失败')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const logout = () => {
@@ -24,7 +52,10 @@ export default function ProfileForm() {
 
   const confirmLogout = () => {
     setShowLogoutConfirm(false)
-    showToast('已退出登录')
+    localStorage.removeItem('cshop_token')
+    localStorage.removeItem('cshop_refresh')
+    localStorage.removeItem('cshop_user')
+    window.location.href = '/login'
   }
 
   return (

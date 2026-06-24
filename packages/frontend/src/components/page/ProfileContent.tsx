@@ -1,27 +1,9 @@
-import { createSignal } from 'solid-js'
+import { createSignal, onMount } from 'solid-js'
 import ProductImage from '../ui/ProductImage'
 import ThemeToggle from '../ui/ThemeToggle'
 import ConfirmDialog from '../ui/ConfirmDialog'
 import { showToast } from '../../lib/toast'
-
-const STATS = [
-  { label: '我的设计', value: '24', href: '/person/designs' },
-  { label: '已下单', value: '12', href: '/order' },
-  { label: '获赞', value: '156' },
-  { label: '积分', value: '890' }
-]
-
-const WORKS = [
-  { title: '极简未来主义 T-Shirt', image: 'https://picsum.photos/seed/ff2170db26d3/400/500', draft: true },
-  { title: '朋克复兴 Hoodie', image: 'https://picsum.photos/seed/4ffe72d06ca3/400/500', draft: false }
-]
-
-const ORDER_ACTIONS = [
-  { icon: 'account_balance_wallet', label: '待付款', href: '/order' },
-  { icon: 'package_2', label: '待发货', href: '/order' },
-  { icon: 'local_shipping', label: '运输中', href: '/order', badge: true },
-  { icon: 'rate_review', label: '待评价', href: '/order' }
-]
+import { api } from '../../lib/api'
 
 const SETTINGS = [
   { icon: 'person', label: '个人资料修改', href: '/person/edit' },
@@ -34,6 +16,50 @@ const SETTINGS = [
 export default function ProfileContent() {
   const [activeWorkTab, setActiveWorkTab] = createSignal<'drafts' | 'ordered'>('drafts')
   const [showLogoutConfirm, setShowLogoutConfirm] = createSignal(false)
+  const [user, setUser] = createSignal<any>(null)
+  const [designs, setDesigns] = createSignal<any[]>([])
+  const [orders, setOrders] = createSignal<any[]>([])
+
+  onMount(async () => {
+    try {
+      const [userRes, designsRes, ordersRes] = await Promise.all([
+        api.user.get(),
+        api.designs.list(),
+        api.orders.list()
+      ])
+      if (userRes.success) setUser(userRes.data)
+      if (designsRes.success) setDesigns(designsRes.data.items || [])
+      if (ordersRes.success) setOrders(ordersRes.data.items || [])
+    } catch (e) {
+      console.error('Failed to load profile data', e)
+    }
+  })
+
+  const stats = () => [
+    { label: '我的设计', value: String(designs().length), href: '/person/designs' },
+    { label: '已下单', value: String(orders().length), href: '/order' },
+    { label: '获赞', value: '0' },
+    { label: '积分', value: '0' }
+  ]
+
+  const works = () => designs().map((d: any) => ({
+    title: d.name || '未命名设计',
+    image: d.previewImage || `https://picsum.photos/seed/${d.id}/400/500`,
+    draft: true
+  }))
+
+  const orderActions = () => {
+    const unpaid = orders().filter((o: any) => o.status === 'unpaid' || o.status === 'pending').length
+    const undelivered = orders().filter((o: any) => o.status === 'paid' || o.status === 'confirmed').length
+    const shipping = orders().filter((o: any) => o.status === 'shipped').length
+    const unreviewed = orders().filter((o: any) => o.status === 'delivered').length
+    return [
+      { icon: 'account_balance_wallet', label: '待付款', href: '/order', badge: unpaid > 0 },
+      { icon: 'package_2', label: '待发货', href: '/order', badge: undelivered > 0 },
+      { icon: 'local_shipping', label: '运输中', href: '/order', badge: shipping > 0 },
+      { icon: 'rate_review', label: '待评价', href: '/order', badge: unreviewed > 0 }
+    ]
+  }
 
   const handleSettingClick = (href: string) => {
     if (href === '#') {
@@ -47,7 +73,10 @@ export default function ProfileContent() {
 
   const confirmLogout = () => {
     setShowLogoutConfirm(false)
-    showToast('已退出登录')
+    localStorage.removeItem('cshop_token')
+    localStorage.removeItem('cshop_refresh')
+    localStorage.removeItem('cshop_user')
+    window.location.href = '/login'
   }
 
   return (
@@ -64,8 +93,8 @@ export default function ProfileContent() {
               </div>
               <div class="absolute bottom-0 right-0 bg-primary text-on-primary text-label-md px-2 py-0.5 rounded-full font-medium">LV.4</div>
             </div>
-            <h1 class="text-headline-lg-mobile text-on-surface">陈小周</h1>
-            <p class="text-body-sm text-secondary mb-stack-md">高级定制设计师 · Creator</p>
+            <h1 class="text-headline-lg-mobile text-on-surface">{user()?.name || '用户'}</h1>
+            <p class="text-body-sm text-secondary mb-stack-md">{user()?.bio ? user().bio.slice(0, 30) : '欢迎来到 CShop'}</p>
             <div class="flex gap-stack-sm flex-wrap justify-center">
               <div class="flex items-center gap-1 px-3 py-1 bg-surface-container rounded-full border border-outline-variant">
                 <span class="material-symbols-outlined text-xs text-primary" style="font-variation-settings:'FILL' 1">check_circle</span>
@@ -79,7 +108,7 @@ export default function ProfileContent() {
           </header>
 
           <section class="grid grid-cols-2 md:grid-cols-1 gap-gutter mb-stack-lg md:mb-0">
-            {STATS.map((stat) => (
+            {stats().map((stat) => (
               stat.href ? (
                 <a href={stat.href} class="bg-surface-container-lowest p-stack-md rounded-xl border border-outline-variant flex flex-col items-center hover:border-primary transition-colors">
                   <span class="text-headline-lg-mobile text-primary">{stat.value}</span>
@@ -126,7 +155,7 @@ export default function ProfileContent() {
               </div>
             </div>
             <div class="grid grid-cols-2 md:grid-cols-3 gap-gutter">
-              {WORKS.map((work) => (
+              {works().map((work) => (
               <div class="group relative aspect-[4/5] bg-surface-container rounded-xl overflow-hidden border border-outline-variant hover:opacity-95 transition-opacity">
                 <ProductImage
                   src={work.image}
@@ -161,14 +190,14 @@ export default function ProfileContent() {
             </div>
             <div class="bg-surface-container-low rounded-xl p-stack-md border border-outline-variant">
               <div class="flex items-center justify-around py-2">
-                {ORDER_ACTIONS.map((action, idx) => (
+                {orderActions().map((action, idx) => (
                   <>
                     <a href={action.href} class="flex flex-col items-center gap-1 text-secondary hover:text-primary transition-colors tap-target relative">
                       <span class="material-symbols-outlined text-2xl">{action.icon}</span>
                       <span class="text-label-md">{action.label}</span>
                       {action.badge && <span class="absolute -top-1 -right-1 w-2 h-2 bg-error rounded-full" />}
                     </a>
-                    {idx < ORDER_ACTIONS.length - 1 && <div class="h-8 w-px bg-outline-variant" />}
+                    {idx < orderActions().length - 1 && <div class="h-8 w-px bg-outline-variant" />}
                   </>
                 ))}
               </div>

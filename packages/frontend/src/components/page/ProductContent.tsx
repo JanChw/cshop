@@ -1,20 +1,79 @@
-import { createSignal } from 'solid-js'
+import { createSignal, onMount, Show } from 'solid-js'
 import ProductImage from '../ui/ProductImage'
 import { showToast } from '../../lib/toast'
-import type { ProductDetail } from '../../lib/productData'
+import { api } from '../../lib/api'
 
-interface Props {
-  product: ProductDetail
+interface ProductData {
+  id: string
+  name: string
+  price: number
+  originalPrice?: number
+  image: string
+  thumbnails: string[]
+  category: string
+  description: string
+  fabric: string
+  fit: string
+  colors: string[]
+  sizes: string[]
+  tags?: string[]
+  designer?: string
+  customizable: boolean
+  details: Record<string, string>
+  designerQuote?: string
 }
 
-export default function ProductContent(props: Props) {
-  const p = () => props.product
-  const [mainImage, setMainImage] = createSignal(p().thumbnails[0])
-  const [selectedColor, setSelectedColor] = createSignal(p().colors[0])
-  const [selectedSize, setSelectedSize] = createSignal(p().sizes[0])
+export default function ProductContent() {
+  const [loading, setLoading] = createSignal(true)
+  const [error, setError] = createSignal('')
+  const [product, setProduct] = createSignal<ProductData | null>(null)
+  const [mainImage, setMainImage] = createSignal('')
+  const [selectedColor, setSelectedColor] = createSignal('')
+  const [selectedSize, setSelectedSize] = createSignal('')
   const [favorited, setFavorited] = createSignal(false)
   const [adding, setAdding] = createSignal(false)
   const [buying, setBuying] = createSignal(false)
+
+  onMount(async () => {
+    const id = window.location.pathname.split('/').pop() || ''
+    try {
+      const res = await api.products.get(id)
+      if (res.success) {
+        const p = res.data
+        const images = p.images ? (typeof p.images === 'string' ? JSON.parse(p.images) : p.images) : []
+        const tags = p.tags ? (typeof p.tags === 'string' ? JSON.parse(p.tags) : p.tags) : []
+        const sizes = p.variants ? [...new Set((p.variants as any[]).map((v: any) => v.size))] : []
+        const colors = p.variants ? [...new Set((p.variants as any[]).map((v: any) => v.color).filter(Boolean))] : []
+        const pd: ProductData = {
+          id: String(p.id),
+          name: p.name,
+          price: p.basePrice,
+          originalPrice: p.originalPrice || undefined,
+          image: images[0] || `https://picsum.photos/seed/${p.id}/400/500`,
+          thumbnails: images.length > 0 ? images : [`https://picsum.photos/seed/${p.id}/400/500`],
+          category: '',
+          description: p.description || '',
+          fabric: p.fabric || '',
+          fit: p.fit || '',
+          colors,
+          sizes,
+          tags,
+          designer: p.designer || undefined,
+          customizable: true,
+          details: { '材质': p.description || '优质面料', '版型': p.fit || '常规' },
+          designerQuote: p.designer ? `${p.designer} 倾心设计` : undefined
+        }
+        setProduct(pd)
+        setMainImage(pd.thumbnails[0])
+        setSelectedColor(pd.colors[0] || '')
+        setSelectedSize(pd.sizes[0] || '')
+      }
+    } catch (e: any) {
+      setError(e.message || '加载失败')
+    } finally {
+      setLoading(false)
+    }
+  })
 
   const handleThumbClick = (src: string) => {
     setMainImage(src)
@@ -29,26 +88,51 @@ export default function ProductContent(props: Props) {
     showToast(favorited() ? '已取消收藏' : '已加入收藏')
   }
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     setAdding(true)
-    setTimeout(() => {
-      setAdding(false)
+    try {
+      const id = window.location.pathname.split('/').pop() || ''
+      await api.cart.add(id, 1, selectedSize(), selectedColor())
       showToast('商品已加入购物车')
-    }, 600)
+    } catch (e: any) {
+      showToast(e.message || '加入购物车失败')
+    } finally {
+      setAdding(false)
+    }
   }
 
-  const handleBuyNow = () => {
+  const handleBuyNow = async () => {
     setBuying(true)
-    setTimeout(() => {
+    try {
+      const id = window.location.pathname.split('/').pop() || ''
+      await api.cart.add(id, 1, selectedSize(), selectedColor())
       window.location.href = '/cart'
-    }, 600)
+    } catch (e: any) {
+      showToast(e.message || '操作失败')
+      setBuying(false)
+    }
   }
 
   const showSizeChart = () => {
     showToast('尺码表：S 胸围88/衣长62 · M 胸围92/衣长64 · L 胸围96/衣长66 · XL 胸围100/衣长68 · XXL 胸围104/衣长70')
   }
 
+  const p = (): ProductData => product()!
+
   return (
+    <Show when={!loading() && product()} fallback={
+      <div class="min-h-screen flex flex-col items-center justify-center gap-4 text-on-surface-variant">
+        <Show when={loading()}>
+          <span class="material-symbols-outlined animate-spin text-4xl">progress_activity</span>
+          <p>加载中...</p>
+        </Show>
+        <Show when={error()}>
+          <span class="material-symbols-outlined text-4xl">error</span>
+          <p>{error()}</p>
+          <button onClick={() => window.location.reload()} class="text-primary font-bold">重试</button>
+        </Show>
+      </div>
+    }>
     <div class="md:pt-16">
       {/* Tablet action bar - sticky outside container for full-width */}
       <div class="hidden md:sticky md:top-16 md:flex w-full bg-surface border-b border-outline-variant px-6 items-center justify-between py-3 z-30">
@@ -319,5 +403,6 @@ export default function ProductContent(props: Props) {
     </div>
     </div>
     </div>
+    </Show>
   )
 }

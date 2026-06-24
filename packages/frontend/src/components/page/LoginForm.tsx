@@ -1,5 +1,6 @@
 import { createSignal, Show } from 'solid-js'
 import { showToast } from '../../lib/toast'
+import { api } from '../../lib/api'
 
 const SOCIAL_BRAND_COLORS = {
   wechat: '#07C160',
@@ -29,11 +30,20 @@ export default function LoginForm() {
     e.preventDefault()
     if (!validate()) return
     setLoading(true)
-    setTimeout(() => {
-      setLoading(false)
-      showToast('登录成功')
-      setTimeout(() => { window.location.href = '/' }, 800)
-    }, 1200)
+    ;(async () => {
+      try {
+        const res: any = await api.auth.login(identifier(), password())
+        localStorage.setItem('cshop_token', res.data.accessToken)
+        localStorage.setItem('cshop_refresh', res.data.refreshToken)
+        localStorage.setItem('cshop_user', JSON.stringify(res.data.user))
+        showToast('登录成功')
+        window.location.href = '/'
+      } catch (err) {
+        showToast(err instanceof Error ? err.message : '登录失败')
+      } finally {
+        setLoading(false)
+      }
+    })()
   }
 
   const socialLogin = (provider: string) => {

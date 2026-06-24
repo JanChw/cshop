@@ -1,14 +1,8 @@
 ---
 import MainLayout from '../layouts/MainLayout.astro'
 import OrderContent from '../components/page/OrderContent.tsx'
-
-const orders = [
-  { orderNumber: '202310248892', status: 'pending', items: [{ product: { name: '定制创意印花 T恤', image: 'https://picsum.photos/seed/f9b71acc9e4e/400/500' }, quantity: 1, size: 'L', color: '极简黑' }], total: 199, createdAt: '2023-10-24', designer: 'Jordan.Design' },
-  { orderNumber: '202310224510', status: 'shipping', items: [{ product: { name: '重磅插肩袖 连帽衫', image: 'https://picsum.photos/seed/31d03c816559/400/500' }, quantity: 1, size: 'XL', color: '霜灰色' }], total: 459, createdAt: '2023-10-22', designer: 'Studio_99' },
-  { orderNumber: '202309153321', status: 'completed', items: [{ product: { name: '自然系列 线条插画 T恤', image: 'https://picsum.photos/seed/892828cecd30/400/500' }, quantity: 1, size: 'M', color: '珍珠白' }], total: 229, createdAt: '2023-09-15' }
-]
 ---
 
 <MainLayout title="订单管理">
-  <OrderContent orders={orders} client:load />
+  <OrderContent client:load />
 </MainLayout>

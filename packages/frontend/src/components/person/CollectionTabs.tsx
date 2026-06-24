@@ -1,6 +1,7 @@
-import { createSignal, createMemo } from 'solid-js'
+import { createSignal, createMemo, onMount } from 'solid-js'
 import ProductImage from '../ui/ProductImage'
 import { showToast } from '../../lib/toast'
+import { api } from '../../lib/api'
 
 interface Product {
   id: string
@@ -11,7 +12,7 @@ interface Product {
 }
 
 interface Draft {
-  id: string
+  id: number
   name: string
   image: string
   lastEdited: string
@@ -23,14 +24,27 @@ const mockFavorites: Product[] = [
   { id: 'f2', name: '自然棉麻床品套装', price: 1240, image: 'https://picsum.photos/seed/4f0e1025495a/400/500', description: '100% 纯天然长绒棉，呼吸感触感' }
 ]
 
-const mockDrafts: Draft[] = [
-  { id: 'd1', name: 'Sahara 扶手椅方案', image: 'https://picsum.photos/seed/10ae89ea815c/400/500', lastEdited: '2小时前', label: '草稿 #04' },
-  { id: 'd2', name: '抽象极简装饰画', image: 'https://picsum.photos/seed/d921fff82380/400/500', lastEdited: '昨天', label: '草稿 #02' }
-]
-
 export default function CollectionTabs() {
   const [activeTab, setActiveTab] = createSignal<'favorites' | 'drafts'>('favorites')
   const [favorites, setFavorites] = createSignal<Set<string>>(new Set())
+  const [drafts, setDrafts] = createSignal<Draft[]>([])
+
+  onMount(async () => {
+    try {
+      const res = await api.designs.list()
+      if (res.success) {
+        setDrafts(res.data.items.map((d: any) => ({
+          id: d.id,
+          name: d.name || '未命名设计',
+          image: d.previewImage || `https://picsum.photos/seed/${d.id}/400/500`,
+          lastEdited: d.updatedAt ? new Date(d.updatedAt).toLocaleDateString() : '未知',
+          label: `设计 #${d.id}`
+        })))
+      }
+    } catch (e) {
+      console.error('Failed to load designs', e)
+    }
+  })
 
   const showFab = createMemo(() => activeTab() === 'drafts')
 
@@ -129,7 +143,7 @@ export default function CollectionTabs() {
               <span class="material-symbols-outlined text-4xl text-on-surface-variant mb-4 group-hover:text-primary">add_circle</span>
               <p class="font-medium text-on-surface-variant">开启新创作</p>
             </a>
-            {mockDrafts.map((draft) => (
+            {drafts().map((draft) => (
               <div class="bg-surface-container-low rounded-xl overflow-hidden border border-outline-variant/40 relative min-h-[400px]">
                 <div class="h-2/3 bg-surface-container overflow-hidden">
                   <ProductImage

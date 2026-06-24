@@ -17,7 +17,7 @@ interface Props {
 export default function ProductSelector(props: Props) {
   const [products] = createResource(async () => {
     const catsRes = await api.categories.list()
-    const base = catsRes?.data?.items?.find((c: any) => c.slug === 'base')
+    const base = catsRes?.data?.items?.find((c: any) => c.slug === 'basics')
     if (!base) return { data: { items: [] } }
     return api.products.list({ categoryId: base.id, limit: 50 })
   })

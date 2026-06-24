@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { Product, CartItem, Order, User, DesignDraft } from './types'
 
 export const mockUser: User = {

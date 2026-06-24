@@ -140,15 +140,27 @@ export const api = {
       request('/orders', { method: 'POST', body: JSON.stringify(data) })
   },
   auth: {
-    login: (identifier: string, password: string) =>
-      request('/auth/login', { method: 'POST', body: JSON.stringify({ identifier, password }) }),
+    login: (email: string, password: string) =>
+      request('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
     register: (name: string, email: string, password: string) =>
       request('/auth/register', { method: 'POST', body: JSON.stringify({ name, email, password }) })
   },
   user: {
-    get: () => request<{ success: boolean; data: any }>('/user/me'),
+    get: () => request<{ success: boolean; data: any }>('/auth/me'),
     update: (data: any) =>
-      request('/user/me', { method: 'PATCH', body: JSON.stringify(data) })
+      request('/auth/me', { method: 'PATCH', body: JSON.stringify(data) })
+  },
+  addresses: {
+    list: () => request<{ success: boolean; data: any[] }>('/user/addresses'),
+    get: (id: number) => request<{ success: boolean; data: any }>(`/user/addresses/${id}`),
+    create: (data: any) =>
+      request('/user/addresses', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id: number, data: any) =>
+      request(`/user/addresses/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    remove: (id: number) =>
+      request(`/user/addresses/${id}`, { method: 'DELETE' }),
+    setDefault: (id: number) =>
+      request(`/user/addresses/default/${id}`, { method: 'POST' })
   },
   designDrafts: {
     list: (productId?: number) => {

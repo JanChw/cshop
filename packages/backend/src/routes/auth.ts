@@ -228,7 +228,11 @@ app.post('/logout-all', auth, async (c) => {
 app.get('/me', auth, async (c) => {
   const userId = c.get('userId')
   const [user] = await db
-    .select({ id: users.id, email: users.email, name: users.name, createdAt: users.createdAt })
+    .select({
+      id: users.id, email: users.email, name: users.name,
+      avatar: users.avatar, phone: users.phone, bio: users.bio,
+      gender: users.gender, birthday: users.birthday, createdAt: users.createdAt
+    })
     .from(users)
     .where(eq(users.id, userId))
     .limit(1)
@@ -237,10 +241,7 @@ app.get('/me', auth, async (c) => {
   }
   const staffCtx = await loadStaffContext(userId)
   return success(c, {
-    id: user.id,
-    email: user.email,
-    name: user.name,
-    createdAt: user.createdAt,
+    ...user,
     isStaff: staffCtx.isStaff,
     roleId: staffCtx.roleId,
     roleName: staffCtx.roleName,
@@ -299,9 +300,17 @@ app.patch('/me', auth, validateJson(updateMeSchema), async (c) => {
     }
   }
 
-  const updates: Partial<{ name: string; email: string }> = {}
-  if (data.name !== undefined) updates.name = data.name
-  if (data.email !== undefined) updates.email = data.email
+  const allowedFields = ['name', 'email', 'avatar', 'phone', 'bio', 'gender', 'birthday'] as const
+  const updates: Record<string, unknown> = {}
+  for (const field of allowedFields) {
+    if (data[field as keyof typeof data] !== undefined) {
+      updates[field] = data[field as keyof typeof data]
+    }
+  }
+
+  if (Object.keys(updates).length === 0) {
+    return fail(c, '至少修改一个字段')
+  }
 
   await db.update(users).set(updates).where(eq(users.id, userId))
   return success(c, { id: userId, ...updates })

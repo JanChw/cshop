@@ -1,8 +1,7 @@
 import { createSignal, onMount } from 'solid-js'
 import ProductImage from '../ui/ProductImage'
 import { showToast } from '../../lib/toast'
-import { mockOrders } from '../../lib/mock'
-import type { Order } from '../../lib/types'
+import { api } from '../../lib/api'
 
 interface TimelineNode {
   title: string
@@ -11,7 +10,7 @@ interface TimelineNode {
   active: boolean
 }
 
-function buildTimeline(order: Order): TimelineNode[] {
+function buildTimeline(order: any): TimelineNode[] {
   const now = new Date()
   const shipDate = new Date(now)
   shipDate.setDate(shipDate.getDate() - 2)
@@ -87,15 +86,36 @@ function formatTime(d: Date): string {
 export default function LogisticsContent() {
   const [confirming, setConfirming] = createSignal(false)
   const [confirmed, setConfirmed] = createSignal(false)
-  const [order, setOrder] = createSignal<Order | null>(null)
+  const [order, setOrder] = createSignal<any | null>(null)
   const [timeline, setTimeline] = createSignal<TimelineNode[]>([])
 
-  onMount(() => {
+  onMount(async () => {
     const id = new URLSearchParams(window.location.search).get('id')
-    const found = mockOrders.find(o => o.orderNumber === id || o.id === id)
-    if (found) {
-      setOrder(found)
-      setTimeline(buildTimeline(found))
+    if (!id) return
+    try {
+      const res = await api.orders.get(id)
+      const o = {
+        ...res.data,
+        orderNumber: String(res.data.id),
+        carrier: res.data.carrier || '快递',
+        trackingNumber: res.data.trackingNo || '',
+        status: res.data.status === 'shipped' ? 'shipping' : res.data.status === 'paid' || res.data.status === 'processing' ? 'pending' : res.data.status,
+        items: (res.data.items || []).map((item: any) => ({
+          ...item,
+          size: item.size || '',
+          color: item.color || '',
+          product: {
+            ...item.product,
+            image: item.product?.images
+              ? (Array.isArray(item.product.images) ? item.product.images[0] : JSON.parse(item.product.images)[0])
+              : item.product?.image || '/placeholder.png'
+          }
+        }))
+      }
+      setOrder(o)
+      setTimeline(buildTimeline(o))
+    } catch {
+      showToast('加载物流信息失败')
     }
   })
 

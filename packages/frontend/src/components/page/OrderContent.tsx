@@ -1,6 +1,7 @@
-import { createSignal, createMemo, For, Show } from 'solid-js'
+import { createSignal, createMemo, createEffect, For, Show, onMount } from 'solid-js'
 import SearchInput from '../ui/SearchInput'
 import OrderCard from '../ui/OrderCard'
+import { api } from '../../lib/api'
 
 interface OrderItem {
   product: { name: string; image: string }
@@ -18,13 +19,30 @@ interface Order {
   createdAt: string
 }
 
-interface Props {
-  orders: Order[]
-}
-
 const TABS = ['全部', '待付款', '待收货', '已完成', '已取消']
 
-export default function OrderContent(props: Props) {
+function mapStatus(backendStatus: string): 'pending' | 'shipping' | 'completed' | 'cancelled' {
+  if (backendStatus === 'shipped') return 'shipping'
+  if (backendStatus === 'paid' || backendStatus === 'processing') return 'pending'
+  if (backendStatus === 'completed') return 'completed'
+  if (backendStatus === 'cancelled') return 'cancelled'
+  return 'pending'
+}
+
+function parseImage(images: any): string {
+  if (!images) return '/placeholder.png'
+  if (Array.isArray(images)) return images[0] || '/placeholder.png'
+  try {
+    const parsed = JSON.parse(images)
+    return Array.isArray(parsed) ? (parsed[0] || '/placeholder.png') : '/placeholder.png'
+  } catch {
+    return '/placeholder.png'
+  }
+}
+
+export default function OrderContent() {
+  const [allOrders, setAllOrders] = createSignal<Order[]>([])
+  const [loading, setLoading] = createSignal(true)
   const [activeTab, setActiveTab] = createSignal('全部')
   const [searchOpen, setSearchOpen] = createSignal(false)
   const [query, setQuery] = createSignal('')
@@ -36,8 +54,48 @@ export default function OrderContent(props: Props) {
     '已取消': 'cancelled'
   }
 
+  const fetchOrders = async () => {
+    setLoading(true)
+    try {
+      const res = await api.orders.list()
+      const rawList = Array.isArray(res.data) ? res.data : (res.data as any)?.items || []
+      const mapped = rawList.map((o: any) => ({
+        orderNumber: String(o.id),
+        status: mapStatus(o.status),
+        items: (o.items || []).map((item: any) => ({
+          product: {
+            name: item.product?.name || '',
+            image: item.product?.images
+              ? (Array.isArray(item.product.images) ? item.product.images[0] : JSON.parse(item.product.images)[0])
+              : item.product?.image || '/placeholder.png'
+          },
+          quantity: item.quantity || 0,
+          size: item.size || '',
+          color: item.color || ''
+        })),
+        total: o.total || 0,
+        designer: o.designer,
+        createdAt: o.createdAt || ''
+      }))
+      setAllOrders(mapped)
+    } catch {
+      setAllOrders([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  onMount(fetchOrders)
+
+  let initial = true
+  createEffect(() => {
+    const _ = activeTab()
+    if (initial) { initial = false; return }
+    fetchOrders()
+  })
+
   const filteredOrders = createMemo(() => {
-    let result = props.orders
+    let result = allOrders()
 
     if (activeTab() !== '全部') {
       result = result.filter((o) => statusMap[activeTab()] === o.status)

@@ -1,7 +1,8 @@
-import { createSignal, createMemo, createEffect, Show } from 'solid-js'
+import { createSignal, createMemo, createEffect, Show, onMount } from 'solid-js'
 import QuantitySelector from '../ui/QuantitySelector'
 import ProductImage from '../ui/ProductImage'
 import { showToast } from '../../lib/toast'
+import { api } from '../../lib/api'
 
 interface CartItem {
   id: string
@@ -10,15 +11,13 @@ interface CartItem {
   price: number
   size: string
   color: string
+  qty: number
   designId?: string
 }
 
-interface Props {
-  items: CartItem[]
-}
-
-export default function CartContent(props: Props) {
-  const [items, setItems] = createSignal(props.items.map((item) => ({ ...item, qty: 1 })))
+export default function CartContent() {
+  const [items, setItems] = createSignal<CartItem[]>([])
+  const [loading, setLoading] = createSignal(true)
   const [couponInput, setCouponInput] = createSignal('')
   const [discount, setDiscount] = createSignal(0)
   const [couponApplied, setCouponApplied] = createSignal(false)
@@ -26,6 +25,29 @@ export default function CartContent(props: Props) {
   const [removeTarget, setRemoveTarget] = createSignal<string | null>(null)
 
   let confirmRef: HTMLDivElement | undefined
+
+  onMount(async () => {
+    try {
+      const res = await api.cart.list()
+      const mapped = (res.data || []).map((item: any) => ({
+        id: String(item.id),
+        name: item.product?.name || '',
+        image: item.product?.images
+          ? (Array.isArray(item.product.images) ? item.product.images[0] : JSON.parse(item.product.images)[0])
+          : '/placeholder.png',
+        price: item.product?.basePrice || 0,
+        size: item.size || '',
+        color: item.color || '',
+        qty: item.quantity || 1,
+        designId: item.designId ? String(item.designId) : undefined
+      }))
+      setItems(mapped)
+    } catch {
+      showToast('加载购物车失败')
+    } finally {
+      setLoading(false)
+    }
+  })
 
   createEffect(() => {
     if (removeTarget()) {
@@ -58,14 +80,24 @@ export default function CartContent(props: Props) {
   const total = createMemo(() => Math.max(0, subtotal() - discount()))
   const itemCount = createMemo(() => items().reduce((s, item) => s + item.qty, 0))
 
-  const updateQty = (id: string, qty: number) => {
-    setItems((prev) => prev.map((item) => (item.id === id ? { ...item, qty } : item)))
+  const updateQty = async (id: string, qty: number) => {
+    try {
+      await api.cart.update(id, qty)
+      setItems((prev) => prev.map((item) => (item.id === id ? { ...item, qty } : item)))
+    } catch {
+      showToast('更新数量失败')
+    }
   }
 
-  const removeItem = (id: string) => {
-    setItems((prev) => prev.filter((item) => item.id !== id))
-    showToast('已移除')
-    setRemoveTarget(null)
+  const removeItem = async (id: string) => {
+    try {
+      await api.cart.remove(id)
+      setItems((prev) => prev.filter((item) => item.id !== id))
+      showToast('已移除')
+      setRemoveTarget(null)
+    } catch {
+      showToast('移除失败')
+    }
   }
 
   const applyCoupon = () => {
@@ -80,13 +112,18 @@ export default function CartContent(props: Props) {
     }
   }
 
-  const checkout = () => {
+  const checkout = async () => {
     setCheckoutState('submitting')
-    setTimeout(() => {
+    try {
+      await api.orders.create({ address: null })
       setCheckoutState('done')
       showToast('订单已提交')
+      setItems([])
       setTimeout(() => setCheckoutState('idle'), 2000)
-    }, 1200)
+    } catch {
+      showToast('提交订单失败')
+      setCheckoutState('idle')
+    }
   }
 
   const CouponSection = (p: { id: string }) => (

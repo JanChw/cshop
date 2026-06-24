@@ -111,8 +111,13 @@ export const changePasswordSchema = z.object({
 
 export const updateMeSchema = z.object({
   name: z.string().min(1).optional(),
-  email: z.string().email('邮箱格式不正确').optional()
-}).refine(d => d.name !== undefined || d.email !== undefined, '至少修改一个字段')
+  email: z.string().email('邮箱格式不正确').optional(),
+  avatar: z.string().optional(),
+  phone: z.string().optional(),
+  bio: z.string().optional(),
+  gender: z.enum(['male', 'female', 'other']).optional(),
+  birthday: z.string().optional()
+})
 
 export const forgotPasswordSchema = z.object({
   email: z.string().email('邮箱格式不正确')

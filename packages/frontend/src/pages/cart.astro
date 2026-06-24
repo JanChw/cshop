@@ -1,14 +1,8 @@
 ---
 import MainLayout from '../layouts/MainLayout.astro'
 import CartContent from '../components/page/CartContent.tsx'
-
-const cartItems = [
-  { id: 'ci1', name: '定制创意印花 T恤', image: 'https://picsum.photos/seed/6302f36204b7/400/500', price: 199, size: 'L', color: '白色', designId: 'BYCH-8821' },
-  { id: 'ci2', name: 'ByChooow 限量款联名连帽衫', image: 'https://picsum.photos/seed/ef05e1e2518a/400/500', price: 589, size: 'XL', color: '炭灰色' },
-  { id: 'ci3', name: '简约概念帆布袋', image: 'https://picsum.photos/seed/480120054cac/400/500', price: 88, size: '均码', color: '黑色' }
-]
 ---
 
 <MainLayout title="购物车">
-  <CartContent items={cartItems} client:load />
+  <CartContent client:load />
 </MainLayout>

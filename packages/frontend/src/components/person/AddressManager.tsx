@@ -1,8 +1,9 @@
-import { createSignal } from 'solid-js'
+import { createSignal, onMount } from 'solid-js'
 import { showToast } from '../../lib/toast'
+import { api } from '../../lib/api'
 
 interface Address {
-  id: string
+  id: number
   name: string
   phone: string
   region: string
@@ -10,35 +11,61 @@ interface Address {
   isDefault: boolean
 }
 
-const mockAddresses: Address[] = [
-  { id: 'a1', name: '陈小木', phone: '13856788888', region: '上海市浦东新区', address: '上海市浦东新区陆家嘴环路 1233 号 汇丰大厦 18 层', isDefault: true },
-  { id: 'a2', name: '林屿', phone: '15912340012', region: '浙江省杭州市西湖区', address: '浙江省杭州市西湖区灵隐街道 法云弄 22 号 隐逸山庄', isDefault: false },
-  { id: 'a3', name: '张子谦', phone: '18678904567', region: '北京市朝阳区', address: '北京市朝阳区三里屯街道北三里屯南 42 号楼 3 单元 502 室', isDefault: false }
-]
-
 export default function AddressManager() {
-  const [addresses, setAddresses] = createSignal(mockAddresses)
+  const [addresses, setAddresses] = createSignal<Address[]>([])
   const [formOpen, setFormOpen] = createSignal(false)
-  const [editingId, setEditingId] = createSignal<string | null>(null)
+  const [editingId, setEditingId] = createSignal<number | null>(null)
   const [formName, setFormName] = createSignal('')
   const [formPhone, setFormPhone] = createSignal('')
   const [formRegion, setFormRegion] = createSignal('')
   const [formDetail, setFormDetail] = createSignal('')
   const [formDefault, setFormDefault] = createSignal(false)
   const [saving, setSaving] = createSignal(false)
-  const [deleteId, setDeleteId] = createSignal<string | null>(null)
+  const [deleteId, setDeleteId] = createSignal<number | null>(null)
 
-  const setDefault = (id: string) => {
-    setAddresses((prev) => prev.map((a) => ({ ...a, isDefault: a.id === id })))
-    showToast('已设为默认地址')
+  onMount(async () => {
+    try {
+      const res: any = await api.addresses.list()
+      if (res.success) {
+        setAddresses(res.data.map((a: any) => ({
+          id: a.id,
+          name: a.name,
+          phone: a.phone,
+          region: a.region,
+          address: a.address,
+          isDefault: a.isDefault
+        })))
+      }
+    } catch (e) {
+      showToast('加载地址失败')
+    }
+  })
+
+  const setDefault = async (id: number) => {
+    try {
+      const res: any = await api.addresses.setDefault(id)
+      if (res.success) {
+        setAddresses((prev) => prev.map((a) => ({ ...a, isDefault: a.id === id })))
+        showToast('已设为默认地址')
+      }
+    } catch (e: any) {
+      showToast(e.message || '设置默认地址失败')
+    }
   }
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     const id = deleteId()
     if (!id) return
-    setAddresses((prev) => prev.filter((a) => a.id !== id))
-    setDeleteId(null)
-    showToast('地址已删除')
+    try {
+      const res: any = await api.addresses.remove(id)
+      if (res.success) {
+        setAddresses((prev) => prev.filter((a) => a.id !== id))
+        setDeleteId(null)
+        showToast('地址已删除')
+      }
+    } catch (e: any) {
+      showToast(e.message || '删除失败')
+    }
   }
 
   const cancelDelete = () => setDeleteId(null)
@@ -68,7 +95,7 @@ export default function AddressManager() {
     setEditingId(null)
   }
 
-  const save = () => {
+  const save = async () => {
     if (!formName().trim()) { showToast('请输入收货人姓名'); return }
     if (!formPhone().trim()) { showToast('请输入手机号'); return }
     if (!/^1\d{10}$/.test(formPhone().trim())) { showToast('请输入正确的手机号'); return }
@@ -78,10 +105,8 @@ export default function AddressManager() {
     setSaving(true)
 
     const isEditing = editingId() !== null
-    const id = editingId() ?? `a${Date.now()}`
     const fullAddress = `${formRegion().trim()} ${formDetail().trim()}`
-    const updated: Address = {
-      id,
+    const data = {
       name: formName().trim(),
       phone: formPhone().trim(),
       region: formRegion().trim(),
@@ -89,22 +114,49 @@ export default function AddressManager() {
       isDefault: formDefault()
     }
 
-    setAddresses((prev) => {
-      let result = isEditing
-        ? prev.map((a) => (a.id === editingId() ? updated : a))
-        : [...prev, updated]
-
-      if (updated.isDefault) {
-        result = result.map((a) => ({ ...a, isDefault: a.id === id }))
+    try {
+      if (isEditing) {
+        const res: any = await api.addresses.update(editingId()!, data)
+        if (res.success) {
+          setAddresses((prev) => {
+            let result = prev.map((a) =>
+              a.id === editingId() ? { ...a, ...data, id: a.id } : a
+            )
+            if (data.isDefault) {
+              result = result.map((a) => ({ ...a, isDefault: a.id === editingId() }))
+            }
+            return result
+          })
+          showToast('地址已更新')
+        }
+      } else {
+        const res: any = await api.addresses.create(data)
+        if (res.success) {
+          const newAddr: Address = {
+            id: res.data.id,
+            name: res.data.name,
+            phone: res.data.phone,
+            region: res.data.region,
+            address: res.data.address,
+            isDefault: res.data.isDefault
+          }
+          setAddresses((prev) => {
+            let result = [...prev, newAddr]
+            if (newAddr.isDefault) {
+              result = result.map((a) => ({ ...a, isDefault: a.id === newAddr.id }))
+            }
+            return result
+          })
+          showToast('地址已添加')
+        }
       }
-
-      return result
-    })
-
-    setSaving(false)
-    setFormOpen(false)
-    setEditingId(null)
-    showToast(isEditing ? '地址已更新' : '地址已添加')
+      setFormOpen(false)
+      setEditingId(null)
+    } catch (e: any) {
+      showToast(e.message || '保存失败')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (

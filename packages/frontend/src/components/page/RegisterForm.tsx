@@ -1,5 +1,6 @@
 import { createSignal, Show } from 'solid-js'
 import { showToast } from '../../lib/toast'
+import { api } from '../../lib/api'
 
 export default function RegisterForm() {
   const [name, setName] = createSignal('')
@@ -27,11 +28,20 @@ export default function RegisterForm() {
     e.preventDefault()
     if (!validate()) return
     setLoading(true)
-    setTimeout(() => {
-      setLoading(false)
-      showToast('注册成功')
-      setTimeout(() => { window.location.href = '/login' }, 1000)
-    }, 1500)
+    ;(async () => {
+      try {
+        const res: any = await api.auth.register(name(), email(), password())
+        localStorage.setItem('cshop_token', res.data.accessToken)
+        localStorage.setItem('cshop_refresh', res.data.refreshToken)
+        localStorage.setItem('cshop_user', JSON.stringify(res.data.user))
+        showToast('注册成功')
+        window.location.href = '/login'
+      } catch (err) {
+        showToast(err instanceof Error ? err.message : '注册失败')
+      } finally {
+        setLoading(false)
+      }
+    })()
   }
 
   const socialRegister = (provider: string) => {

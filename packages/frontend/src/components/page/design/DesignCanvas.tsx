@@ -28,6 +28,7 @@ export default function DesignCanvas(props: Props) {
   const [canvasReady, setCanvasReady] = createSignal(false)
 
   const inBrushMode = () => props.drawing.enabled && props.drawing.mode === 'brush'
+  const inMoveMode = () => props.drawing.enabled && props.drawing.mode === 'move'
 
   const onPanStart = (clientX: number, clientY: number) => {
     if (inBrushMode()) return

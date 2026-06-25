@@ -8,7 +8,8 @@ import {
   PencilBrush,
   Rect,
   SprayBrush,
-  filters
+  filters,
+  util
 } from 'fabric'
 import { DEFAULT_CANVAS_INK } from '../page/design/design-types'
 
@@ -50,7 +51,8 @@ export interface CanvasAPI {
   setTextLetterSpacing: (delta: number) => void
   bringToFront: () => void
   sendToBack: () => void
-  reloadImages: (imgSrc: string, maskSrc?: string) => void
+  reloadImages: (imgSrc: string, maskSrc?: string) => Promise<void>
+  clearDesign: () => void
 }
 
 interface Props {
@@ -73,6 +75,7 @@ export default function FabricCanvas(props: Props) {
   let canvasEl: HTMLCanvasElement | undefined
   let fabricCanvas: Canvas | undefined
   let tshirtBase: FabricImage | undefined
+  let whiteBg: Rect | undefined
   let colorFilter: filters.BlendColor | undefined
   const drawingPaths: FabricObject[] = []
   const changeListeners: Array<() => void> = []
@@ -80,12 +83,6 @@ export default function FabricCanvas(props: Props) {
   let loadedImgSrc = ''
   let loadedMaskSrc = ''
 
-  let diagId = 0
-  const diag = (msg: string, data?: any) => {
-    const id = ++diagId
-    if (data) { console.log(`[FC-DIAG:${id}]`, msg, data) }
-    else { console.log(`[FC-DIAG:${id}]`, msg) }
-  }
 
   const isTshirtLayer = (obj: FabricObject | undefined) =>
     obj !== undefined && obj === tshirtBase
@@ -110,8 +107,7 @@ export default function FabricCanvas(props: Props) {
   }
 
   onMount(() => {
-    diag('onMount started', { tshirtImage: props.tshirtImage, maskImage: props.maskImage })
-    if (!canvasEl) { diag('onMount: no canvasEl!'); return }
+    if (!canvasEl) return
     const parent = canvasEl.parentElement
     const logicalWidth = parent?.clientWidth || 300
     const logicalHeight = parent?.clientHeight || 375
@@ -127,23 +123,21 @@ export default function FabricCanvas(props: Props) {
       enableRetinaScaling: false
     })
 
-    const whiteBg = new Rect({
+    const whiteBgRect = new Rect({
       left: 0, top: 0,
       width, height,
       fill: '#ffffff',
       selectable: false, evented: false,
       excludeFromExport: true
     })
-    ;(whiteBg as any).data = { kind: WHITE_BG_KEY }
+    ;(whiteBgRect as any).data = { kind: WHITE_BG_KEY }
+    whiteBg = whiteBgRect
     fabricCanvas.add(whiteBg)
 
-    canvasEl.style.width = logicalWidth + 'px'
-    canvasEl.style.height = logicalHeight + 'px'
-    const wrapper = canvasEl.parentElement
-    if (wrapper) {
-      wrapper.style.width = logicalWidth + 'px'
-      wrapper.style.height = logicalHeight + 'px'
-    }
+    fabricCanvas.setDimensions(
+      { width: logicalWidth, height: logicalHeight },
+      { cssOnly: true }
+    )
 
     const brush = new PencilBrush(fabricCanvas)
     brush.color = props.drawing.color
@@ -168,6 +162,7 @@ export default function FabricCanvas(props: Props) {
       if (e.path) {
         ;(e.path as any).data = { kind: DRAWING_LAYER_KEY }
         drawingPaths.push(e.path)
+        fabricCanvas?.renderAll()
         fireChange()
       }
     })
@@ -183,17 +178,13 @@ export default function FabricCanvas(props: Props) {
 
     const initImgSrc = props.tshirtImage
     const initMaskSrc = props.maskImage || initImgSrc.replace(/\.[^.]+$/, '-mask.png')
-    diag('onMount initial images', { initImgSrc, initMaskSrc })
-
     const baseImg = new Image()
     baseImg.onload = () => {
-      diag('onMount baseImg.onload', { src: initImgSrc, nw: baseImg.naturalWidth, nh: baseImg.naturalHeight })
-      if (!fabricCanvas) { diag('onMount baseImg.onload: no fabricCanvas!'); return }
+      if (!fabricCanvas) return
 
       const maskImg = new Image()
       maskImg.onload = () => {
-        diag('onMount maskImg.onload', { src: initMaskSrc, nw: maskImg.naturalWidth, nh: maskImg.naturalHeight })
-        if (!fabricCanvas) { diag('onMount maskImg.onload: no fabricCanvas!'); return }
+        if (!fabricCanvas) return
 
         const naturalW = baseImg.naturalWidth || maskImg.naturalWidth || 1024
         const naturalH = baseImg.naturalHeight || maskImg.naturalHeight || 1024
@@ -217,7 +208,8 @@ export default function FabricCanvas(props: Props) {
           originY: 'center',
           selectable: false,
           evented: false,
-          objectCaching: false
+          objectCaching: false,
+          excludeFromExport: true
         })
         ;(tshirtBase as any).data = { kind: TSHIRT_LAYER_KEY }
         fabricCanvas.add(tshirtBase)
@@ -231,26 +223,25 @@ export default function FabricCanvas(props: Props) {
         tshirtBase.applyFilters()
 
         fabricCanvas.renderAll()
-        diag('onMount canvas rendered (precomposed FabricImage)')
         loadedImgSrc = initImgSrc
         loadedMaskSrc = initMaskSrc
         props.onReady?.(buildAPI())
-        diag('onMount onReady called')
       }
       maskImg.onerror = () => {
         console.error('Failed to load tshirt mask:', initMaskSrc)
-        diag('onMount maskImg.onerror', { src: initMaskSrc })
         fabricCanvas?.renderAll()
         props.onReady?.(buildAPI())
       }
       maskImg.src = initMaskSrc
-      diag('onMount maskImg.src set', { src: initMaskSrc })
     }
     baseImg.onerror = () => {
-      diag('onMount baseImg.onerror', { src: initImgSrc })
     }
     baseImg.src = initImgSrc
-    diag('onMount baseImg.src set', { src: initImgSrc })
+  })
+
+  createEffect(() => {
+    if (!fabricCanvas) return
+    fabricCanvas.selection = props.interactive !== false
   })
 
   createEffect(() => {
@@ -299,104 +290,96 @@ export default function FabricCanvas(props: Props) {
     fabricCanvas?.dispose()
   })
 
-  function reloadBaseImages(imgSrc: string, maskSrc: string) {
-    diag('reloadBaseImages called', { imgSrc, maskSrc })
-    if (!fabricCanvas) { diag('reloadBaseImages: no fabricCanvas!'); return }
-    swappingProduct = true
+  function reloadBaseImages(imgSrc: string, maskSrc: string): Promise<void> {
+    return new Promise<void>((resolve) => {
+      if (!fabricCanvas) { resolve(); return }
+      swappingProduct = true
 
-    const userObjects = fabricCanvas.getObjects().filter(o => !isTshirtLayer(o) && !isBgLayer(o))
-    for (const obj of userObjects) {
-      const idx = drawingPaths.indexOf(obj)
-      if (idx >= 0) drawingPaths.splice(idx, 1)
-      fabricCanvas.remove(obj)
-    }
-
-    if (tshirtBase) fabricCanvas.remove(tshirtBase)
-    tshirtBase = undefined
-
-    const parent = canvasEl?.parentElement
-    const logicalWidth = parent?.clientWidth || 300
-    const logicalHeight = parent?.clientHeight || 375
-    const width = logicalWidth * RENDER_RATIO
-    const height = logicalHeight * RENDER_RATIO
-
-    if (canvasEl) {
-      canvasEl.style.width = logicalWidth + 'px'
-      canvasEl.style.height = logicalHeight + 'px'
-      const wrapper = canvasEl.parentElement
-      if (wrapper) {
-        wrapper.style.width = logicalWidth + 'px'
-        wrapper.style.height = logicalHeight + 'px'
+      const userObjects = fabricCanvas.getObjects().filter(o => !isTshirtLayer(o) && !isBgLayer(o))
+      for (const obj of userObjects) {
+        const idx = drawingPaths.indexOf(obj)
+        if (idx >= 0) drawingPaths.splice(idx, 1)
+        fabricCanvas.remove(obj)
       }
-    }
 
-    const baseImg = new Image()
-    baseImg.onload = () => {
-      diag('reloadBase baseImg.onload', { src: imgSrc, nw: baseImg.naturalWidth, nh: baseImg.naturalHeight })
-      if (!fabricCanvas) { diag('reloadBase baseImg.onload: no fabricCanvas!'); return }
+      if (tshirtBase) fabricCanvas.remove(tshirtBase)
+      tshirtBase = undefined
 
-      const maskImg = new Image()
-      maskImg.onload = () => {
-        diag('reloadBase maskImg.onload', { src: maskSrc, nw: maskImg.naturalWidth, nh: maskImg.naturalHeight })
-        if (!fabricCanvas) { diag('reloadBase maskImg.onload: no fabricCanvas!'); return }
+      const parent = canvasEl?.parentElement
+      const logicalWidth = parent?.clientWidth || 300
+      const logicalHeight = parent?.clientHeight || 375
+      const width = logicalWidth * RENDER_RATIO
+      const height = logicalHeight * RENDER_RATIO
 
-        const naturalW = baseImg.naturalWidth || maskImg.naturalWidth || 1024
-        const naturalH = baseImg.naturalHeight || maskImg.naturalHeight || 1024
-        const scale = Math.min(logicalWidth / naturalW, logicalHeight / naturalH) * 0.52 * RENDER_RATIO
+      fabricCanvas.setDimensions(
+        { width: logicalWidth, height: logicalHeight },
+        { cssOnly: true }
+      )
 
-        const tmpCanvas = document.createElement('canvas')
-        tmpCanvas.width = naturalW
-        tmpCanvas.height = naturalH
-        const ctx = tmpCanvas.getContext('2d')!
-        ctx.drawImage(baseImg, 0, 0, naturalW, naturalH)
-        ctx.globalCompositeOperation = 'destination-in'
-        ctx.drawImage(maskImg, 0, 0, naturalW, naturalH)
-        ctx.globalCompositeOperation = 'source-over'
+      const baseImg = new Image()
+      baseImg.onload = () => {
+        if (!fabricCanvas) { resolve(); return }
 
-        tshirtBase = new FabricImage(tmpCanvas, {
-          scaleX: scale, scaleY: scale,
-          left: width / 2, top: height / 2,
-          originX: 'center', originY: 'center',
-          selectable: false, evented: false, objectCaching: false
-        })
-        ;(tshirtBase as any).data = { kind: TSHIRT_LAYER_KEY }
-        fabricCanvas.add(tshirtBase)
+        const maskImg = new Image()
+        maskImg.onload = () => {
+          if (!fabricCanvas) { resolve(); return }
 
-        colorFilter = new filters.BlendColor({
-          color: props.tshirtColor,
-          mode: 'multiply',
-          alpha: 1
-        })
-        tshirtBase.filters = [colorFilter]
-        tshirtBase.applyFilters()
+          const naturalW = baseImg.naturalWidth || maskImg.naturalWidth || 1024
+          const naturalH = baseImg.naturalHeight || maskImg.naturalHeight || 1024
+          const scale = Math.min(logicalWidth / naturalW, logicalHeight / naturalH) * 0.52 * RENDER_RATIO
 
-        fabricCanvas.renderAll()
-        diag('reloadBase canvas rendered (precomposed FabricImage)')
-        swappingProduct = false
+          const tmpCanvas = document.createElement('canvas')
+          tmpCanvas.width = naturalW
+          tmpCanvas.height = naturalH
+          const ctx = tmpCanvas.getContext('2d')!
+          ctx.drawImage(baseImg, 0, 0, naturalW, naturalH)
+          ctx.globalCompositeOperation = 'destination-in'
+          ctx.drawImage(maskImg, 0, 0, naturalW, naturalH)
+          ctx.globalCompositeOperation = 'source-over'
+
+          tshirtBase = new FabricImage(tmpCanvas, {
+            scaleX: scale, scaleY: scale,
+            left: width / 2, top: height / 2,
+            originX: 'center', originY: 'center',
+            selectable: false, evented: false, objectCaching: false,
+            excludeFromExport: true
+          })
+          ;(tshirtBase as any).data = { kind: TSHIRT_LAYER_KEY }
+          fabricCanvas.add(tshirtBase)
+
+          colorFilter = new filters.BlendColor({
+            color: props.tshirtColor,
+            mode: 'multiply',
+            alpha: 1
+          })
+          tshirtBase.filters = [colorFilter]
+          tshirtBase.applyFilters()
+
+          fabricCanvas.renderAll()
+          swappingProduct = false
+          resolve()
+        }
+        maskImg.onerror = () => {
+          console.error('Failed to load mask:', maskSrc)
+          fabricCanvas?.renderAll()
+          swappingProduct = false
+          resolve()
+        }
+        maskImg.src = maskSrc
       }
-      maskImg.onerror = () => {
-        console.error('Failed to load mask:', maskSrc)
-        diag('reloadBase maskImg.onerror', { src: maskSrc })
-        fabricCanvas?.renderAll()
-        swappingProduct = false
+      baseImg.onerror = () => {
+        console.error('Failed to load front image:', imgSrc)
+        if (imgSrc === '/tshirt.png') {
+          swappingProduct = false
+          resolve()
+          return
+        }
+        loadedImgSrc = '/tshirt.png'
+        loadedMaskSrc = '/tshirt-mask.png'
+        reloadBaseImages('/tshirt.png', '/tshirt-mask.png').then(resolve)
       }
-      maskImg.src = maskSrc
-      diag('reloadBase maskImg.src set', { src: maskSrc })
-    }
-    baseImg.onerror = () => {
-      console.error('Failed to load front image:', imgSrc)
-      diag('reloadBase baseImg.onerror', { src: imgSrc })
-      if (imgSrc === '/tshirt.png') {
-        swappingProduct = false
-        return
-      }
-      loadedImgSrc = '/tshirt.png'
-      loadedMaskSrc = '/tshirt-mask.png'
-      diag('reloadBase: falling back to fallback images')
-      reloadBaseImages('/tshirt.png', '/tshirt-mask.png')
-    }
-    baseImg.src = imgSrc
-    diag('reloadBase baseImg.src set', { src: imgSrc })
+      baseImg.src = imgSrc
+    })
   }
 
   function buildAPI(): CanvasAPI {
@@ -489,7 +472,7 @@ export default function FabricCanvas(props: Props) {
       },
       toJSON: () => {
         if (!fabricCanvas) return null
-        return fabricCanvas.toJSON()
+        return fabricCanvas.toObject(['data'])
       },
       toDataURL: (opts) => {
         if (!fabricCanvas) return ''
@@ -504,7 +487,10 @@ export default function FabricCanvas(props: Props) {
       loadJSON: async (json: any, scale = 1) => {
         if (!fabricCanvas) return
         if (!json || typeof json !== 'object') return
-        const toRemove = fabricCanvas.getObjects().filter(o => !isTshirtLayer(o))
+        swappingProduct = true
+        try {
+        // 清掉画布上既有的用户对象（保留 whiteBg / tshirtBase 底层不动）
+        const toRemove = fabricCanvas.getObjects().filter(o => !isTshirtLayer(o) && !isBgLayer(o))
         for (const o of toRemove) {
           if (drawingPaths.includes(o)) {
             const i = drawingPaths.indexOf(o)
@@ -513,12 +499,35 @@ export default function FabricCanvas(props: Props) {
           fabricCanvas.remove(o)
         }
         const objects = Array.isArray(json.objects) ? json.objects : []
-        const userObjects = objects.filter((o: any) => o?.data?.kind !== TSHIRT_LAYER_KEY)
-        const filtered = { ...json, objects: userObjects, background: '#ffffff' }
-        await fabricCanvas.loadFromJSON(filtered)
-        if (scale !== 1) {
-          const loaded = fabricCanvas.getObjects().filter(o => !isTshirtLayer(o))
-          for (const obj of loaded) {
+        // 过滤掉保存进来的 tshirt 底图：
+        //  - 新数据：data.kind === 'tshirt'（toJSON(['data']) 持久化了 data）
+        //  - 旧数据：无 data，用特征兜底（image 类型 + 不可选 + 不可交互）
+        const isSavedTshirt = (o: any) =>
+          o?.data?.kind === TSHIRT_LAYER_KEY ||
+          (o?.type === 'Image' && o?.selectable !== true && o?.evented !== true)
+        const userObjects = objects.filter((o: any) => !isSavedTshirt(o))
+        if (userObjects.length === 0) {
+          fabricCanvas.renderAll()
+          ensureTextOnTop()
+          return
+        }
+        // 手动 enliven，避免 fabric.loadFromJSON 内部 clear() 清掉底层 + 混入 JSON 里的 tshirt
+        const enlived: any[] = await util.enlivenObjects(userObjects, {
+          reviver: (serialized: any, instance: any) => {
+            if (serialized?.data?.kind) {
+              instance.data = serialized.data
+            } else {
+              const t = serialized?.type
+              let kind: string | null = null
+              if (t === 'IText' || t === 'i-text' || t === 'Text' || t === 'Textbox') kind = 'text'
+              else if (t === 'Image') kind = 'image'
+              else if (t === 'Path') kind = DRAWING_LAYER_KEY
+              if (kind) instance.data = { kind }
+            }
+          }
+        })
+        for (const obj of enlived) {
+          if (scale !== 1) {
             const updates: Record<string, any> = {
               left: (obj.left || 0) * scale,
               top: (obj.top || 0) * scale,
@@ -529,9 +538,13 @@ export default function FabricCanvas(props: Props) {
             if (fontSize) updates.fontSize = fontSize * scale
             obj.set(updates)
           }
+          fabricCanvas.add(obj)
         }
         fabricCanvas.renderAll()
         ensureTextOnTop()
+        } finally {
+          swappingProduct = false
+        }
         fireChange()
       },
       isEmpty: () => {
@@ -677,16 +690,31 @@ export default function FabricCanvas(props: Props) {
         fabricCanvas.renderAll()
         fireChange()
       },
-      reloadImages: (imgSrc: string, maskSrc?: string) => {
+      reloadImages: async (imgSrc: string, maskSrc?: string) => {
         const src = maskSrc || imgSrc.replace(/\.[^.]+$/, '-mask.png')
-        diag('reloadImages called', { imgSrc, maskSrc, src, loadedImgSrc, loadedMaskSrc })
         if (imgSrc === loadedImgSrc && src === loadedMaskSrc) {
-          diag('reloadImages: same URLs, skipping')
           return
         }
         loadedImgSrc = imgSrc
         loadedMaskSrc = src
-        reloadBaseImages(imgSrc, src)
+        await reloadBaseImages(imgSrc, src)
+      },
+      clearDesign: () => {
+        if (!fabricCanvas) return
+        swappingProduct = true
+        try {
+          const toRemove = fabricCanvas.getObjects().filter(o => !isTshirtLayer(o) && !isBgLayer(o))
+          for (const o of toRemove) {
+            const idx = drawingPaths.indexOf(o)
+            if (idx >= 0) drawingPaths.splice(idx, 1)
+            fabricCanvas.remove(o)
+          }
+          fabricCanvas.discardActiveObject()
+          fabricCanvas.renderAll()
+        } finally {
+          swappingProduct = false
+        }
+        fireChange()
       }
     }
   }

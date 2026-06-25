@@ -56,6 +56,8 @@ export default function DesignWorkshop() {
   const [hasDrawing, setHasDrawing] = createSignal(false)
   const [canUndo, setCanUndo] = createSignal(false)
   const [ready, setReady] = createSignal(false)
+  const [initState, setInitState] = createSignal<'loading' | 'ready'>('loading')
+  let pendingDesignCanvas: { canvas: any; scale: number } | null = null
   const [editingText, setEditingText] = createSignal<{ text: string } | null>(null)
   const [editingName, setEditingName] = createSignal(false)
   const [nameDraft, setNameDraft] = createSignal('')
@@ -82,16 +84,24 @@ export default function DesignWorkshop() {
   }
 
   const handleCanvasReady = (api: CanvasAPI) => {
-    console.log('[DW-DIAG] handleCanvasReady called')
     canvasAPI = api
     setReady(true)
+    if (pendingDesignCanvas) {
+      const { canvas, scale } = pendingDesignCanvas
+      pendingDesignCanvas = null
+      void api.loadJSON(canvas, scale).then(() => setDirty(false))
+    }
+  }
+
+  const bootstrap = async () => {
     const params = new URLSearchParams(window.location.search)
 
     const productId = params.get('product')
     if (productId) {
       const pid = parseInt(productId)
       if (!isNaN(pid)) {
-        loadProduct(pid)
+        await loadProduct(pid, false)
+        setInitState('ready')
         setMasterTab('design')
         return
       }
@@ -101,19 +111,20 @@ export default function DesignWorkshop() {
     if (id) {
       const designId = parseInt(id)
       if (!isNaN(designId)) {
-        loadDesign(designId)
+        await loadDesignWithProduct(designId)
+        setInitState('ready')
         setMasterTab('design')
         return
       }
     }
 
-    void loadProduct(DEFAULT_PRODUCT_ID, false)
+    await loadProduct(DEFAULT_PRODUCT_ID, false)
+    setInitState('ready')
   }
 
   const reloadCanvasImages = () => {
     const img = productImage()
     const mask = productMask() || img.replace(/\.[^.]+$/, '-mask.png')
-    console.log('[DW-DIAG] reloadCanvasImages', { img, mask, hasCanvasAPI: !!canvasAPI })
     canvasAPI?.reloadImages(img, mask)
   }
 
@@ -128,7 +139,6 @@ export default function DesignWorkshop() {
   }
 
   const loadProduct = async (id: number, reload = true) => {
-    console.log('[DW-DIAG] loadProduct', { id, reload })
     setCurrentProductId(id)
     try {
       const [productRes, baseDesignRes] = await Promise.all([
@@ -139,7 +149,6 @@ export default function DesignWorkshop() {
       ])
       const p = productRes.data
       const bd = baseDesignRes.data
-      console.log('[DW-DIAG] loadProduct response', { frontImage: bd.frontImage, maskImage: bd.maskImage })
       setProduct(p)
       setProductImage(bd.frontImage || FALLBACK_IMAGE)
       setProductMask(bd.maskImage || FALLBACK_MASK)
@@ -147,28 +156,56 @@ export default function DesignWorkshop() {
       if (allSizes.length) setSelectedSize(allSizes[0])
       if (reload) reloadCanvasImages()
     } catch {
-      console.log('[DW-DIAG] loadProduct error, falling back')
       setProductImage(FALLBACK_IMAGE)
       setProductMask(FALLBACK_MASK)
       if (reload) reloadCanvasImages()
     }
   }
 
-  const loadDesign = async (id: number) => {
+  const loadDesignWithProduct = async (id: number) => {
     try {
       const res = await api.designs.get(id)
       setCurrentDesignId(res.data.id)
       setDesignName(res.data.name)
+
+      let canvas: any
+      let wrapped: any
       if (res.data.canvasData) {
-        const wrapped = JSON.parse(res.data.canvasData)
+        wrapped = JSON.parse(res.data.canvasData)
         if (wrapped?.tshirtColor) {
           setTshirtColor(wrapped.tshirtColor)
         }
-        const canvas = wrapped?.canvas ?? wrapped
+        canvas = wrapped?.canvas ?? wrapped
+      }
+
+      const [productRes, baseDesignRes] = await Promise.all([
+        api.products.get(String(res.data.productId)),
+        api.products.baseDesign(String(res.data.productId)).catch(() => ({
+          data: { originalImage: null, frontImage: null, maskImage: null }
+        }))
+      ])
+      const p = productRes.data
+      const bd = baseDesignRes.data
+      const frontImage = bd.frontImage || FALLBACK_IMAGE
+      const maskImage = bd.maskImage || frontImage.replace(/\.[^.]+$/, '-mask.png')
+      setProduct(p)
+      setProductImage(frontImage)
+      setProductMask(maskImage)
+
+      // reloadImages 由画布挂载时按 props 自动完成（initState ready 后才挂载）
+      if (canvas) {
         const savedRatio = wrapped?.renderRatio || 1
         const scale = 2 / savedRatio
-        await canvasAPI?.loadJSON(canvas, scale)
+        if (canvasAPI) {
+          await canvasAPI.reloadImages(frontImage, maskImage)
+          await canvasAPI.loadJSON(canvas, scale)
+        } else {
+          pendingDesignCanvas = { canvas, scale }
+        }
+      } else if (canvasAPI) {
+        await canvasAPI.reloadImages(frontImage, maskImage)
       }
+
       setDirty(false)
     } catch (err) {
       showToast('加载设计失败')
@@ -224,6 +261,7 @@ export default function DesignWorkshop() {
       }
     } catch (err: any) {
       if (token !== saveToken) return null
+      showToast(err?.message || '保存失败')
       setSaveState('error')
       return null
     } finally {
@@ -258,6 +296,7 @@ export default function DesignWorkshop() {
   }
 
   onMount(() => {
+    void bootstrap()
     const onHide = () => autoSaveOnHide()
     const onVisChange = () => {
       if (document.visibilityState === 'hidden') onHide()
@@ -337,10 +376,7 @@ export default function DesignWorkshop() {
     setAddingCart(true)
     try {
       const saved = await save()
-      if (!saved) {
-        showToast('保存设计失败，请重试')
-        return
-      }
+      if (!saved) return
       await api.cart.addDesign(currentProductId(), variant.id, saved.id, quantity())
       showToast(buyNow ? '已保存，正在跳转购物车' : '已加入购物车')
       if (buyNow) {
@@ -363,7 +399,14 @@ export default function DesignWorkshop() {
   }
 
   const doSwitchProduct = async (product: any) => {
+    setTshirtColor(TSHIRT_COLORS[0].hex)
     await loadProduct(product.id)
+    canvasAPI?.clearDesign()
+    setCurrentDesignId(null)
+    setDesignName(defaultDesignName())
+    const url = new URL(window.location.href)
+    url.searchParams.delete('design')
+    window.history.replaceState({}, '', url.toString())
     setDirty(false)
   }
 
@@ -521,15 +564,21 @@ export default function DesignWorkshop() {
           </div>
         </Show>
 
-        <DesignCanvas
-          tshirtImage={productImage()}
-          maskImage={productMask()}
-          tshirtColor={tshirtColor()}
-          bgColor={bgColor()}
-          drawing={drawing()}
-          onReady={handleCanvasReady}
-          onChange={handleCanvasChange}
-        />
+        <Show when={initState() === 'ready'} fallback={
+          <div class="aspect-[4/5] w-full rounded-xl bg-surface-container mt-4 flex items-center justify-center">
+            <span class="material-symbols-outlined animate-spin text-on-surface-variant">progress_activity</span>
+          </div>
+        }>
+          <DesignCanvas
+            tshirtImage={productImage()}
+            maskImage={productMask()}
+            tshirtColor={tshirtColor()}
+            bgColor={bgColor()}
+            drawing={drawing()}
+            onReady={handleCanvasReady}
+            onChange={handleCanvasChange}
+          />
+        </Show>
 
         <nav class="mt-6 flex gap-2 md:hidden" role="tablist">
           {MASTER_TABS.map((t) => (
@@ -598,6 +647,7 @@ export default function DesignWorkshop() {
                     bold: false,
                     italic: false
                   })
+                  setEditingText({ text: opts.text })
                 }}
                 onUpdateText={(opts) => {
                   const current = canvasAPI?.getSelectedText()
@@ -704,6 +754,7 @@ export default function DesignWorkshop() {
                       bold: false,
                       italic: false
                     })
+                    setEditingText({ text: opts.text })
                   }}
                   onUpdateText={(opts) => {
                     const current = canvasAPI?.getSelectedText()

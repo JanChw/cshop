@@ -71,11 +71,15 @@
           <span class="w-[160px] text-xs font-semibold text-text-muted text-center">入职时间</span>
           <span class="w-[180px] text-xs font-semibold text-text-muted text-center">操作</span>
         </div>
-        <div
-          v-for="s in paginatedStaff"
-          :key="s.id"
-          class="flex items-center px-4 h-[52px] border-b border-border"
-        >
+        <div v-if="loading" class="flex items-center justify-center h-40">
+          <div class="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+        <template v-else>
+          <div
+            v-for="s in paginatedStaff"
+            :key="s.id"
+            class="flex items-center px-4 h-[52px] border-b border-border"
+          >
           <span class="w-[50px] text-sm text-text-muted font-mono text-center">{{ s.id }}</span>
           <span class="w-[100px] text-sm text-text-primary font-medium text-center">{{ s.name }}</span>
           <span class="w-[140px] text-sm text-text-primary text-center">{{ s.roleDisplayName }}</span>
@@ -120,7 +124,8 @@
               <Trash2 :size="14" />
             </button>
           </div>
-        </div>
+          </div>
+        </template>
         <div v-if="!loading && paginatedStaff.length === 0" class="flex items-center justify-center h-40 text-sm text-text-muted">
           暂无员工
         </div>

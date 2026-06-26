@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+export const phoneRegex = /^1[3-9]\d{9}$/
+
 export const registerSchema = z.object({
   email: z.string().email('邮箱格式不正确'),
   password: z.string().min(6, '密码至少6位'),
@@ -8,7 +10,8 @@ export const registerSchema = z.object({
 
 export const loginSchema = z.object({
   email: z.string().email('邮箱格式不正确'),
-  password: z.string().min(1, '密码不能为空')
+  password: z.string().min(1, '密码不能为空'),
+  rememberMe: z.boolean().optional().default(true)
 })
 
 export const refreshSchema = z.object({
@@ -28,13 +31,16 @@ export const designSchema = z.object({
   variantId: z.number().nullable().optional(),
   name: z.string().min(1),
   canvasData: z.string().min(1),
-  previewImage: z.string().nullable().optional()
+  previewImage: z.string().nullable().optional(),
+  isPublic: z.boolean().optional()
 })
 
 export const cartSchema = z.object({
   productId: z.number(),
   designId: z.number().nullable().optional(),
   variantId: z.number().nullable().optional(),
+  size: z.string().optional(),
+  color: z.string().optional(),
   quantity: z.number().int().min(1)
 })
 
@@ -113,7 +119,7 @@ export const updateMeSchema = z.object({
   name: z.string().min(1).optional(),
   email: z.string().email('邮箱格式不正确').optional(),
   avatar: z.string().optional(),
-  phone: z.string().optional(),
+  phone: z.string().regex(phoneRegex, '手机号格式不正确').optional(),
   bio: z.string().optional(),
   gender: z.enum(['male', 'female', 'other']).optional(),
   birthday: z.string().optional()
@@ -121,6 +127,15 @@ export const updateMeSchema = z.object({
 
 export const forgotPasswordSchema = z.object({
   email: z.string().email('邮箱格式不正确')
+})
+
+export const sendPhoneCodeSchema = z.object({
+  phone: z.string().regex(phoneRegex, '手机号格式不正确')
+})
+
+export const bindPhoneSchema = z.object({
+  phone: z.string().regex(phoneRegex, '手机号格式不正确'),
+  code: z.string().regex(/^\d{6}$/, '验证码为 6 位数字')
 })
 
 export const menuSchema = z.object({

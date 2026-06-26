@@ -1,12 +1,21 @@
 <template>
   <div class="border border-border rounded-md flex flex-col">
     <div class="p-3 border-b border-border bg-surface">
-      <input
-        v-model="search"
-        type="text"
-        placeholder="搜索商品名称..."
-        class="w-full h-8 rounded border border-border px-2 text-sm outline-none focus:border-primary"
-      />
+      <div class="flex gap-2">
+        <input
+          v-model="search"
+          type="text"
+          placeholder="搜索商品名称..."
+          class="flex-1 h-8 rounded border border-border px-2 text-sm outline-none focus:border-primary"
+        />
+        <select
+          v-model="selectedCategoryId"
+          class="h-8 rounded border border-border px-2 text-sm outline-none focus:border-primary shrink-0 max-w-[130px]"
+        >
+          <option :value="null">全部分类</option>
+          <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
+        </select>
+      </div>
     </div>
     <div class="flex" style="min-height: 200px; max-height: 350px;">
       <div class="flex-1 border-r border-border overflow-y-auto">
@@ -71,7 +80,7 @@ interface ContentItem {
   name?: string
   series?: string
 }
-interface ProductSummary { id: number; name: string; basePrice: number; images: string[] }
+interface ProductSummary { id: number; name: string; basePrice: number; images: string[]; categoryId: number | null }
 
 const props = defineProps<{
   modelValue: ContentItem[]
@@ -82,6 +91,8 @@ const emit = defineEmits<{ 'update:modelValue': [val: ContentItem[]] }>()
 const type = computed(() => props.type || 'product_row')
 const items = ref<ContentItem[]>([...props.modelValue])
 const products = ref<ProductSummary[]>([])
+const categories = ref<{ id: number; name: string }[]>([])
+const selectedCategoryId = ref<number | null>(null)
 const search = ref('')
 const dragIdx = ref<number | null>(null)
 const dragOver = ref<number | null>(null)
@@ -90,7 +101,11 @@ watch(() => props.modelValue, (val) => { items.value = [...val] }, { deep: true 
 
 const selectedIds = computed(() => new Set(items.value.map(i => i.productId).filter(Boolean)))
 const filteredAvailable = computed(() =>
-  products.value.filter(p => !selectedIds.value.has(p.id) && (!search.value || p.name.includes(search.value)))
+  products.value.filter(p =>
+    !selectedIds.value.has(p.id) &&
+    (!search.value || p.name.includes(search.value)) &&
+    (selectedCategoryId.value === null || p.categoryId === selectedCategoryId.value)
+  )
 )
 
 function getProductName(id: number | null) {
@@ -118,9 +133,15 @@ function drop(idx: number) {
 }
 
 onMounted(async () => {
-  const res = await api.get<{ items: ProductSummary[] }>('/admin/products', { includeInactive: false, limit: 200 })
-  if (res.success && res.data) {
-    products.value = res.data.items || []
+  const [prodRes, catRes] = await Promise.all([
+    api.get<{ items: ProductSummary[] }>('/admin/products', { includeInactive: false, limit: 200 }),
+    api.get<{ items: { id: number; name: string }[] }>('/categories')
+  ])
+  if (prodRes.success && prodRes.data) {
+    products.value = prodRes.data.items || []
+  }
+  if (catRes.success && catRes.data) {
+    categories.value = catRes.data.items || []
   }
 })
 </script>

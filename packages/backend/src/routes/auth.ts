@@ -1,28 +1,24 @@
 import { Hono } from 'hono'
 import { db } from '../db'
-import { users, sessions, orders } from '../db/schema'
+import { users, sessions, orders, verificationCodes } from '../db/schema'
 import { eq, and, lt, isNull, sql, desc } from 'drizzle-orm'
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../utils/jwt'
 import { success, fail } from '../utils/response'
 import { auth } from '../middleware/auth'
 import { rateLimit } from '../middleware/rateLimit'
 import { validateJson } from '../utils/validate'
-import { registerSchema, loginSchema, refreshSchema, logoutSchema, changePasswordSchema, updateMeSchema, forgotPasswordSchema, deactivateAccountSchema } from '../validators'
+import { registerSchema, loginSchema, refreshSchema, logoutSchema, changePasswordSchema, updateMeSchema, forgotPasswordSchema, deactivateAccountSchema, sendPhoneCodeSchema, bindPhoneSchema } from '../validators'
 import { trackLogin, trackLogout, trackBusinessEvent } from '../utils/track'
 import { loadStaffContext } from '../utils/staff'
 import { checkLockout, recordFailure, recordSuccess, formatLockMessage, formatRemainingMessage, formatLockedWaitMessage } from '../utils/loginGuard'
-import { sendNotification } from '../utils/notify'
+import { sendNotification, sendEmail } from '../utils/notify'
+import { getInt } from '../utils/settings'
 import type { AppEnv } from '../types/hono'
 
 const loginThrottle = rateLimit({ limit: 10, windowMs: 60_000 })
 const registerThrottle = rateLimit({ limit: 5, windowMs: 60_000 })
 
-const REFRESH_TTL_MS = 7 * 24 * 3600 * 1000
 const BCRYPT_COST = 10
-
-function refreshExpiry(): string {
-  return new Date(Date.now() + REFRESH_TTL_MS).toISOString()
-}
 
 async function cleanupExpiredSessions(userId: number): Promise<void> {
   await db
@@ -30,21 +26,24 @@ async function cleanupExpiredSessions(userId: number): Promise<void> {
     .where(and(eq(sessions.userId, userId), lt(sessions.expiresAt, new Date().toISOString())))
 }
 
-async function issueTokensForUser(userId: number) {
+async function issueTokensForUser(userId: number, rememberMe = true) {
   const staffCtx = await loadStaffContext(userId)
+  const accessTtl = getInt('session_timeout', 15)
+  const refreshTtl = rememberMe ? getInt('refresh_token_ttl', 7) : 1
+
   const accessToken = signAccessToken({
     userId,
     isStaff: staffCtx.isStaff,
     roleId: staffCtx.roleId,
     roleName: staffCtx.roleName,
     permissions: staffCtx.permissions
-  })
-  const refreshToken = signRefreshToken({ userId })
+  }, { expiresIn: `${accessTtl}m` })
+  const refreshToken = signRefreshToken({ userId }, { expiresIn: `${refreshTtl}d` })
 
   await db.insert(sessions).values({
     userId,
     refreshToken,
-    expiresAt: refreshExpiry()
+    expiresAt: new Date(Date.now() + refreshTtl * 86400000).toISOString()
   })
 
   return { accessToken, refreshToken, isStaff: staffCtx.isStaff, roleId: staffCtx.roleId, roleName: staffCtx.roleName, permissions: staffCtx.permissions }
@@ -85,7 +84,7 @@ app.post('/register', registerThrottle, validateJson(registerSchema), async (c) 
 
 app.post('/login', loginThrottle, validateJson(loginSchema), async (c) => {
   try {
-    const { email, password } = c.req.valid('json')
+    const { email, password, rememberMe = true } = c.req.valid('json')
     const ip = c.req.header('x-forwarded-for')?.split(',')[0].trim() || c.req.header('x-real-ip') || 'unknown'
     const userAgent = c.req.header('user-agent') ?? null
 
@@ -125,7 +124,7 @@ app.post('/login', loginThrottle, validateJson(loginSchema), async (c) => {
 
     await db.update(users).set({ lastLoginAt: new Date().toISOString() }).where(eq(users.id, user.id))
 
-    const tokens = await issueTokensForUser(user.id)
+    const tokens = await issueTokensForUser(user.id, rememberMe)
 
     trackLogin({ c, userId: user.id })
 
@@ -180,19 +179,21 @@ app.post('/refresh', validateJson(refreshSchema), async (c) => {
   }
 
   const staffCtx = await loadStaffContext(user.id)
+  const accessTtl = getInt('session_timeout', 15)
+  const refreshTtl = getInt('refresh_token_ttl', 7)
   const newAccessToken = signAccessToken({
     userId: user.id,
     isStaff: staffCtx.isStaff,
     roleId: staffCtx.roleId,
     roleName: staffCtx.roleName,
     permissions: staffCtx.permissions
-  })
-  const newRefreshToken = signRefreshToken({ userId: user.id })
+  }, { expiresIn: `${accessTtl}m` })
+  const newRefreshToken = signRefreshToken({ userId: user.id }, { expiresIn: `${refreshTtl}d` })
 
   await db.insert(sessions).values({
     userId: user.id,
     refreshToken: newRefreshToken,
-    expiresAt: refreshExpiry()
+    expiresAt: new Date(Date.now() + refreshTtl * 86400000).toISOString()
   })
 
   await cleanupExpiredSessions(user.id)
@@ -366,6 +367,103 @@ app.post('/forgot-password', rateLimit({ limit: 5, windowMs: 60_000 }), validate
   }
 
   return success(c, { message: '如果该邮箱已注册，重置链接将很快送达' })
+})
+
+const phoneCodeThrottle = rateLimit({ limit: 3, windowMs: 60_000 })
+
+// Send a 6-digit verification code to the user's registered email for phone binding.
+app.post('/phone/send-code', auth, phoneCodeThrottle, validateJson(sendPhoneCodeSchema), async (c) => {
+  const userId = c.get('userId')!
+  const { phone } = c.req.valid('json')
+
+  // Reject if phone already in use by another user.
+  const [taken] = await db.select({ id: users.id }).from(users)
+    .where(and(eq(users.phone, phone), sql`${users.id} != ${userId}`))
+    .limit(1)
+  if (taken) return fail(c, '该手机号已被其他账号绑定', 409)
+
+  // Cooldown: an unused, unexpired code for same user+purpose within 60s.
+  // SQLite stores datetime('now') as "YYYY-MM-DD HH:MM:SS" (space-separated, no Z).
+  // Compare in the same format to avoid lexical-mismatch false negatives.
+  const cooldownAt = new Date(Date.now() - 60_000).toISOString().replace('T', ' ').replace(/\.\d+Z$/, '')
+  const nowIso = new Date().toISOString()
+  const [recent] = await db.select({ id: verificationCodes.id }).from(verificationCodes)
+    .where(and(
+      eq(verificationCodes.userId, userId),
+      eq(verificationCodes.purpose, 'bind_phone'),
+      isNull(verificationCodes.usedAt),
+      sql`${verificationCodes.expiresAt} > ${nowIso}`,
+      sql`${verificationCodes.createdAt} > ${cooldownAt}`
+    ))
+    .limit(1)
+  if (recent) return fail(c, '验证码发送过于频繁，请 60 秒后重试', 429)
+
+  const [user] = await db.select({ email: users.email, name: users.name }).from(users).where(eq(users.id, userId)).limit(1)
+  if (!user) return fail(c, '用户不存在', 404)
+
+  const code = String(Math.floor(100000 + Math.random() * 900000))
+  const expiresAt = new Date(Date.now() + 10 * 60_000).toISOString()
+
+  await db.insert(verificationCodes).values({
+    userId,
+    purpose: 'bind_phone',
+    target: phone,
+    code,
+    expiresAt
+  })
+
+  const subject = 'CShop 手机绑定验证码'
+  const body = [
+    `您好，${user.name || '用户'}：`,
+    '',
+    `您正在为 CShop 账号绑定手机号 ${phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2')}。`,
+    `验证码：${code}（10 分钟内有效，请勿泄露给他人）。`,
+    '',
+    '如非本人操作，请忽略本邮件。'
+  ].join('\n')
+
+  // sendEmail returns false on dev-fallback (SMTP unconfigured); we do not block the flow.
+  void sendEmail({ to: user.email, subject, body, event: 'verification' }).catch((err) => {
+    console.error('[PHONE BIND CODE EMAIL]', err)
+  })
+
+  return success(c, { message: '验证码已发送至注册邮箱' })
+})
+
+// Verify the code and bind the phone number to the current user.
+app.post('/phone/bind', auth, validateJson(bindPhoneSchema), async (c) => {
+  const userId = c.get('userId')!
+  const { phone, code } = c.req.valid('json')
+
+  // Re-check uniqueness at bind time (race protection).
+  const [taken] = await db.select({ id: users.id }).from(users)
+    .where(and(eq(users.phone, phone), sql`${users.id} != ${userId}`))
+    .limit(1)
+  if (taken) return fail(c, '该手机号已被其他账号绑定', 409)
+
+  const [row] = await db.select().from(verificationCodes)
+    .where(and(
+      eq(verificationCodes.userId, userId),
+      eq(verificationCodes.purpose, 'bind_phone'),
+      eq(verificationCodes.target, phone),
+      isNull(verificationCodes.usedAt)
+    ))
+    .orderBy(desc(verificationCodes.createdAt))
+    .limit(1)
+
+  if (!row) return fail(c, '请先获取验证码', 400)
+  if (new Date(row.expiresAt).getTime() < Date.now()) return fail(c, '验证码已过期，请重新获取', 400)
+  if (row.attempts >= 5) return fail(c, '尝试次数过多，请重新获取验证码', 400)
+
+  if (row.code !== code) {
+    await db.update(verificationCodes).set({ attempts: row.attempts + 1 }).where(eq(verificationCodes.id, row.id))
+    return fail(c, '验证码错误', 400)
+  }
+
+  await db.update(verificationCodes).set({ usedAt: new Date().toISOString() }).where(eq(verificationCodes.id, row.id))
+  await db.update(users).set({ phone }).where(eq(users.id, userId))
+
+  return success(c, { phone })
 })
 
 export default app

@@ -1,4 +1,5 @@
-import { createSignal, onMount, onCleanup } from 'solid-js'
+import { createSignal, onMount, onCleanup, Show } from 'solid-js'
+import { cartCount, refreshCartCount } from '../../lib/cartStore'
 import ThemeToggle from '../ui/ThemeToggle'
 
 interface NavLink {
@@ -25,9 +26,16 @@ export default function TabletNavBar(props: Props) {
   const [activePath, setActivePath] = createSignal(
     props.currentPath || '/'
   )
+  const [loggedIn, setLoggedIn] = createSignal(false)
+
+  function update() {
+    setActivePath(window.location.pathname)
+    setLoggedIn(!!(sessionStorage.getItem('cshop_token') || localStorage.getItem('cshop_token')))
+    refreshCartCount()
+  }
 
   onMount(() => {
-    const update = () => setActivePath(window.location.pathname)
+    update()
     document.addEventListener('astro:before-swap', update)
     document.addEventListener('astro:page-load', update)
     onCleanup(() => {
@@ -88,19 +96,26 @@ export default function TabletNavBar(props: Props) {
           style={isActive(activePath(), '/cart') ? { 'text-shadow': '0 2px 6px rgba(0,0,0,0.85)' } : undefined}
           aria-label="购物车"
         >
-          <span class="material-symbols-outlined text-2xl">shopping_cart</span>
+          <span class="relative">
+            <span class="material-symbols-outlined text-2xl">shopping_cart</span>
+            <Show when={cartCount() > 0}>
+              <span class="absolute -top-1.5 -right-2 min-w-[18px] h-[18px] px-1 rounded-full bg-error text-on-error text-[11px] font-bold leading-[18px] text-center flex items-center justify-center">
+                {cartCount() > 99 ? '99+' : cartCount()}
+              </span>
+            </Show>
+          </span>
         </a>
         <a
-          href="/person"
+          href={loggedIn() ? '/person' : '/login'}
           class={`flex items-center justify-center h-9 tap-target transition-colors overflow-hidden ${
-            isActive(activePath(), '/person')
+            isActive(activePath(), '/person') || isActive(activePath(), '/login')
               ? 'text-accent'
               : 'text-on-surface-variant'
           }`}
-          style={isActive(activePath(), '/person') ? { 'text-shadow': '0 2px 6px rgba(0,0,0,0.85)' } : undefined}
-          aria-label="个人中心"
+          style={isActive(activePath(), '/person') || isActive(activePath(), '/login') ? { 'text-shadow': '0 2px 6px rgba(0,0,0,0.85)' } : undefined}
+          aria-label={loggedIn() ? '个人中心' : '登录'}
         >
-          <span class="material-symbols-outlined text-xl">person</span>
+          <span class="material-symbols-outlined text-xl">{loggedIn() ? 'person' : 'login'}</span>
         </a>
         <ThemeToggle class="w-9 h-9 text-on-surface-variant" />
       </div>

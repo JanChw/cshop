@@ -7,7 +7,12 @@
       </div>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div v-if="loading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div v-for="i in 4" :key="i" class="rounded-md border border-border bg-card p-5 flex items-center justify-center h-24">
+        <div class="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    </div>
+    <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <MetricCard
         v-for="metric in metrics"
         :key="metric.label"
@@ -36,7 +41,10 @@
           <span class="w-[70px] text-xs font-semibold text-text-muted">状态</span>
         </div>
 
-        <div class="flex-1 min-h-0 overflow-auto">
+        <div v-if="loading" class="flex items-center justify-center h-40">
+          <div class="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+        <div v-else class="flex-1 min-h-0 overflow-auto">
           <div
             v-for="order in recentOrders"
             :key="order.id"

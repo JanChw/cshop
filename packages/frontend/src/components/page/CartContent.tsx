@@ -3,6 +3,7 @@ import QuantitySelector from '../ui/QuantitySelector'
 import ProductImage from '../ui/ProductImage'
 import { showToast } from '../../lib/toast'
 import { api } from '../../lib/api'
+import { refreshCartCount } from '../../lib/cartStore'
 
 interface CartItem {
   id: string
@@ -36,8 +37,8 @@ export default function CartContent() {
           ? (Array.isArray(item.product.images) ? item.product.images[0] : JSON.parse(item.product.images)[0])
           : '/placeholder.png',
         price: item.product?.basePrice || 0,
-        size: item.size || '',
-        color: item.color || '',
+        size: item.variant?.size || '',
+        color: item.variant?.color || '',
         qty: item.quantity || 1,
         designId: item.designId ? String(item.designId) : undefined
       }))
@@ -84,6 +85,7 @@ export default function CartContent() {
     try {
       await api.cart.update(id, qty)
       setItems((prev) => prev.map((item) => (item.id === id ? { ...item, qty } : item)))
+      refreshCartCount()
     } catch {
       showToast('更新数量失败')
     }
@@ -95,6 +97,7 @@ export default function CartContent() {
       setItems((prev) => prev.filter((item) => item.id !== id))
       showToast('已移除')
       setRemoveTarget(null)
+      refreshCartCount()
     } catch {
       showToast('移除失败')
     }

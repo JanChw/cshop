@@ -14,12 +14,27 @@ app.use('*', auth)
 
 app.get('/', async (c) => {
   const userId = c.get('userId')
-  const items = await db
-    .select()
+  const rows = await db
+    .select({ cart: cartItems, product: products, variant: productVariants })
     .from(cartItems)
+    .leftJoin(products, eq(cartItems.productId, products.id))
+    .leftJoin(productVariants, eq(cartItems.variantId, productVariants.id))
     .where(eq(cartItems.userId, userId))
 
-  return success(c, { items })
+  const items = rows.map((r) => ({
+    id: r.cart.id,
+    userId: r.cart.userId,
+    productId: r.cart.productId,
+    designId: r.cart.designId,
+    variantId: r.cart.variantId,
+    quantity: r.cart.quantity,
+    product: r.product
+      ? { id: r.product.id, name: r.product.name, basePrice: r.product.basePrice, images: r.product.images }
+      : null,
+    variant: r.variant ? { id: r.variant.id, size: r.variant.size, color: r.variant.color } : null
+  }))
+
+  return success(c, items)
 })
 
 app.post('/', validateJson(cartSchema), async (c) => {
@@ -35,24 +50,43 @@ app.post('/', validateJson(cartSchema), async (c) => {
     return fail(c, '商品已下架', 400)
   }
 
-  if (data.variantId !== null && data.variantId !== undefined) {
+  let variantId = data.variantId ?? null
+  // 前端普通商品流程传 size/color 而非 variantId，此处按规格解析出 variantId
+  if (variantId === null && data.size) {
+    const conds = [eq(productVariants.productId, data.productId), eq(productVariants.size, data.size)]
+    if (data.color) conds.push(eq(productVariants.color, data.color))
+    const [v] = await db
+      .select({ id: productVariants.id })
+      .from(productVariants)
+      .where(and(...conds))
+      .limit(1)
+    if (v) variantId = v.id
+  }
+
+  if (variantId !== null) {
     const [variant] = await db
       .select({ id: productVariants.id, productId: productVariants.productId })
       .from(productVariants)
-      .where(eq(productVariants.id, data.variantId))
+      .where(eq(productVariants.id, variantId))
       .limit(1)
     if (!variant || variant.productId !== data.productId) {
       return fail(c, '规格不存在', 400)
     }
   }
 
-  const [record] = await db.insert(cartItems).values({ ...data, userId }).returning()
+  const [record] = await db.insert(cartItems).values({
+    userId,
+    productId: data.productId,
+    designId: data.designId ?? null,
+    variantId,
+    quantity: data.quantity
+  }).returning()
 
   trackBusinessEvent({
     c,
     userId,
     eventType: 'cart_add',
-    metadata: { productId: data.productId, variantId: data.variantId, quantity: data.quantity }
+    metadata: { productId: data.productId, variantId, quantity: data.quantity }
   })
 
   return success(c, record, 201)

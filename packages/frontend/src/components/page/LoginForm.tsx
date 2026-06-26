@@ -11,6 +11,7 @@ export default function LoginForm() {
   const [identifier, setIdentifier] = createSignal('')
   const [password, setPassword] = createSignal('')
   const [showPassword, setShowPassword] = createSignal(false)
+  const [rememberMe, setRememberMe] = createSignal(false)
   const [loading, setLoading] = createSignal(false)
   const [errors, setErrors] = createSignal<Record<string, string>>({})
 
@@ -32,10 +33,19 @@ export default function LoginForm() {
     setLoading(true)
     ;(async () => {
       try {
-        const res: any = await api.auth.login(identifier(), password())
-        localStorage.setItem('cshop_token', res.data.accessToken)
-        localStorage.setItem('cshop_refresh', res.data.refreshToken)
-        localStorage.setItem('cshop_user', JSON.stringify(res.data.user))
+        const res: any = await api.auth.login(identifier(), password(), rememberMe())
+        if (rememberMe()) {
+          localStorage.setItem('cshop_token', res.data.accessToken)
+          localStorage.setItem('cshop_refresh', res.data.refreshToken)
+          localStorage.setItem('cshop_user', JSON.stringify(res.data.user))
+        } else {
+          sessionStorage.setItem('cshop_token', res.data.accessToken)
+          sessionStorage.setItem('cshop_refresh', res.data.refreshToken)
+          sessionStorage.setItem('cshop_user', JSON.stringify(res.data.user))
+          localStorage.removeItem('cshop_token')
+          localStorage.removeItem('cshop_refresh')
+          localStorage.removeItem('cshop_user')
+        }
         showToast('登录成功')
         window.location.href = '/'
       } catch (err) {
@@ -117,6 +127,17 @@ export default function LoginForm() {
                   </button>
                 </div>
                 {errors().password && <p class="text-error text-xs mt-1 ml-1">{errors().password}</p>}
+              </div>
+
+              <div class="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="rememberMe"
+                  checked={rememberMe()}
+                  onChange={(e) => setRememberMe(e.currentTarget.checked)}
+                  class="w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary"
+                />
+                <label for="rememberMe" class="text-sm text-on-surface-variant cursor-pointer select-none">记住我</label>
               </div>
 
               <button

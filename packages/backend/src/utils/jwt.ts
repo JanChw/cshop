@@ -28,7 +28,7 @@ export function signAccessToken(input: {
   roleId: number | null
   roleName: string | null
   permissions: PermissionCode[]
-}): string {
+}, options?: { expiresIn?: string }): string {
   const payload: AccessPayload = {
     userId: input.userId,
     isStaff: input.isStaff,
@@ -37,12 +37,12 @@ export function signAccessToken(input: {
     permissions: input.permissions,
     typ: 'access'
   }
-  return jwt.sign(payload, getSecret(), { expiresIn: '15m', jwtid: randomUUID() })
+  return jwt.sign(payload, getSecret(), { expiresIn: (options?.expiresIn || '15m') as any, jwtid: randomUUID() })
 }
 
-export function signRefreshToken(input: { userId: number }): string {
+export function signRefreshToken(input: { userId: number }, options?: { expiresIn?: string }): string {
   const payload: RefreshPayload = { userId: input.userId, typ: 'refresh' }
-  return jwt.sign(payload, getSecret(), { expiresIn: '7d', jwtid: randomUUID() })
+  return jwt.sign(payload, getSecret(), { expiresIn: (options?.expiresIn || '7d') as any, jwtid: randomUUID() })
 }
 
 export function verifyAccessToken(token: string): AccessPayload | null {

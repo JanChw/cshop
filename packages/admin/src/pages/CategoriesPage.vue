@@ -22,22 +22,26 @@
       </div>
 
       <div class="flex-1 overflow-auto">
-        <div
-          v-for="(cat, index) in categories"
-          :key="cat.id"
-          draggable="true"
-          class="flex items-center px-4 h-[52px] border-b border-border cursor-grab select-none"
-          :class="[
-            dragIndex === index ? 'opacity-50' : '',
-            dragOverIndex === index ? 'border-t-2 border-primary' : '',
-          ]"
-          @dragstart="onDragStart(index)"
-          @dragover.prevent="onDragOver(index)"
-          @dragenter.prevent="onDragEnter(index)"
-          @dragleave="onDragLeave"
-          @drop="onDrop(index)"
-          @dragend="onDragEnd"
-        >
+        <div v-if="loading" class="flex items-center justify-center h-40">
+          <div class="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+        <template v-else>
+          <div
+            v-for="(cat, index) in categories"
+            :key="cat.id"
+            draggable="true"
+            class="flex items-center px-4 h-[52px] border-b border-border cursor-grab select-none"
+            :class="[
+              dragIndex === index ? 'opacity-50' : '',
+              dragOverIndex === index ? 'border-t-2 border-primary' : '',
+            ]"
+            @dragstart="onDragStart(index)"
+            @dragover.prevent="onDragOver(index)"
+            @dragenter.prevent="onDragEnter(index)"
+            @dragleave="onDragLeave"
+            @drop="onDrop(index)"
+            @dragend="onDragEnd"
+          >
           <span class="w-[24px] text-text-muted opacity-40">
             <GripVertical :size="14" />
           </span>
@@ -59,7 +63,8 @@
               <Trash2 :size="14" />
             </button>
           </div>
-        </div>
+          </div>
+        </template>
       </div>
     </div>
 

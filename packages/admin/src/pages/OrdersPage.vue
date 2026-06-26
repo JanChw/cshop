@@ -44,11 +44,15 @@
       </div>
 
       <div ref="tableBodyRef" class="flex-1 overflow-auto">
-        <div
-          v-for="order in paginatedOrders"
-          :key="order.id"
-          class="flex items-center px-4 h-[52px] border-b border-border"
-        >
+        <div v-if="loading" class="flex items-center justify-center h-40">
+          <div class="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+        <template v-else>
+          <div
+            v-for="order in paginatedOrders"
+            :key="order.id"
+            class="flex items-center px-4 h-[52px] border-b border-border"
+          >
           <span class="w-[80px] text-sm text-primary font-mono font-medium">{{ order.orderNo }}</span>
           <span class="w-[120px] text-sm text-text-primary">{{ order.customer }}</span>
           <span class="flex-1 text-sm text-text-muted">{{ order.product }}</span>
@@ -58,11 +62,12 @@
           </span>
           <span class="w-[100px] text-xs text-text-muted font-mono">{{ order.date }}</span>
           <div class="w-[60px]">
-            <button aria-label="查看订单详情" class="rounded p-1 text-text-muted hover:bg-gray-100 transition-colors">
+            <button aria-label="查看订单详情" class="rounded p-1 text-text-muted hover:bg-gray-100 transition-colors" @click="$router.push('/orders/' + order.id)">
               <Eye :size="14" />
             </button>
           </div>
-        </div>
+          </div>
+        </template>
       </div>
     </div>
 
@@ -109,6 +114,7 @@ import StatusBadge from '@/components/ui/StatusBadge.vue'
 const searchQuery = ref('')
 const activeStatus = ref('all')
 const currentPage = ref(1)
+const loading = ref(false)
 
 const statusTabs = [
   { key: 'all', label: '全部' },
@@ -177,6 +183,7 @@ const apiStatusToChinese: Record<string, string> = {
 }
 
 async function fetchOrders() {
+  loading.value = true
   const params: Record<string, unknown> = {
     page: currentPage.value,
     limit: 8,
@@ -203,6 +210,7 @@ async function fetchOrders() {
     orders.value = []
     total.value = 0
   }
+  loading.value = false
 }
 
 onMounted(fetchOrders)

@@ -1,5 +1,6 @@
 export type PermissionCode =
-  | 'product.create' | 'product.read' | 'product.update' | 'product.delete' | 'product.hardDelete'
+  | 'product.create' | 'product.read' | 'product.update' | 'product.delete' | 'product.hardDelete' | 'product.export' | 'product.import'
+  | 'inventory.read'
   | 'order.read' | 'order.update_status'
   | 'user.read' | 'user.update' | 'user.disable'
   | 'analytics.read' | 'analytics.export'
@@ -32,6 +33,8 @@ export const ALL_PERMISSIONS: Array<{ code: PermissionCode; module: string; desc
   { code: 'product.update', module: 'product', description: '更新商品' },
   { code: 'product.delete', module: 'product', description: '删除商品（移入回收站）' },
   { code: 'product.hardDelete', module: 'product', description: '彻底删除商品' },
+  { code: 'product.export', module: 'product', description: '导出商品' },
+  { code: 'product.import', module: 'product', description: '导入商品' },
   { code: 'order.read', module: 'order', description: '查看订单' },
   { code: 'order.update_status', module: 'order', description: '更新订单状态' },
   { code: 'user.read', module: 'user', description: '查看用户' },
@@ -64,5 +67,6 @@ export const ALL_PERMISSIONS: Array<{ code: PermissionCode; module: string; desc
   { code: 'design-configs.read', module: 'design-configs', description: '查看设计页配置' },
   { code: 'design-configs.create', module: 'design-configs', description: '创建设计页配置' },
   { code: 'design-configs.update', module: 'design-configs', description: '更新设计页配置' },
-  { code: 'design-configs.delete', module: 'design-configs', description: '删除设计页配置' }
+  { code: 'design-configs.delete', module: 'design-configs', description: '删除设计页配置' },
+  { code: 'inventory.read', module: 'inventory', description: '查看库存仪表盘' }
 ]

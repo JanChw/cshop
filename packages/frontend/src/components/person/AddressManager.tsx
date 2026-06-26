@@ -6,9 +6,27 @@ interface Address {
   id: number
   name: string
   phone: string
-  region: string
-  address: string
+  province: string
+  city: string
+  district: string
+  detail: string
   isDefault: boolean
+}
+
+function regionOf(a: { province: string; city: string; district: string }): string {
+  return [a.province, a.city, a.district].filter(Boolean).join(' ')
+}
+
+function fullAddressOf(a: { province: string; city: string; district: string; detail: string }): string {
+  return [a.province, a.city, a.district, a.detail].filter(Boolean).join(' ')
+}
+
+function splitRegion(region: string): { province: string; city: string; district: string } {
+  const parts = region.trim().split(/\s+/).filter(Boolean)
+  const province = parts[0] || region.trim()
+  const city = parts[1] || parts[0] || province
+  const district = parts[2] || parts[1] || parts[0] || province
+  return { province, city, district }
 }
 
 export default function AddressManager() {
@@ -31,8 +49,10 @@ export default function AddressManager() {
           id: a.id,
           name: a.name,
           phone: a.phone,
-          region: a.region,
-          address: a.address,
+          province: a.province,
+          city: a.city,
+          district: a.district,
+          detail: a.detail,
           isDefault: a.isDefault
         })))
       }
@@ -84,8 +104,8 @@ export default function AddressManager() {
     setEditingId(addr.id)
     setFormName(addr.name)
     setFormPhone(addr.phone)
-    setFormRegion(addr.region)
-    setFormDetail(addr.address.replace(addr.region, '').trim())
+    setFormRegion(regionOf(addr))
+    setFormDetail(addr.detail)
     setFormDefault(addr.isDefault)
     setFormOpen(true)
   }
@@ -105,12 +125,14 @@ export default function AddressManager() {
     setSaving(true)
 
     const isEditing = editingId() !== null
-    const fullAddress = `${formRegion().trim()} ${formDetail().trim()}`
+    const { province, city, district } = splitRegion(formRegion().trim())
     const data = {
       name: formName().trim(),
       phone: formPhone().trim(),
-      region: formRegion().trim(),
-      address: fullAddress,
+      province,
+      city,
+      district,
+      detail: formDetail().trim(),
       isDefault: formDefault()
     }
 
@@ -136,8 +158,10 @@ export default function AddressManager() {
             id: res.data.id,
             name: res.data.name,
             phone: res.data.phone,
-            region: res.data.region,
-            address: res.data.address,
+            province: res.data.province,
+            city: res.data.city,
+            district: res.data.district,
+            detail: res.data.detail,
             isDefault: res.data.isDefault
           }
           setAddresses((prev) => {
@@ -198,7 +222,7 @@ export default function AddressManager() {
                     {addr.isDefault && <span class="px-2 py-0.5 bg-primary text-on-primary text-label-md rounded-md font-medium">默认</span>}
                   </div>
                 </div>
-                <p class="text-on-surface-variant leading-relaxed text-sm">{addr.address}</p>
+                <p class="text-on-surface-variant leading-relaxed text-sm">{fullAddressOf(addr)}</p>
                 <div class="pt-4 border-t border-outline-variant/40 flex justify-between items-center">
                   {!addr.isDefault ? (
                     <button

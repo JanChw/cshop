@@ -24,8 +24,8 @@
     </div>
 
     <div class="bg-card border border-border rounded-md overflow-hidden">
-      <div v-if="loading" class="flex items-center justify-center h-32 text-sm text-text-muted">
-        加载中...
+      <div v-if="loading" class="flex items-center justify-center h-40">
+        <div class="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
       <div v-else-if="filteredItems.length === 0" class="flex items-center justify-center h-32 text-sm text-text-muted">
         暂无贴纸

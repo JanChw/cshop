@@ -19,6 +19,7 @@ import homeRoutes from './routes/home'
 import designConfigRoutesPublic from './routes/design-config'
 import { variantOptionsRoutes, adminVariantOptionsRoutes } from './routes/variantOptions'
 import addressRoutes from './routes/addresses'
+import favoriteRoutes from './routes/favorites'
 
 export function createApp() {
   const app = new Hono()
@@ -43,6 +44,7 @@ export function createApp() {
   app.route('/api/v1/home-sections', homeRoutes)
   app.route('/api/v1/user/stickers', userStickerRoutes)
   app.route('/api/v1/user/addresses', addressRoutes)
+  app.route('/api/v1/user/favorites', favoriteRoutes)
   app.route('/api/v1/design-configs', designConfigRoutesPublic)
 
   app.get('/api/v1/health', (c) => {

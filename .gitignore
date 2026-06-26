@@ -4,3 +4,9 @@ data/
 *.db
 dist/
 .env.local
+.playwright-mcp/
+TODO.md
+todo.md
+*.todo.md
+/design-page*.png
+.opencode/plans/

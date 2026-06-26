@@ -6,6 +6,7 @@ import { db } from '../db'
 import { designs } from '../db/schema'
 import { eq, and, desc } from 'drizzle-orm'
 import { auth } from '../middleware/auth'
+import { verifyAccessToken } from '../utils/jwt'
 import { success, fail } from '../utils/response'
 import { validateJson } from '../utils/validate'
 import { designSchema } from '../validators'
@@ -17,6 +18,13 @@ import type { AppEnv } from '../types/hono'
 
 const PREVIEW_WIDTH = 400
 const PREVIEW_HEIGHT = 500
+
+function versionPreviewUrl(previewImage: string | null, updatedAt: string | null): string | null {
+  if (!previewImage || !updatedAt) return previewImage
+  const ts = Date.parse(updatedAt)
+  if (Number.isNaN(ts)) return previewImage
+  return `${previewImage}?v=${ts}`
+}
 
 async function persistPreview(designId: number, dataUrl: string | null | undefined): Promise<string | null> {
   if (!dataUrl) return null
@@ -32,21 +40,29 @@ async function persistPreview(designId: number, dataUrl: string | null | undefin
   return `/api/v1/designs/${designId}/preview`
 }
 
-const app = new Hono<AppEnv>()
-app.use('*', auth)
+// Public sub-app: serves public design listing and preview images without auth.
+const publicApp = new Hono()
 
-app.get('/', async (c) => {
-  const userId = c.get('userId')
-  const items = await db
-    .select()
-    .from(designs)
-    .where(eq(designs.userId, userId))
-    .orderBy(desc(designs.updatedAt))
-
-  return success(c, { items })
+publicApp.get('/:id/preview', async (c) => {
+  const id = parseInt(c.req.param('id'))
+  const filename = `${id}.webp`
+  if (!isSafeFilename(filename)) return fail(c, '非法文件名', 400)
+  const path = join(config.designDir, filename)
+  const file = Bun.file(path)
+  if (!await file.exists()) return fail(c, '预览不存在', 404)
+  return new Response(file, {
+    headers: {
+      'Content-Type': mimeFromFilename(filename),
+      'Cache-Control': 'public, max-age=31536000, immutable'
+    }
+  })
 })
 
-app.post('/', validateJson(designSchema), async (c) => {
+// Protected sub-app: requires auth, handles CRUD operations.
+const protectedApp = new Hono<AppEnv>()
+protectedApp.use('*', auth)
+
+protectedApp.post('/', validateJson(designSchema), async (c) => {
   const userId = c.get('userId')
   const data = c.req.valid('json')
   const [record] = await db.insert(designs).values({ ...data, userId }).returning()
@@ -68,7 +84,7 @@ app.post('/', validateJson(designSchema), async (c) => {
   return success(c, record, 201)
 })
 
-app.get('/:id', async (c) => {
+protectedApp.get('/:id', async (c) => {
   const userId = c.get('userId')
   const id = parseInt(c.req.param('id'))
   const [design] = await db
@@ -80,33 +96,29 @@ app.get('/:id', async (c) => {
   if (!design) {
     return fail(c, '设计不存在', 404)
   }
-  return success(c, design)
+  return success(c, { ...design, previewImage: versionPreviewUrl(design.previewImage, design.updatedAt) })
 })
 
-app.get('/:id/preview', async (c) => {
+protectedApp.patch('/:id/public', async (c) => {
   const userId = c.get('userId')
   const id = parseInt(c.req.param('id'))
-  const [design] = await db
-    .select({ id: designs.id })
+  const [existing] = await db
+    .select({ id: designs.id, isPublic: designs.isPublic })
     .from(designs)
     .where(and(eq(designs.id, id), eq(designs.userId, userId)))
     .limit(1)
-  if (!design) return fail(c, '设计不存在', 404)
+  if (!existing) return fail(c, '设计不存在', 404)
 
-  const filename = `${id}.webp`
-  if (!isSafeFilename(filename)) return fail(c, '非法文件名', 400)
-  const path = join(config.designDir, filename)
-  const file = Bun.file(path)
-  if (!await file.exists()) return fail(c, '预览不存在', 404)
-  return new Response(file, {
-    headers: {
-      'Content-Type': mimeFromFilename(filename),
-      'Cache-Control': 'private, max-age=300'
-    }
-  })
+  const newValue = !existing.isPublic
+  await db
+    .update(designs)
+    .set({ isPublic: newValue, updatedAt: new Date().toISOString() })
+    .where(and(eq(designs.id, id), eq(designs.userId, userId)))
+
+  return success(c, { isPublic: newValue })
 })
 
-app.put('/:id', validateJson(designSchema), async (c) => {
+protectedApp.put('/:id', validateJson(designSchema), async (c) => {
   const userId = c.get('userId')
   const id = parseInt(c.req.param('id'))
   const data = c.req.valid('json')
@@ -139,7 +151,7 @@ app.put('/:id', validateJson(designSchema), async (c) => {
   return success(c, { previewImage: previewUrl })
 })
 
-app.delete('/:id', async (c) => {
+protectedApp.delete('/:id', async (c) => {
   const userId = c.get('userId')
   const id = parseInt(c.req.param('id'))
   const [existing] = await db
@@ -155,5 +167,33 @@ app.delete('/:id', async (c) => {
   trackBusinessEvent({ c, userId, eventType: 'design_delete', metadata: { designId: id } })
   return success(c, null)
 })
+
+// Mount on a single Hono app so they share the /api/v1/designs prefix.
+const app = new Hono()
+
+// Single list handler: returns user's own designs when authenticated, public designs otherwise.
+app.get('/', async (c) => {
+  const header = c.req.header('Authorization')
+  const token = header?.startsWith('Bearer ') ? verifyAccessToken(header.slice(7)) : null
+
+  if (token) {
+    const items = await db
+      .select()
+      .from(designs)
+      .where(eq(designs.userId, token.userId))
+      .orderBy(desc(designs.updatedAt))
+    return success(c, { items: items.map(d => ({ ...d, previewImage: versionPreviewUrl(d.previewImage, d.updatedAt) })) })
+  }
+
+  const items = await db
+    .select()
+    .from(designs)
+    .where(eq(designs.isPublic, true))
+    .orderBy(desc(designs.updatedAt))
+  return success(c, { items: items.map(d => ({ ...d, previewImage: versionPreviewUrl(d.previewImage, d.updatedAt) })) })
+})
+
+app.route('/', publicApp)
+app.route('/', protectedApp)
 
 export default app

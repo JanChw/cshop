@@ -26,11 +26,15 @@
       </div>
 
       <div class="flex-1 overflow-auto">
-        <div
-          v-for="backup in backups"
-          :key="backup.id"
-          class="flex items-center px-4 h-[52px] border-b border-border"
-        >
+        <div v-if="loading" class="flex items-center justify-center h-40">
+          <div class="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+        <template v-else>
+          <div
+            v-for="backup in backups"
+            :key="backup.id"
+            class="flex items-center px-4 h-[52px] border-b border-border"
+          >
           <span class="w-[60px] text-sm text-text-muted font-mono">{{ backup.id }}</span>
           <span class="flex-1 text-sm text-text-primary font-mono">{{ backup.filename }}</span>
           <span class="w-[120px] text-sm text-text-muted">{{ backup.size }}</span>
@@ -73,8 +77,9 @@
               </button>
             </div>
           </div>
-        </div>
-        <div v-if="backups.length === 0" class="flex items-center justify-center h-20 text-sm text-text-muted">
+          </div>
+        </template>
+        <div v-if="backups.length === 0 && !loading" class="flex items-center justify-center h-20 text-sm text-text-muted">
           暂无备份记录
         </div>
       </div>
@@ -183,6 +188,7 @@ interface BackupDisplay {
 
 const rawBackups = ref<BackupItem[]>([])
 const backups = ref<BackupDisplay[]>([])
+const loading = ref(false)
 
 const restoreModalVisible = ref(false)
 const deleteModalVisible = ref(false)
@@ -214,11 +220,13 @@ function mapBackups(items: BackupItem[]): BackupDisplay[] {
 }
 
 async function fetchBackups() {
+  loading.value = true
   const res = await api.get<{ items: BackupItem[] }>('/admin/backup')
   if (res.success && res.data) {
     rawBackups.value = res.data.items
     backups.value = mapBackups(res.data.items)
   }
+  loading.value = false
 }
 
 onMounted(fetchBackups)

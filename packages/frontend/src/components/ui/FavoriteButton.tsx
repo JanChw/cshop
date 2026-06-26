@@ -1,6 +1,9 @@
-import { createSignal } from 'solid-js'
+import { createSignal, onMount } from 'solid-js'
+import { api, isLoggedIn } from '../../lib/api'
+import { showToast } from '../../lib/toast'
 
 interface Props {
+  productId?: string | number
   active?: boolean
   onToggle?: (active: boolean) => void
   size?: 'sm' | 'md'
@@ -9,13 +12,43 @@ interface Props {
 
 export default function FavoriteButton(props: Props) {
   const [filled, setFilled] = createSignal(props.active || false)
+  const [busy, setBusy] = createSignal(false)
 
-  const toggle = (e: MouseEvent) => {
+  onMount(async () => {
+    if (props.productId === undefined || !isLoggedIn()) return
+    try {
+      const res: any = await api.favorites.check(Number(props.productId))
+      if (res.success) setFilled(res.data.favorited)
+    } catch { /* ignore */ }
+  })
+
+  const toggle = async (e: MouseEvent) => {
     e.stopPropagation()
     e.preventDefault()
+    if (props.productId === undefined) {
+      const next = !filled()
+      setFilled(next)
+      props.onToggle?.(next)
+      return
+    }
+    if (!isLoggedIn()) {
+      showToast('请先登录')
+      return
+    }
+    if (busy()) return
+    setBusy(true)
     const next = !filled()
-    setFilled(next)
-    props.onToggle?.(next)
+    try {
+      if (next) await api.favorites.add(Number(props.productId))
+      else await api.favorites.remove(Number(props.productId))
+      setFilled(next)
+      props.onToggle?.(next)
+      showToast(next ? '已加入收藏' : '已取消收藏')
+    } catch (err: any) {
+      showToast(err.message || '操作失败')
+    } finally {
+      setBusy(false)
+    }
   }
 
   const sizeClass = props.size === 'sm' ? 'w-8 h-8' : 'w-10 h-10'

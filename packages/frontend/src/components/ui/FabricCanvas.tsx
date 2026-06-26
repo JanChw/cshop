@@ -501,10 +501,10 @@ export default function FabricCanvas(props: Props) {
         const objects = Array.isArray(json.objects) ? json.objects : []
         // 过滤掉保存进来的 tshirt 底图：
         //  - 新数据：data.kind === 'tshirt'（toJSON(['data']) 持久化了 data）
-        //  - 旧数据：无 data，用特征兜底（image 类型 + 不可选 + 不可交互）
-        const isSavedTshirt = (o: any) =>
-          o?.data?.kind === TSHIRT_LAYER_KEY ||
-          (o?.type === 'Image' && o?.selectable !== true && o?.evented !== true)
+        //  - 旧数据：无 data 时不再用 selectable/evented 兜底——
+        //    fabric toObject 默认不序列化这两个字段，会把贴纸等 Image 对象误判为底图。
+        //    无 data 的 Image 统一交由下方 reviver 补打 kind:'image' 后正常加载。
+        const isSavedTshirt = (o: any) => o?.data?.kind === TSHIRT_LAYER_KEY
         const userObjects = objects.filter((o: any) => !isSavedTshirt(o))
         if (userObjects.length === 0) {
           fabricCanvas.renderAll()

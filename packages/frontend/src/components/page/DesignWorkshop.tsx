@@ -16,6 +16,7 @@ import ProductSelector from './design/panels/ProductSelector'
 import { MASTER_TABS, DESIGN_TABS, TSHIRT_COLORS, DEFAULT_CANVAS_INK, DEFAULT_DRAWING_COLOR, type MasterTab, type DesignTab, type BrushStyle } from './design/design-types'
 import type { CanvasAPI } from '../ui/FabricCanvas'
 import { api } from '../../lib/api'
+import { refreshCartCount } from '../../lib/cartStore'
 import { showToast } from '../../lib/toast'
 
 const FALLBACK_IMAGE = '/tshirt.png'
@@ -291,8 +292,8 @@ export default function DesignWorkshop() {
   }
 
   const getToken = (): string | null => {
-    if (typeof localStorage === 'undefined') return null
-    return localStorage.getItem('cshop_token')
+    if (typeof sessionStorage === 'undefined') return null
+    return sessionStorage.getItem('cshop_token') || localStorage.getItem('cshop_token')
   }
 
   onMount(() => {
@@ -379,6 +380,7 @@ export default function DesignWorkshop() {
       if (!saved) return
       await api.cart.addDesign(currentProductId(), variant.id, saved.id, quantity())
       showToast(buyNow ? '已保存，正在跳转购物车' : '已加入购物车')
+      refreshCartCount()
       if (buyNow) {
         window.location.href = '/cart'
       }

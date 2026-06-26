@@ -1,6 +1,5 @@
-import { createSignal } from 'solid-js'
-import FavoriteButton from './FavoriteButton'
 import ProductImage from './ProductImage'
+import FavoriteButton from './FavoriteButton'
 import { showToast } from '../../lib/toast'
 
 interface Product {
@@ -22,7 +21,6 @@ interface Props {
 }
 
 export default function ProductCard(props: Props) {
-  const [favorited, setFavorited] = createSignal(false)
   const aspect = props.aspect || 'aspect-[4/5]'
 
   const goToProduct = (e: MouseEvent) => {
@@ -64,7 +62,7 @@ export default function ProductCard(props: Props) {
           </div>
         )}
         {(props.variant === 'shop' || props.variant === 'search') && (
-          <FavoriteButton active={favorited()} onToggle={setFavorited} class="group-hover:scale-110 transition-transform duration-200" />
+          <FavoriteButton productId={props.product.id} class="group-hover:scale-110 transition-transform duration-200" />
         )}
         {props.variant === 'search' && (
           <button

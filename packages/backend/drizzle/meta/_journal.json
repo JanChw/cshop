@@ -8,6 +8,27 @@
       "when": 1782325385538,
       "tag": "0000_panoramic_elektra",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1782391778845,
+      "tag": "0001_warm_molly_hayes",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1782461681154,
+      "tag": "0002_blue_epoch",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1782463800831,
+      "tag": "0003_lovely_earthquake",
+      "breakpoints": true
     }
   ]
 }

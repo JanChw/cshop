@@ -42,10 +42,10 @@
 
       <div class="flex items-center justify-between">
         <label class="flex items-center gap-2 text-sm text-text-muted cursor-pointer">
-          <input type="checkbox" class="w-4 h-4 rounded border-border accent-primary" />
+          <input type="checkbox" v-model="rememberMe" class="w-4 h-4 rounded border-border accent-primary" />
           记住登录
         </label>
-        <button class="text-sm text-primary hover:underline">忘记密码？</button>
+        <router-link to="/forgot-password" class="text-sm text-primary hover:underline">忘记密码？</router-link>
       </div>
 
       <button
@@ -71,6 +71,7 @@ const { login, isLoggedIn } = useAuth()
 
 const email = ref('')
 const password = ref('')
+const rememberMe = ref(true)
 const loading = ref(false)
 const error = ref('')
 
@@ -81,7 +82,7 @@ async function handleLogin() {
   }
   loading.value = true
   error.value = ''
-  const result = await login(email.value, password.value)
+  const result = await login(email.value, password.value, rememberMe.value)
   loading.value = false
   if (result.success) {
     router.push('/')

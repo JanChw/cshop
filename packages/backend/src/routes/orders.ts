@@ -21,8 +21,8 @@ app.get('/', async (c) => {
   const offset = (page - 1) * limit
 
   const conditions = [eq(orders.userId, userId)]
-  if (status && ['pending', 'paid', 'shipped', 'completed', 'cancelled'].includes(status)) {
-    conditions.push(eq(orders.status, status as 'pending' | 'paid' | 'shipped' | 'completed' | 'cancelled'))
+  if (status && ['pending', 'paid', 'processing', 'shipped', 'completed', 'cancelled'].includes(status)) {
+    conditions.push(eq(orders.status, status as 'pending' | 'paid' | 'processing' | 'shipped' | 'completed' | 'cancelled'))
   }
   const where = and(...conditions)
 

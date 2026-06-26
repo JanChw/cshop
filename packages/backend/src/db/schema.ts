@@ -136,6 +136,7 @@ export const designs = sqliteTable('designs', {
   name: text('name').notNull(),
   canvasData: text('canvas_data').notNull(),
   previewImage: text('preview_image'),
+  isPublic: integer('is_public', { mode: 'boolean' }).notNull().default(false),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
   updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`)
 }, (t) => ({
@@ -373,4 +374,29 @@ export const userAddresses = sqliteTable('user_addresses', {
   updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`)
 }, (t) => ({
   userIdx: index('addresses_user_idx').on(t.userId)
+}))
+
+export const userFavorites = sqliteTable('user_favorites', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  productId: integer('product_id').references(() => products.id, { onDelete: 'cascade' }).notNull(),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`)
+}, (t) => ({
+  userProductIdx: index('favorites_user_product_idx').on(t.userId, t.productId),
+  userIdx: index('favorites_user_idx').on(t.userId)
+}))
+
+export const verificationCodes = sqliteTable('verification_codes', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  purpose: text('purpose').notNull(),
+  target: text('target').notNull(),
+  code: text('code').notNull(),
+  attempts: integer('attempts').notNull().default(0),
+  expiresAt: text('expires_at').notNull(),
+  usedAt: text('used_at'),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`)
+}, (t) => ({
+  userPurposeIdx: index('verification_user_purpose_idx').on(t.userId, t.purpose, t.createdAt),
+  expiresIdx: index('verification_expires_idx').on(t.expiresAt)
 }))

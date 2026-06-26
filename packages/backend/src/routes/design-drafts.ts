@@ -17,6 +17,13 @@ import type { AppEnv } from '../types/hono'
 const PREVIEW_WIDTH = 400
 const PREVIEW_HEIGHT = 500
 
+function versionPreviewUrl(previewImage: string | null, updatedAt: string | null): string | null {
+  if (!previewImage || !updatedAt) return previewImage
+  const ts = Date.parse(updatedAt)
+  if (Number.isNaN(ts)) return previewImage
+  return `${previewImage}?v=${ts}`
+}
+
 async function persistPreview(draftId: number, dataUrl: string | null | undefined): Promise<string | null> {
   if (!dataUrl) return null
   const match = /^data:image\/\w+;base64,(.+)$/.exec(dataUrl)
@@ -31,10 +38,29 @@ async function persistPreview(draftId: number, dataUrl: string | null | undefine
   return `/api/v1/design-drafts/${draftId}/preview`
 }
 
-const app = new Hono<AppEnv>()
-app.use('*', auth)
+// Public sub-app: serves preview images without auth.
+const publicApp = new Hono()
 
-app.get('/', async (c) => {
+publicApp.get('/:id/preview', async (c) => {
+  const id = parseInt(c.req.param('id'))
+  const filename = `draft-${id}.webp`
+  if (!isSafeFilename(filename)) return fail(c, '非法文件名', 400)
+  const path = join(config.designDir, filename)
+  const file = Bun.file(path)
+  if (!await file.exists()) return fail(c, '预览不存在', 404)
+  return new Response(file, {
+    headers: {
+      'Content-Type': mimeFromFilename(filename),
+      'Cache-Control': 'public, max-age=31536000, immutable'
+    }
+  })
+})
+
+// Protected sub-app: requires auth, handles CRUD operations.
+const protectedApp = new Hono<AppEnv>()
+protectedApp.use('*', auth)
+
+protectedApp.get('/', async (c) => {
   const userId = c.get('userId')
   const productId = c.req.query('productId')
   const conditions = [eq(designDrafts.userId, userId)]
@@ -50,10 +76,10 @@ app.get('/', async (c) => {
     .where(and(...conditions))
     .orderBy(desc(designDrafts.updatedAt))
 
-  return success(c, { items })
+  return success(c, { items: items.map(d => ({ ...d, previewImage: versionPreviewUrl(d.previewImage, d.updatedAt) })) })
 })
 
-app.post('/', validateJson(designDraftSchema), async (c) => {
+protectedApp.post('/', validateJson(designDraftSchema), async (c) => {
   const userId = c.get('userId')
   const data = c.req.valid('json')
   const [record] = await db.insert(designDrafts).values({ ...data, userId }).returning()
@@ -68,7 +94,7 @@ app.post('/', validateJson(designDraftSchema), async (c) => {
   return success(c, record, 201)
 })
 
-app.get('/:id', async (c) => {
+protectedApp.get('/:id', async (c) => {
   const userId = c.get('userId')
   const id = parseInt(c.req.param('id'))
   const [draft] = await db
@@ -80,33 +106,10 @@ app.get('/:id', async (c) => {
   if (!draft) {
     return fail(c, '草稿不存在', 404)
   }
-  return success(c, draft)
+  return success(c, { ...draft, previewImage: versionPreviewUrl(draft.previewImage, draft.updatedAt) })
 })
 
-app.get('/:id/preview', async (c) => {
-  const userId = c.get('userId')
-  const id = parseInt(c.req.param('id'))
-  const [draft] = await db
-    .select({ id: designDrafts.id })
-    .from(designDrafts)
-    .where(and(eq(designDrafts.id, id), eq(designDrafts.userId, userId)))
-    .limit(1)
-  if (!draft) return fail(c, '草稿不存在', 404)
-
-  const filename = `draft-${id}.webp`
-  if (!isSafeFilename(filename)) return fail(c, '非法文件名', 400)
-  const path = join(config.designDir, filename)
-  const file = Bun.file(path)
-  if (!await file.exists()) return fail(c, '预览不存在', 404)
-  return new Response(file, {
-    headers: {
-      'Content-Type': mimeFromFilename(filename),
-      'Cache-Control': 'private, max-age=300'
-    }
-  })
-})
-
-app.put('/:id', validateJson(designDraftSchema), async (c) => {
+protectedApp.put('/:id', validateJson(designDraftSchema), async (c) => {
   const userId = c.get('userId')
   const id = parseInt(c.req.param('id'))
   const data = c.req.valid('json')
@@ -132,7 +135,7 @@ app.put('/:id', validateJson(designDraftSchema), async (c) => {
   return success(c, { previewImage: previewUrl })
 })
 
-app.delete('/:id', async (c) => {
+protectedApp.delete('/:id', async (c) => {
   const userId = c.get('userId')
   const id = parseInt(c.req.param('id'))
   const [existing] = await db
@@ -147,5 +150,10 @@ app.delete('/:id', async (c) => {
 
   return success(c, null)
 })
+
+// Mount on a single Hono app so they share the /api/v1/design-drafts prefix.
+const app = new Hono()
+app.route('/', publicApp)
+app.route('/', protectedApp)
 
 export default app

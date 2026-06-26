@@ -1,14 +1,15 @@
-import { createSignal, createMemo, onMount } from 'solid-js'
+import { createSignal, createMemo, onMount, Show } from 'solid-js'
 import ProductImage from '../ui/ProductImage'
 import { showToast } from '../../lib/toast'
-import { api } from '../../lib/api'
+import { api, isLoggedIn } from '../../lib/api'
 
-interface Product {
-  id: string
+interface FavItem {
+  id: number
+  productId: number
+  image: string
   name: string
   price: number
-  image: string
-  description?: string
+  description: string
 }
 
 interface Draft {
@@ -19,17 +20,36 @@ interface Draft {
   label: string
 }
 
-const mockFavorites: Product[] = [
-  { id: 'f1', name: '手工陶艺纹理花瓶', price: 280, image: 'https://picsum.photos/seed/73d981934805/400/500', description: 'Sahara 极简系列 - 温暖亚麻质感' },
-  { id: 'f2', name: '自然棉麻床品套装', price: 1240, image: 'https://picsum.photos/seed/4f0e1025495a/400/500', description: '100% 纯天然长绒棉，呼吸感触感' }
-]
-
 export default function CollectionTabs() {
   const [activeTab, setActiveTab] = createSignal<'favorites' | 'drafts'>('favorites')
-  const [favorites, setFavorites] = createSignal<Set<string>>(new Set())
+  const [favorites, setFavorites] = createSignal<FavItem[]>([])
+  const [favLoading, setFavLoading] = createSignal(false)
   const [drafts, setDrafts] = createSignal<Draft[]>([])
 
+  const loadFavorites = async () => {
+    if (!isLoggedIn()) return
+    setFavLoading(true)
+    try {
+      const res: any = await api.favorites.list()
+      if (res.success) {
+        setFavorites(res.data.items.map((f: any) => ({
+          id: f.id,
+          productId: f.productId,
+          image: (f.product.images?.[0]) || `https://picsum.photos/seed/${f.productId}/400/500`,
+          name: f.product.name,
+          price: f.product.basePrice,
+          description: f.product.designer ? `${f.product.designer} 设计` : ''
+        })))
+      }
+    } catch (e) {
+      console.error('Failed to load favorites', e)
+    } finally {
+      setFavLoading(false)
+    }
+  }
+
   onMount(async () => {
+    loadFavorites()
     try {
       const res = await api.designs.list()
       if (res.success) {
@@ -48,12 +68,14 @@ export default function CollectionTabs() {
 
   const showFab = createMemo(() => activeTab() === 'drafts')
 
-  const toggleFav = (id: string) => {
-    setFavorites((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id); else next.add(id)
-      return next
-    })
+  const removeFav = async (productId: number) => {
+    try {
+      await api.favorites.remove(productId)
+      setFavorites((prev) => prev.filter((f) => f.productId !== productId))
+      showToast('已取消收藏')
+    } catch (e: any) {
+      showToast(e.message || '操作失败')
+    }
   }
 
   return (
@@ -96,44 +118,71 @@ export default function CollectionTabs() {
         </div>
 
         {activeTab() === 'favorites' && (
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-            {mockFavorites.map((item) => (
-              <div class="bg-surface-container-low rounded-xl overflow-hidden border border-outline-variant/40 group hover:border-outline hover:-translate-y-0.5 transition-colors transition-transform duration-200">
-                <div class="aspect-[4/5] relative overflow-hidden bg-surface-container">
-                  <ProductImage
-                    src={item.image}
-                    alt={item.name}
-                    aspect="aspect-[4/5]"
-                    rounded="rounded-none"
-                    fallbackLabel={item.name}
-                    class="w-full h-full"
-                  />
-                  <button
-                    type="button"
-                    onClick={(e) => { e.stopPropagation(); toggleFav(item.id) }}
-                    class="absolute top-4 right-4 tap-target bg-surface/80 backdrop-blur-md p-2 rounded-full text-primary"
-                    aria-label={favorites().has(item.id) ? '取消收藏' : '加入收藏'}
-                  >
-                    <span class="material-symbols-outlined" style={`font-variation-settings:'FILL' ${favorites().has(item.id) ? 1 : 0}`}>favorite</span>
-                  </button>
-                </div>
-                <div class="p-6">
-                  <div class="flex justify-between items-start mb-2">
-                    <h3 class="text-xl font-headline font-semibold text-on-surface truncate">{item.name}</h3>
-                    <span class="text-primary font-bold">¥ {item.price}</span>
-                  </div>
-                  <p class="text-on-surface-variant text-sm mb-4">{item.description}</p>
-                  <button
-                    type="button"
-                    onClick={() => showToast('已加入购物车')}
-                    class="w-full py-3 bg-primary text-on-primary rounded-lg text-sm font-bold tracking-wide hover:opacity-90 tap-target"
-                  >
-                    加入购物车
-                  </button>
-                </div>
+          <Show
+            when={isLoggedIn()}
+            fallback={
+              <div class="flex flex-col items-center justify-center py-20 text-center">
+                <span class="material-symbols-outlined text-6xl text-on-surface-variant/30 mb-4">favorite</span>
+                <h3 class="font-headline text-xl text-on-surface-variant">登录后查看收藏</h3>
+                <a href="/login" class="mt-4 px-6 py-2 bg-primary text-on-primary rounded-lg font-bold tap-target">去登录</a>
               </div>
-            ))}
-          </div>
+            }
+          >
+            <Show when={!favLoading()} fallback={
+              <div class="flex justify-center py-20">
+                <span class="material-symbols-outlined animate-spin text-3xl text-on-surface-variant">progress_activity</span>
+              </div>
+            }>
+              <Show when={favorites().length > 0} fallback={
+                <div class="flex flex-col items-center justify-center py-20 text-center">
+                  <span class="material-symbols-outlined text-6xl text-on-surface-variant/30 mb-4">favorite</span>
+                  <h3 class="font-headline text-xl text-on-surface-variant">还没有收藏</h3>
+                  <p class="text-sm text-outline mt-2">去发现喜欢的商品吧</p>
+                  <a href="/shop" class="mt-4 px-6 py-2 bg-primary text-on-primary rounded-lg font-bold tap-target">逛逛商店</a>
+                </div>
+              }>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                  {favorites().map((item) => (
+                    <div class="bg-surface-container-low rounded-xl overflow-hidden border border-outline-variant/40 group hover:border-outline hover:-translate-y-0.5 transition-colors transition-transform duration-200">
+                      <div class="aspect-[4/5] relative overflow-hidden bg-surface-container">
+                        <a href={`/product/${item.productId}`}>
+                          <ProductImage
+                            src={item.image}
+                            alt={item.name}
+                            aspect="aspect-[4/5]"
+                            rounded="rounded-none"
+                            fallbackLabel={item.name}
+                            class="w-full h-full"
+                          />
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => removeFav(item.productId)}
+                          class="absolute top-4 right-4 tap-target bg-surface/80 backdrop-blur-md p-2 rounded-full text-accent"
+                          aria-label="取消收藏"
+                        >
+                          <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">favorite</span>
+                        </button>
+                      </div>
+                      <div class="p-6">
+                        <div class="flex justify-between items-start mb-2">
+                          <h3 class="text-xl font-headline font-semibold text-on-surface truncate">{item.name}</h3>
+                          <span class="text-primary font-bold">¥ {item.price}</span>
+                        </div>
+                        <p class="text-on-surface-variant text-sm mb-4">{item.description}</p>
+                        <a
+                          href={`/product/${item.productId}`}
+                          class="block w-full py-3 bg-primary text-on-primary rounded-lg text-sm font-bold tracking-wide hover:opacity-90 tap-target text-center"
+                        >
+                          查看详情
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Show>
+            </Show>
+          </Show>
         )}
 
         {activeTab() === 'drafts' && (

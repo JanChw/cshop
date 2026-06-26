@@ -44,6 +44,17 @@ async function seedAll() {
     { idSeed: 's8',  name: '织锦缎棒球帽',            basePrice: 199,  categorySlug: 'accessories', fabric: '混纺', fit: '常规', description: '限定配色 / 可调节。织锦缎面料搭配精致刺绣，质感出众。', imageSeed: '9e32a18bc5f1' },
     { idSeed: 's9',  name: '机能斜挎包',              basePrice: 259,  categorySlug: 'accessories', fabric: '涤纶', fit: '常规', description: '防水面料 / 多隔层。轻量机能设计，日常通勤轻松收纳。', imageSeed: '2d6a4f8c3e71' },
     { idSeed: 'p12', name: '简约概念帆布袋',           basePrice: 88,   categorySlug: 'accessories', fabric: '混纺', fit: '常规', description: '简约设计帆布袋，环保耐用，日常出街百搭之选。', imageSeed: 'a7b8c9d0e1f2' },
+    // designer (+2)
+    { idSeed: 'p13', name: '解构拼接衬衫',             basePrice: 899, originalPrice: 1099, categorySlug: 'designer',    fabric: '涤纶', fit: '修身', designer: 'Muse_Lab', tags: '["Limited"]', description: '解构主义剪裁，拼接撞色设计，Muse_Lab 合作限定款。', imageSeed: 'f4a3b2c1d0e5' },
+    { idSeed: 'p14', name: '渐变扎染卫衣',             basePrice: 699,  categorySlug: 'designer',    fabric: '涤纶', fit: '修身', designer: 'Studio_99', description: '手工渐变扎染工艺，每件纹路独一无二。Studio_99 联名系列。', imageSeed: 'b8c7d6e5f4a3' },
+    // custom (+4)
+    { idSeed: 'p15', name: '字母刺绣棒球夹克',          basePrice: 1599, originalPrice: 1999, categorySlug: 'custom',     fabric: '棉质', fit: '宽松', description: '高端定制字母刺绣，纯棉面料，支持个性化字母定制。', imageSeed: 'e5f4a3b2c1d0' },
+    { idSeed: 'p16', name: '手绘印花连帽卫衣',          basePrice: 899,  categorySlug: 'custom',     fabric: '棉质', fit: '宽松', description: '手绘艺术印花，可定制图案位置与配色，专属你的艺术卫衣。', imageSeed: 'd0e5f4a3b2c1' },
+    { idSeed: 'p17', name: '定制姓名刺绣衬衫',          basePrice: 599, originalPrice: 799,  categorySlug: 'custom',     fabric: '棉质', fit: '宽松', description: '精选纯棉面料，支持姓名/字母刺绣定制，商务休闲两相宜。', imageSeed: 'c1d0e5f4a3b2' },
+    { idSeed: 'p18', name: '个人徽章牛仔外套',          basePrice: 1299, categorySlug: 'custom',     fabric: '棉质', fit: '宽松', tags: '["New"]', description: '丹宁面料手工做旧，可定制个人徽章与刺绣图案，独一无二。', imageSeed: 'a3b2c1d0e5f4' },
+    // accessories (+2)
+    { idSeed: 'p19', name: '简约帆布腰带',             basePrice: 129,  categorySlug: 'accessories', fabric: '混纺', fit: '常规', description: '高品质帆布腰带，金属扣头，简约百搭。', imageSeed: 'b2c1d0e5f4a3' },
+    { idSeed: 'p20', name: '纯色冷感毛巾',             basePrice: 79,   categorySlug: 'accessories', fabric: '涤纶', fit: '常规', description: '超细纤维冷感面料，速干透气，运动出行必备。', imageSeed: '9f8e7d6c5b4a' },
   ]
 
   for (const p of allProducts) {
@@ -80,7 +91,9 @@ async function seedAll() {
   const accFits: Record<string, { sizes: string[], colors: string[] }> = {
     '织锦缎棒球帽': { sizes: ['均码'], colors: ['黑色', '酒红色', '墨绿色'] },
     '机能斜挎包': { sizes: ['均码'], colors: ['黑色', '军绿色', '深灰色'] },
-    '简约概念帆布袋': { sizes: ['均码'], colors: ['黑色', '米色'] }
+    '简约概念帆布袋': { sizes: ['均码'], colors: ['黑色', '米色'] },
+    '简约帆布腰带': { sizes: ['均码'], colors: ['黑色', '卡其色', '军绿色'] },
+    '纯色冷感毛巾': { sizes: ['均码'], colors: ['蓝色', '灰色', '粉色'] }
   }
 
   for (const prod of allDbProducts) {
@@ -220,7 +233,7 @@ async function seedAll() {
     db.insert(stickers).values({
       name: st.name,
       category: st.category,
-      imagePath: `/api/v1/stickers/${filename}`,
+      imagePath: filename,
       width: 200,
       height: 200
     }).run()
@@ -240,6 +253,7 @@ async function seedAll() {
     db.insert(homeSections).values(s).run()
   }
   console.log(`Seeded ${sections.length} home sections.`)
+  console.log(`  Products per category: ${allCats.map(c => `${c.name}(${db.select({ id: products.id }).from(products).where(eq(products.categoryId, c.id)).all().length})`).join(', ')}`)
 
   // ── Design Configs ──
   const configs = [

@@ -1,11 +1,11 @@
 import { createSignal, createMemo, onMount } from 'solid-js'
 import ConfirmDialog from '../ui/ConfirmDialog'
 import { showToast } from '../../lib/toast'
-import { api } from '../../lib/api'
+import { api, performLogout } from '../../lib/api'
 
 export default function ProfileForm() {
   const [nickname, setNickname] = createSignal('')
-  const [gender, setGender] = createSignal<'female' | 'male' | 'secret'>('secret')
+  const [gender, setGender] = createSignal<'female' | 'male' | 'other'>('other')
   const [birthday, setBirthday] = createSignal('')
   const [bio, setBio] = createSignal('')
   const [saving, setSaving] = createSignal(false)
@@ -22,6 +22,7 @@ export default function ProfileForm() {
         if (u.bio) setBio(u.bio)
         if (u.gender) setGender(u.gender)
         if (u.birthday) setBirthday(u.birthday.split('T')[0])
+        if (u.avatar) setAvatar(u.avatar)
       }
     } catch (e) {
       showToast('加载用户信息失败')
@@ -52,10 +53,34 @@ export default function ProfileForm() {
 
   const confirmLogout = () => {
     setShowLogoutConfirm(false)
-    localStorage.removeItem('cshop_token')
-    localStorage.removeItem('cshop_refresh')
-    localStorage.removeItem('cshop_user')
-    window.location.href = '/login'
+    performLogout()
+  }
+
+  const [avatar, setAvatar] = createSignal<string | null>(null)
+  const [uploading, setUploading] = createSignal(false)
+
+  const handleAvatarChange = async (e: Event) => {
+    const input = e.target as HTMLInputElement
+    const file = input.files?.[0]
+    input.value = ''
+    if (!file) return
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      showToast('仅支持 jpg/png/webp 格式'); return
+    }
+    setUploading(true)
+    try {
+      const upRes: any = await api.uploads.create(file)
+      if (!upRes.success) throw new Error(upRes.error || '上传失败')
+      const avatarUrl = upRes.data.variants.medium.url
+      const updRes: any = await api.user.update({ avatar: avatarUrl })
+      if (!updRes.success) throw new Error(updRes.error || '保存失败')
+      setAvatar(avatarUrl)
+      showToast('头像已更新')
+    } catch (err: any) {
+      showToast(err.message || '头像上传失败')
+    } finally {
+      setUploading(false)
+    }
   }
 
   return (
@@ -86,21 +111,24 @@ export default function ProfileForm() {
             <button
               type="button"
               onClick={() => fileInput?.click()}
+              disabled={uploading()}
               class="relative group cursor-pointer tap-target"
               aria-label="更换头像"
             >
               <div class="w-28 h-28 rounded-full overflow-hidden border-2 border-primary-container shadow-card bg-primary-container flex items-center justify-center text-primary">
-                <span class="material-symbols-outlined text-5xl">person</span>
+                {avatar()
+                  ? <img src={avatar() || undefined} alt="头像" class="w-full h-full object-cover" />
+                  : <span class="material-symbols-outlined text-5xl">person</span>}
               </div>
               <div class="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <span class="material-symbols-outlined text-white text-2xl">photo_camera</span>
+                <span class="material-symbols-outlined text-white text-2xl">{uploading() ? 'progress_activity' : 'photo_camera'}</span>
               </div>
               <div class="absolute bottom-0 right-0 bg-primary text-on-primary w-8 h-8 rounded-full flex items-center justify-center shadow-md border-2 border-surface">
                 <span class="material-symbols-outlined text-sm" style="font-variation-settings:'FILL' 1">edit</span>
               </div>
             </button>
-            <input type="file" accept="image/*" ref={fileInput} class="hidden" />
-            <p class="mt-4 text-xs text-on-surface-variant font-medium">点击更换头像</p>
+            <input type="file" accept="image/jpeg,image/png,image/webp" ref={fileInput} class="hidden" onChange={handleAvatarChange} />
+            <p class="mt-4 text-xs text-on-surface-variant font-medium">{uploading() ? '上传中...' : '点击更换头像'}</p>
           </section>
 
           <section class="space-y-6 md:w-2/3">
@@ -118,7 +146,7 @@ export default function ProfileForm() {
             <div class="space-y-2">
               <label class="text-label-md font-medium text-on-surface-variant ml-1">性别</label>
               <div class="grid grid-cols-3 gap-3">
-                {(['female', 'male', 'secret'] as const).map((g) => (
+                {(['female', 'male', 'other'] as const).map((g) => (
                   <button
                     type="button"
                     onClick={() => setGender(g)}

@@ -73,11 +73,15 @@
       </div>
 
       <div ref="tableBodyRef" class="flex-1 overflow-auto">
-        <div
-          v-for="product in paginatedProducts"
-          :key="product.id"
-          class="flex items-center px-4 h-[52px] border-b border-border gap-3"
-        >
+        <div v-if="loading" class="flex items-center justify-center h-40">
+          <div class="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+        <template v-else>
+          <div
+            v-for="product in paginatedProducts"
+            :key="product.id"
+            class="flex items-center px-4 h-[52px] border-b border-border gap-3"
+          >
           <div class="w-[40px] flex items-center">
             <input
               type="checkbox"
@@ -106,7 +110,8 @@
               彻底删除
             </button>
           </div>
-        </div>
+          </div>
+        </template>
 
         <div v-if="paginatedProducts.length === 0 && !loading" class="flex items-center justify-center h-40 text-sm text-text-muted">
           回收站是空的

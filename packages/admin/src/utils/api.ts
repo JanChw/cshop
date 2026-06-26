@@ -7,7 +7,7 @@ export interface ApiResponse<T = any> {
 }
 
 function getToken(): string | null {
-  return localStorage.getItem('cshop_admin_token')
+  return sessionStorage.getItem('cshop_admin_token') || localStorage.getItem('cshop_admin_token')
 }
 
 function setToken(token: string) {
@@ -15,7 +15,7 @@ function setToken(token: string) {
 }
 
 function getRefreshToken(): string | null {
-  return localStorage.getItem('cshop_admin_refresh')
+  return sessionStorage.getItem('cshop_admin_refresh') || localStorage.getItem('cshop_admin_refresh')
 }
 
 async function tryRefresh(): Promise<boolean> {

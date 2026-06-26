@@ -13,15 +13,19 @@
       </div>
 
       <div class="flex flex-col gap-4 flex-1 overflow-auto">
-        <div
-          v-for="role in roles"
-          :key="role.id"
-          class="rounded-md p-4 flex flex-col gap-1.5 cursor-pointer transition-colors"
-          :class="selectedRole?.id === role.id
-            ? 'border-2 border-primary bg-white'
-            : 'border border-border bg-white hover:border-gray-300'"
-          @click="selectedRole = role"
-        >
+        <div v-if="loading" class="flex items-center justify-center h-40">
+          <div class="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+        <template v-else>
+          <div
+            v-for="role in roles"
+            :key="role.id"
+            class="rounded-md p-4 flex flex-col gap-1.5 cursor-pointer transition-colors"
+            :class="selectedRole?.id === role.id
+              ? 'border-2 border-primary bg-white'
+              : 'border border-border bg-white hover:border-gray-300'"
+            @click="selectedRole = role"
+          >
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-1.5">
               <span class="text-sm font-semibold text-text-primary">{{ role.name }}</span>
@@ -53,7 +57,7 @@
           <span class="text-xs text-text-muted font-mono">{{ role.identifier }}</span>
           <span class="text-xs text-text-muted">{{ role.description }}</span>
           <span class="text-xs font-medium text-primary">{{ role.permCount }} 项权限</span>
-        </div>
+        </template>
       </div>
     </div>
 
@@ -247,6 +251,9 @@ const MODULE_TO_TITLE: Record<string, string> = {
   backup: '备份管理',
   settings: '设置管理',
   menu: '菜单管理',
+  inventory: '库存管理',
+  'home-sections': '首页配置',
+  'design-configs': '设计配置',
 }
 
 const GROUP_ORDER = Object.values(MODULE_TO_TITLE)
@@ -256,6 +263,7 @@ const { success: toastSuccess, error: toastError } = useToast()
 const roles = ref<Role[]>([])
 const selectedRole = ref<Role | null>(null)
 const permContainerRef = ref<HTMLElement | null>(null)
+const loading = ref(true)
 
 const permCodeToId: Record<string, number> = {}
 
@@ -314,7 +322,9 @@ async function fetchPermissions() {
 }
 
 onMounted(async () => {
+  loading.value = true
   await Promise.all([fetchRoles(), fetchPermissions()])
+  loading.value = false
   if (!selectedRole.value && roles.value.length > 0) {
     selectedRole.value = roles.value[0]
   }

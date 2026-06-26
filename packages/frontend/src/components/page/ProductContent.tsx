@@ -1,7 +1,8 @@
 import { createSignal, onMount, Show } from 'solid-js'
 import ProductImage from '../ui/ProductImage'
 import { showToast } from '../../lib/toast'
-import { api } from '../../lib/api'
+import { api, isLoggedIn } from '../../lib/api'
+import { refreshCartCount } from '../../lib/cartStore'
 
 interface ProductData {
   id: string
@@ -31,6 +32,7 @@ export default function ProductContent() {
   const [selectedColor, setSelectedColor] = createSignal('')
   const [selectedSize, setSelectedSize] = createSignal('')
   const [favorited, setFavorited] = createSignal(false)
+  const [favBusy, setFavBusy] = createSignal(false)
   const [adding, setAdding] = createSignal(false)
   const [buying, setBuying] = createSignal(false)
 
@@ -67,6 +69,12 @@ export default function ProductContent() {
         setMainImage(pd.thumbnails[0])
         setSelectedColor(pd.colors[0] || '')
         setSelectedSize(pd.sizes[0] || '')
+        if (isLoggedIn()) {
+          try {
+            const fr: any = await api.favorites.check(Number(id))
+            if (fr.success) setFavorited(fr.data.favorited)
+          } catch { /* ignore */ }
+        }
       }
     } catch (e: any) {
       setError(e.message || '加载失败')
@@ -83,17 +91,31 @@ export default function ProductContent() {
     showToast('链接已复制到剪贴板')
   }
 
-  const toggleFavorite = () => {
-    setFavorited(!favorited())
-    showToast(favorited() ? '已取消收藏' : '已加入收藏')
+  const toggleFavorite = async () => {
+    if (!isLoggedIn()) { showToast('请先登录'); return }
+    if (favBusy()) return
+    setFavBusy(true)
+    const next = !favorited()
+    try {
+      const id = Number(window.location.pathname.split('/').pop() || 0)
+      if (next) await api.favorites.add(id)
+      else await api.favorites.remove(id)
+      setFavorited(next)
+      showToast(next ? '已加入收藏' : '已取消收藏')
+    } catch (err: any) {
+      showToast(err.message || '操作失败')
+    } finally {
+      setFavBusy(false)
+    }
   }
 
   const handleAddToCart = async () => {
     setAdding(true)
     try {
-      const id = window.location.pathname.split('/').pop() || ''
+      const id = Number(window.location.pathname.split('/').pop() || 0)
       await api.cart.add(id, 1, selectedSize(), selectedColor())
       showToast('商品已加入购物车')
+      refreshCartCount()
     } catch (e: any) {
       showToast(e.message || '加入购物车失败')
     } finally {
@@ -104,8 +126,9 @@ export default function ProductContent() {
   const handleBuyNow = async () => {
     setBuying(true)
     try {
-      const id = window.location.pathname.split('/').pop() || ''
+      const id = Number(window.location.pathname.split('/').pop() || 0)
       await api.cart.add(id, 1, selectedSize(), selectedColor())
+      refreshCartCount()
       window.location.href = '/cart'
     } catch (e: any) {
       showToast(e.message || '操作失败')

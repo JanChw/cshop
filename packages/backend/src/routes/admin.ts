@@ -28,6 +28,7 @@ import menusRoutes from './admin/menus'
 import homeRoutes from './admin/home'
 import designConfigRoutes from './admin/design-config'
 import { adminVariantOptionsRoutes } from './variantOptions'
+import inventoryRoutes from './admin/inventory'
 import type { AppEnv } from '../types/hono'
 
 const app = new Hono<AppEnv>()
@@ -104,6 +105,153 @@ app.get('/products', requirePermission('product.read'), async (c) => {
   return success(c, { items: items.map(i => ({ ...i, images: i.images ? JSON.parse(i.images) : [] })), total, page, limit })
 })
 
+app.get('/products/export', requirePermission('product.read'), async (c) => {
+  const items = db.select({
+    id: products.id,
+    name: products.name,
+    basePrice: products.basePrice,
+    stock: products.stock,
+    isActive: products.isActive,
+    categoryName: categories.name,
+    description: products.description,
+    tags: products.tags,
+    fabric: products.fabric,
+    fit: products.fit,
+    designer: products.designer,
+  })
+    .from(products)
+    .leftJoin(categories, eq(products.categoryId, categories.id))
+    .where(isNull(products.deletedAt))
+    .all()
+
+  const variantMap: Record<number, typeof productVariants.$inferSelect[]> = {}
+  const pIds = items.map(i => i.id)
+  if (pIds.length > 0) {
+    const variants = db.select().from(productVariants)
+      .where(inArray(productVariants.productId, pIds))
+      .all()
+    for (const v of variants) {
+      if (!variantMap[v.productId]) variantMap[v.productId] = []
+      variantMap[v.productId].push(v)
+    }
+  }
+
+  const header = 'ID,名称,价格,库存,状态,分类,描述,标签,面料,版型,设计师,规格'
+  const rows = items.map((p) => {
+    const vStr = (variantMap[p.id] ?? [])
+      .map(v => `${v.size}/${v.color ?? '-'}/${v.material ?? '-'}/${v.weight ?? '-'}`)
+      .join('; ')
+    return [
+      p.id,
+      escapeCsv(p.name),
+      p.basePrice,
+      p.stock,
+      p.isActive ? '上架' : '下架',
+      escapeCsv(p.categoryName ?? ''),
+      escapeCsv(p.description ?? ''),
+      escapeCsv(p.tags ?? ''),
+      escapeCsv(p.fabric ?? ''),
+      escapeCsv(p.fit ?? ''),
+      escapeCsv(p.designer ?? ''),
+      escapeCsv(vStr),
+    ].join(',')
+  }).join('\n')
+
+  const csv = `${header}\n${rows}`
+  c.header('Content-Type', 'text/csv; charset=utf-8')
+  c.header('Content-Disposition', `attachment; filename="products-${new Date().toISOString().slice(0, 10)}.csv"`)
+  return c.body(csv)
+})
+
+function escapeCsv(s: string): string {
+  if (s.includes(',') || s.includes('"') || s.includes('\n')) {
+    return `"${s.replace(/"/g, '""')}"`
+  }
+  return s
+}
+
+app.post('/products/import', requirePermission('product.create'), async (c) => {
+  const body = await c.req.parseBody()
+  const file = body['file']
+  if (!file || !(file instanceof File)) {
+    return fail(c, '请上传 CSV 文件', 400)
+  }
+  if (!file.name.endsWith('.csv')) {
+    return fail(c, '仅支持 CSV 格式', 400)
+  }
+
+  const text = await file.text()
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0)
+  if (lines.length < 2) {
+    return fail(c, 'CSV 文件至少包含表头和一行数据', 400)
+  }
+
+  const parseLine = (line: string): string[] => {
+    const result: string[] = []
+    let current = ''
+    let inQuotes = false
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i]
+      if (ch === '"') {
+        if (inQuotes && i + 1 < line.length && line[i + 1] === '"') {
+          current += '"'
+          i++
+        } else {
+          inQuotes = !inQuotes
+        }
+      } else if (ch === ',' && !inQuotes) {
+        result.push(current)
+        current = ''
+      } else {
+        current += ch
+      }
+    }
+    result.push(current)
+    return result
+  }
+
+  let imported = 0
+  let errors: string[] = []
+
+  for (let i = 1; i < lines.length; i++) {
+    const cols = parseLine(lines[i])
+    if (cols.length < 3) {
+      errors.push(`第 ${i + 1} 行：列数不足`)
+      continue
+    }
+    const name = cols[1]?.trim()
+    const price = parseFloat(cols[2]?.trim())
+    if (!name || isNaN(price)) {
+      errors.push(`第 ${i + 1} 行：名称或价格无效`)
+      continue
+    }
+
+    try {
+      const [product] = await db.insert(products).values({
+        name,
+        basePrice: price,
+        stock: parseInt(cols[3]?.trim()) || 0,
+        description: cols[6]?.trim() || null,
+        tags: cols[7]?.trim() || null,
+        fabric: cols[8]?.trim() || null,
+        fit: cols[9]?.trim() || null,
+        designer: cols[10]?.trim() || null,
+        isActive: (cols[5]?.trim() || '上架') === '上架',
+      }).returning().all()
+      imported++
+    } catch (err: any) {
+      errors.push(`第 ${i + 1} 行：${err.message || '导入失败'}`)
+    }
+  }
+
+  return success(c, {
+    imported,
+    total: lines.length - 1,
+    errors: errors.slice(0, 20),
+    hasMoreErrors: errors.length > 20,
+  })
+})
+
 app.get('/products/:id', requirePermission('product.read'), async (c) => {
   const id = parseInt(c.req.param('id'))
   const [product] = await db.select().from(products).where(eq(products.id, id)).limit(1)
@@ -133,6 +281,19 @@ app.put('/products/:id', requirePermission('product.update'), validateJson(produ
 
   const dbData = { ...data, images: data.images ? JSON.stringify(data.images) : undefined }
   await db.update(products).set(dbData).where(eq(products.id, id))
+  return success(c, null)
+})
+
+app.patch('/products/:id/status', requirePermission('product.update'), async (c) => {
+  const id = parseInt(c.req.param('id'))
+  const { isActive } = await c.req.json()
+
+  if (typeof isActive !== 'boolean') return fail(c, 'isActive 必须是布尔值', 400)
+
+  const [existing] = await db.select({ id: products.id }).from(products).where(eq(products.id, id)).limit(1)
+  if (!existing) return fail(c, '商品不存在', 404)
+
+  await db.update(products).set({ isActive }).where(eq(products.id, id))
   return success(c, null)
 })
 
@@ -700,7 +861,9 @@ app.get('/orders/:id', requirePermission('order.read'), async (c) => {
       cancelledAt: orders.cancelledAt,
       trackingNo: orders.trackingNo,
       createdAt: orders.createdAt,
-      updatedAt: orders.updatedAt
+      updatedAt: orders.updatedAt,
+      userName: users.name,
+      userEmail: users.email,
     })
     .from(orders)
     .leftJoin(users, eq(orders.userId, users.id))
@@ -711,7 +874,20 @@ app.get('/orders/:id', requirePermission('order.read'), async (c) => {
     return fail(c, '订单不存在', 404)
   }
 
-  const items = await db.select().from(orderItems).where(eq(orderItems.orderId, id))
+  const items = await db
+    .select({
+      id: orderItems.id,
+      productId: orderItems.productId,
+      variantId: orderItems.variantId,
+      designId: orderItems.designId,
+      quantity: orderItems.quantity,
+      price: orderItems.price,
+      productName: products.name,
+    })
+    .from(orderItems)
+    .leftJoin(products, eq(orderItems.productId, products.id))
+    .where(eq(orderItems.orderId, id))
+
   return success(c, { ...order, items })
 })
 
@@ -793,5 +969,6 @@ app.route('/menus', menusRoutes)
 app.route('/variant-options', adminVariantOptionsRoutes)
 app.route('/home-sections', homeRoutes)
 app.route('/design-configs', designConfigRoutes)
+app.route('/inventory', inventoryRoutes)
 
 export default app

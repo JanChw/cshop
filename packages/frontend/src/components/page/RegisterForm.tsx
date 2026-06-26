@@ -31,6 +31,9 @@ export default function RegisterForm() {
     ;(async () => {
       try {
         const res: any = await api.auth.register(name(), email(), password())
+        sessionStorage.removeItem('cshop_token')
+        sessionStorage.removeItem('cshop_refresh')
+        sessionStorage.removeItem('cshop_user')
         localStorage.setItem('cshop_token', res.data.accessToken)
         localStorage.setItem('cshop_refresh', res.data.refreshToken)
         localStorage.setItem('cshop_user', JSON.stringify(res.data.user))

@@ -12,6 +12,20 @@
           <span v-if="trashCount > 0" class="bg-danger text-white text-xs px-1.5 py-0.5 rounded-full">{{ trashCount }}</span>
         </button>
         <button
+          class="h-10 rounded border border-border px-4 text-sm font-medium text-text-primary hover:bg-gray-50 transition-colors flex items-center gap-2"
+          @click="handleExport"
+        >
+          <Download :size="14" />
+          导出
+        </button>
+        <button
+          class="h-10 rounded border border-border px-4 text-sm font-medium text-text-primary hover:bg-gray-50 transition-colors flex items-center gap-2"
+          @click="showImport = true"
+        >
+          <Upload :size="14" />
+          导入
+        </button>
+        <button
           class="h-10 rounded bg-primary px-4 text-sm font-medium text-white hover:bg-primary/90 transition-colors"
           @click="$router.push('/products/new')"
         >
@@ -95,11 +109,15 @@
       </div>
 
       <div ref="tableBodyRef" class="flex-1 overflow-auto">
-        <div
-          v-for="product in paginatedProducts"
-          :key="product.id"
-          class="flex items-center px-4 h-[52px] border-b border-border gap-3"
-        >
+        <div v-if="loading" class="flex items-center justify-center h-40">
+          <div class="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+        <template v-else>
+          <div
+            v-for="product in paginatedProducts"
+            :key="product.id"
+            class="flex items-center px-4 h-[52px] border-b border-border gap-3"
+          >
           <div class="w-[40px] flex items-center">
             <input
               type="checkbox"
@@ -114,7 +132,14 @@
           <span class="w-[80px] text-sm text-text-primary font-medium">{{ product.price }}</span>
           <span class="w-[70px] text-sm text-text-primary">{{ product.stock }}</span>
           <span class="w-[70px]">
-            <StatusBadge :label="product.status" :variant="product.status === '上架' ? 'active' : 'inactive'" />
+            <button
+              class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium text-white transition-colors disabled:opacity-50"
+              :class="product.isActive ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-400 hover:bg-gray-500'"
+              :disabled="toggling.has(product.id)"
+              @click="toggleStatus(product)"
+            >
+              {{ product.status }}
+            </button>
           </span>
           <div class="w-[120px] flex items-center gap-3">
             <button
@@ -130,7 +155,8 @@
               删除
             </button>
           </div>
-        </div>
+          </div>
+        </template>
       </div>
     </div>
 
@@ -207,15 +233,74 @@
         </div>
       </Transition>
     </Teleport>
+
+    <Teleport to="body">
+      <Transition name="modal">
+        <div v-if="showImport" class="fixed inset-0 z-50 flex items-center justify-center" @click.self="showImport = false">
+          <div class="absolute inset-0 bg-black/50" />
+          <div class="relative bg-white rounded-lg w-[520px] shadow-lg flex flex-col">
+            <div class="flex items-center justify-between px-6 py-5 border-b border-border">
+              <h2 class="text-base font-semibold text-text-primary">导入商品</h2>
+              <button class="rounded p-1 text-text-muted hover:text-text-primary transition-colors" @click="showImport = false">
+                <X :size="18" />
+              </button>
+            </div>
+            <div class="px-6 py-6 flex flex-col gap-5">
+              <div v-if="importResult" class="flex flex-col gap-3">
+                <div class="rounded-lg bg-success/10 border border-success/30 px-4 py-3 text-sm">
+                  成功导入 <strong class="text-success">{{ importResult.imported }}</strong> / {{ importResult.total }} 条记录
+                </div>
+                <div v-if="importResult.errors?.length" class="flex flex-col gap-1 max-h-[200px] overflow-auto">
+                  <span class="text-xs font-medium text-text-muted">错误详情（{{ importResult.errors.length }} 条）：</span>
+                  <div v-for="(err, i) in importResult.errors" :key="i" class="text-xs text-danger bg-red-50 rounded px-2 py-1">
+                    {{ err }}
+                  </div>
+                  <span v-if="importResult.hasMoreErrors" class="text-xs text-text-muted">...还有更多错误</span>
+                </div>
+                <button class="h-9 rounded border border-border px-4 text-sm font-medium text-text-primary hover:bg-gray-50 transition-colors self-start" @click="importResult = null; showImport = false">
+                  关闭
+                </button>
+              </div>
+              <div v-else class="flex flex-col gap-4">
+                <div class="flex flex-col gap-1.5">
+                  <label class="text-sm font-medium text-text-primary">选择 CSV 文件</label>
+                  <p class="text-xs text-text-muted">文件格式：CSV（UTF-8），表头为 ID,名称,价格,库存,状态,分类,描述,标签,面料,版型,设计师,规格</p>
+                </div>
+                <div
+                  class="border-2 border-dashed border-border rounded-md p-8 flex flex-col items-center gap-3 cursor-pointer hover:border-primary transition-colors"
+                  :class="{ 'border-primary bg-primary/5': dragOver }"
+                  @dragover.prevent="dragOver = true"
+                  @dragleave.prevent="dragOver = false"
+                  @drop.prevent="handleDrop"
+                  @click="fileInput?.click()"
+                >
+                  <Upload :size="32" class="text-text-muted" />
+                  <span class="text-sm text-text-muted">拖拽文件到此处，或点击选择</span>
+                  <span v-if="selectedFile" class="text-sm text-text-primary font-medium">{{ selectedFile.name }}</span>
+                </div>
+                <input ref="fileInput" type="file" accept=".csv" class="hidden" @change="handleFileChange" />
+                <div v-if="importError" class="text-sm text-danger">{{ importError }}</div>
+                <div class="flex items-center justify-end gap-3">
+                  <button class="rounded px-4 py-2 text-sm font-medium text-text-primary border border-border hover:bg-gray-50 transition-colors" @click="showImport = false">取消</button>
+                  <button class="rounded px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center gap-2" :disabled="!selectedFile || importing" @click="handleImport">
+                    <span v-if="importing" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    {{ importing ? '导入中...' : '开始导入' }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted } from 'vue'
 import { api } from '@/utils/api'
-import { Search, ChevronDown, ChevronLeft, ChevronRight, Trash2 } from 'lucide-vue-next'
+import { Search, ChevronDown, ChevronLeft, ChevronRight, Trash2, Download, Upload, X } from 'lucide-vue-next'
 import gsap from 'gsap'
-import StatusBadge from '@/components/ui/StatusBadge.vue'
 import { useToast } from '@/composables/useToast'
 
 const toast = useToast()
@@ -230,6 +315,83 @@ const selected = ref<Set<number>>(new Set())
 const confirmVisible = ref(false)
 const pending = ref<Product | undefined>(undefined)
 const pendingBatch = ref(false)
+const toggling = ref<Set<number>>(new Set())
+
+const showImport = ref(false)
+const importing = ref(false)
+const importError = ref('')
+const selectedFile = ref<File | null>(null)
+const dragOver = ref(false)
+const fileInput = ref<HTMLInputElement | null>(null)
+const importResult = ref<{ imported: number; total: number; errors: string[]; hasMoreErrors: boolean } | null>(null)
+
+async function handleExport() {
+  const token = localStorage.getItem('cshop_admin_token')
+  if (!token) return
+  try {
+    const res = await fetch('/api/v1/admin/products/export', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (!res.ok) {
+      const text = await res.text().catch(() => '')
+      toast.error(text ? `导出失败: ${text}` : '导出失败')
+      return
+    }
+    const blob = await res.blob()
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `products-${new Date().toISOString().slice(0, 10)}.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  } catch (err: unknown) {
+    toast.error(`导出失败: ${err instanceof Error ? err.message : '未知错误'}`)
+  }
+}
+
+function handleFileChange(e: Event) {
+  const target = e.target as HTMLInputElement
+  if (target.files?.[0]) {
+    selectedFile.value = target.files[0]
+    importError.value = ''
+  }
+}
+
+function handleDrop(e: DragEvent) {
+  dragOver.value = false
+  const file = e.dataTransfer?.files?.[0]
+  if (file && file.name.endsWith('.csv')) {
+    selectedFile.value = file
+    importError.value = ''
+  } else {
+    importError.value = '请上传 CSV 文件'
+  }
+}
+
+async function handleImport() {
+  if (!selectedFile.value) return
+  importing.value = true
+  importError.value = ''
+
+  const formData = new FormData()
+  formData.append('file', selectedFile.value)
+
+  const res = await api.upload<{ imported: number; total: number; errors: string[]; hasMoreErrors: boolean }>(
+    '/admin/products/import', formData
+  )
+  importing.value = false
+  if (res.success && res.data) {
+    importResult.value = res.data
+    await fetchProducts()
+    await fetchTrashCount()
+    selectedFile.value = null
+    if (fileInput.value) fileInput.value.value = ''
+  } else {
+    importError.value = res.error || '导入失败'
+  }
+}
 
 interface Product {
   id: number
@@ -238,6 +400,7 @@ interface Product {
   price: string
   stock: number
   status: string
+  isActive: boolean
 }
 
 const products = ref<Product[]>([])
@@ -282,6 +445,7 @@ async function fetchProducts() {
         price: `¥${item.basePrice}`,
         stock: item.stock,
         status: item.isActive ? '上架' : '下架',
+        isActive: item.isActive,
       }))
       total.value = res.data.total
       selected.value.clear()
@@ -318,6 +482,19 @@ function toggleAll() {
     pageIds.value.forEach(id => selected.value.add(id))
   }
   selected.value = new Set(selected.value)
+}
+
+async function toggleStatus(product: Product) {
+  const newStatus = !product.isActive
+  toggling.value = new Set([...toggling.value, product.id])
+  const res = await api.patch(`/admin/products/${product.id}/status`, { isActive: newStatus })
+  toggling.value = new Set([...toggling.value].filter(id => id !== product.id))
+  if (res.success) {
+    product.isActive = newStatus
+    product.status = newStatus ? '上架' : '下架'
+  } else {
+    toast.error(res.error || '操作失败')
+  }
 }
 
 function askDelete(p: Product) {

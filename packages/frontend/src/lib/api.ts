@@ -1,8 +1,75 @@
 const API_BASE = '/api/v1'
 
+function storageGet(key: string): string | null {
+  if (typeof sessionStorage === 'undefined') return null
+  return sessionStorage.getItem(key) || localStorage.getItem(key)
+}
+
 function getToken(): string | null {
-  if (typeof localStorage === 'undefined') return null
-  return localStorage.getItem('cshop_token')
+  return storageGet('cshop_token')
+}
+
+function getRefreshToken(): string | null {
+  return storageGet('cshop_refresh')
+}
+
+function tokenStore(): 'session' | 'local' {
+  if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('cshop_token')) return 'session'
+  return 'local'
+}
+
+function setTokens(accessToken: string, refreshToken: string): void {
+  const store = tokenStore()
+  const s = store === 'session' ? sessionStorage : localStorage
+  s.setItem('cshop_token', accessToken)
+  s.setItem('cshop_refresh', refreshToken)
+}
+
+export function clearAuth(): void {
+  const keys = ['cshop_token', 'cshop_refresh', 'cshop_user']
+  for (const k of keys) {
+    localStorage.removeItem(k)
+    if (typeof sessionStorage !== 'undefined') sessionStorage.removeItem(k)
+  }
+}
+
+export function isLoggedIn(): boolean {
+  return !!getToken()
+}
+
+let refreshPromise: Promise<string | null> | null = null
+
+async function refreshAccessToken(): Promise<string | null> {
+  const rt = getRefreshToken()
+  if (!rt) return null
+  if (refreshPromise) return refreshPromise
+  const base = typeof window !== 'undefined' ? '' : 'http://localhost:3001'
+  refreshPromise = (async () => {
+    try {
+      const res = await fetch(`${base}${API_BASE}/auth/refresh`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken: rt })
+      })
+      if (!res.ok) { clearAuth(); return null }
+      const json = await res.json()
+      if (!json.success) { clearAuth(); return null }
+      setTokens(json.data.accessToken, json.data.refreshToken)
+      return json.data.accessToken
+    } catch {
+      clearAuth()
+      return null
+    } finally {
+      refreshPromise = null
+    }
+  })()
+  return refreshPromise
+}
+
+function redirectToLogin(): void {
+  if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
+    window.location.href = '/login'
+  }
 }
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
@@ -11,6 +78,23 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   if (token) headers['Authorization'] = `Bearer ${token}`
   const base = typeof window !== 'undefined' ? '' : 'http://localhost:3001'
   const res = await fetch(`${base}${API_BASE}${path}`, { headers, ...options })
+
+  // 401 → attempt token refresh once, then retry the original request
+  if (res.status === 401 && token && !path.startsWith('/auth/')) {
+    const newToken = await refreshAccessToken()
+    if (newToken) {
+      const retryHeaders: Record<string, string> = { ...headers, Authorization: `Bearer ${newToken}` }
+      const retry = await fetch(`${base}${API_BASE}${path}`, { ...options, headers: retryHeaders })
+      if (!retry.ok) {
+        const body = await retry.json().catch(() => ({}))
+        throw new Error(body.error || `API error: ${retry.status}`)
+      }
+      return retry.json()
+    }
+    redirectToLogin()
+    throw new Error('登录已过期，请重新登录')
+  }
+
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
     throw new Error(body.error || `API error: ${res.status}`)
@@ -50,6 +134,7 @@ export interface DesignItem {
   name: string
   canvasData: string
   previewImage: string | null
+  isPublic: boolean
   createdAt: string
   updatedAt: string
 }
@@ -122,28 +207,48 @@ export const api = {
   },
   cart: {
     list: () => request<{ success: boolean; data: any[] }>('/cart'),
-    add: (productId: string, quantity: number, size: string, color: string) =>
+    add: (productId: number, quantity: number, size: string, color: string) =>
       request('/cart', { method: 'POST', body: JSON.stringify({ productId, quantity, size, color }) }),
     addDesign: (productId: number, variantId: number, designId: number, quantity: number) =>
       request('/cart', { method: 'POST', body: JSON.stringify({ productId, variantId, designId, quantity }) }),
     update: (itemId: string, quantity: number) =>
-      request(`/cart/${itemId}`, { method: 'PATCH', body: JSON.stringify({ quantity }) }),
+      request(`/cart/${itemId}`, { method: 'PUT', body: JSON.stringify({ quantity }) }),
     remove: (itemId: string) =>
       request(`/cart/${itemId}`, { method: 'DELETE' })
   },
   orders: {
-    list: (params?: { status?: string }) =>
-      request<{ success: boolean; data: any[] }>('/orders'),
+    list: (params?: { status?: string; page?: number; limit?: number }) => {
+      const qs = new URLSearchParams()
+      if (params?.status) qs.set('status', params.status)
+      if (params?.page !== undefined) qs.set('page', String(params.page))
+      if (params?.limit !== undefined) qs.set('limit', String(params.limit))
+      const s = qs.toString()
+      return request<{ success: boolean; data: { items: any[]; total: number; page: number; limit: number } }>(`/orders${s ? '?' + s : ''}`)
+    },
     get: (id: string) =>
       request<{ success: boolean; data: any }>(`/orders/${id}`),
     create: (data: any) =>
       request('/orders', { method: 'POST', body: JSON.stringify(data) })
   },
   auth: {
-    login: (email: string, password: string) =>
-      request('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
+    login: (email: string, password: string, rememberMe?: boolean) =>
+      request('/auth/login', { method: 'POST', body: JSON.stringify({ email, password, rememberMe }) }),
     register: (name: string, email: string, password: string) =>
-      request('/auth/register', { method: 'POST', body: JSON.stringify({ name, email, password }) })
+      request('/auth/register', { method: 'POST', body: JSON.stringify({ name, email, password }) }),
+    logout: (refreshToken: string) =>
+      request<{ success: boolean }>('/auth/logout', { method: 'POST', body: JSON.stringify({ refreshToken }) }),
+    logoutAll: () =>
+      request<{ success: boolean }>('/auth/logout-all', { method: 'POST' }),
+    refresh: (refreshToken: string) =>
+      request<{ success: boolean; data: { accessToken: string; refreshToken: string } }>('/auth/refresh', { method: 'POST', body: JSON.stringify({ refreshToken }) }),
+    changePassword: (oldPassword: string, newPassword: string) =>
+      request<{ success: boolean }>('/auth/change-password', { method: 'POST', body: JSON.stringify({ oldPassword, newPassword }) }),
+    sendPhoneCode: (phone: string) =>
+      request<{ success: boolean; data: { message: string } }>('/auth/phone/send-code', { method: 'POST', body: JSON.stringify({ phone }) }),
+    bindPhone: (phone: string, code: string) =>
+      request<{ success: boolean; data: { phone: string } }>('/auth/phone/bind', { method: 'POST', body: JSON.stringify({ phone, code }) }),
+    sessions: () =>
+      request<{ success: boolean; data: any[] }>('/auth/sessions')
   },
   user: {
     get: () => request<{ success: boolean; data: any }>('/auth/me'),
@@ -185,6 +290,10 @@ export const api = {
       request<{ success: boolean; data: DesignItem }>('/designs', { method: 'POST', body: JSON.stringify(data) }),
     update: (id: number, data: { productId: number; variantId?: number | null; name: string; canvasData: string; previewImage?: string | null }) =>
       request<{ success: boolean; data: { previewImage: string | null } | null }>(`/designs/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    togglePublic: (id: number) =>
+      request<{ success: boolean; data: { isPublic: boolean } }>(`/designs/${id}/public`, { method: 'PATCH' }),
+    listPublic: () =>
+      request<{ success: boolean; data: { items: DesignItem[] } }>('/designs'),
     remove: (id: number) =>
       request(`/designs/${id}`, { method: 'DELETE' })
   },
@@ -235,5 +344,24 @@ export const api = {
     },
     remove: (id: number) =>
       request(`/uploads/${id}`, { method: 'DELETE' })
+  },
+  favorites: {
+    list: () =>
+      request<{ success: boolean; data: { items: any[]; total: number } }>('/user/favorites'),
+    add: (productId: number) =>
+      request<{ success: boolean; data: any }>('/user/favorites', { method: 'POST', body: JSON.stringify({ productId }) }),
+    remove: (productId: number) =>
+      request<{ success: boolean; data: null }>(`/user/favorites/${productId}`, { method: 'DELETE' }),
+    check: (productId: number) =>
+      request<{ success: boolean; data: { favorited: boolean } }>(`/user/favorites/${productId}/check`)
   }
+}
+
+export async function performLogout(): Promise<void> {
+  const rt = getRefreshToken()
+  if (rt) {
+    try { await api.auth.logout(rt) } catch { /* ignore network errors */ }
+  }
+  clearAuth()
+  if (typeof window !== 'undefined') window.location.href = '/login'
 }

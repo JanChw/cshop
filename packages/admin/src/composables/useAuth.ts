@@ -17,38 +17,35 @@ export interface LoginData {
   permissions: string[]
 }
 
-const token = ref<string | null>(localStorage.getItem('cshop_admin_token'))
-const refreshToken = ref<string | null>(localStorage.getItem('cshop_admin_refresh'))
-const user = ref<User | null>(JSON.parse(localStorage.getItem('cshop_admin_user') || 'null'))
-const permissions = ref<string[]>(JSON.parse(localStorage.getItem('cshop_admin_permissions') || '[]'))
-const roleName = ref<string | null>(localStorage.getItem('cshop_admin_role'))
+const TOKEN_KEYS = ['cshop_admin_token', 'cshop_admin_refresh', 'cshop_admin_user', 'cshop_admin_permissions', 'cshop_admin_role'] as const
 
-function persist() {
-  if (token.value) {
-    localStorage.setItem('cshop_admin_token', token.value)
+function storageGet(key: string): string | null {
+  return sessionStorage.getItem(key) || localStorage.getItem(key)
+}
+
+function storageSet(key: string, value: string | null, remembered: boolean) {
+  const storage = remembered ? localStorage : sessionStorage
+  const other = remembered ? sessionStorage : localStorage
+  other.removeItem(key)
+  if (value !== null) {
+    storage.setItem(key, value)
   } else {
-    localStorage.removeItem('cshop_admin_token')
+    storage.removeItem(key)
   }
-  if (refreshToken.value) {
-    localStorage.setItem('cshop_admin_refresh', refreshToken.value)
-  } else {
-    localStorage.removeItem('cshop_admin_refresh')
-  }
-  if (user.value) {
-    localStorage.setItem('cshop_admin_user', JSON.stringify(user.value))
-  } else {
-    localStorage.removeItem('cshop_admin_user')
-  }
-  if (permissions.value.length) {
-    localStorage.setItem('cshop_admin_permissions', JSON.stringify(permissions.value))
-  } else {
-    localStorage.removeItem('cshop_admin_permissions')
-  }
-  if (roleName.value) {
-    localStorage.setItem('cshop_admin_role', roleName.value)
-  } else {
-    localStorage.removeItem('cshop_admin_role')
-  }
+}
+
+const token = ref<string | null>(storageGet('cshop_admin_token'))
+const refreshToken = ref<string | null>(storageGet('cshop_admin_refresh'))
+const user = ref<User | null>(JSON.parse(storageGet('cshop_admin_user') || 'null'))
+const permissions = ref<string[]>(JSON.parse(storageGet('cshop_admin_permissions') || '[]'))
+const roleName = ref<string | null>(storageGet('cshop_admin_role'))
+
+function persist(remembered = true) {
+  storageSet('cshop_admin_token', token.value, remembered)
+  storageSet('cshop_admin_refresh', refreshToken.value, remembered)
+  storageSet('cshop_admin_user', user.value ? JSON.stringify(user.value) : null, remembered)
+  storageSet('cshop_admin_permissions', permissions.value.length ? JSON.stringify(permissions.value) : null, remembered)
+  storageSet('cshop_admin_role', roleName.value, remembered)
 }
 
 export function useAuth() {
@@ -58,8 +55,8 @@ export function useAuth() {
     return permissions.value.includes(code)
   }
 
-  async function login(email: string, password: string) {
-    const res = await api.post<LoginData>('/auth/login', { email, password })
+  async function login(email: string, password: string, rememberMe = true) {
+    const res = await api.post<LoginData>('/auth/login', { email, password, rememberMe })
     if (!res.success || !res.data) {
       return { success: false as const, error: res.error || '登录失败' }
     }
@@ -69,7 +66,7 @@ export function useAuth() {
     user.value = d.user
     permissions.value = d.permissions
     roleName.value = d.roleName
-    persist()
+    persist(rememberMe)
     return { success: true as const }
   }
 
@@ -79,13 +76,13 @@ export function useAuth() {
     user.value = null
     permissions.value = []
     roleName.value = null
-    persist()
+    persist(true)
   }
 
   function getStoredTokens() {
     return {
-      token: localStorage.getItem('cshop_admin_token'),
-      refreshToken: localStorage.getItem('cshop_admin_refresh')
+      token: storageGet('cshop_admin_token'),
+      refreshToken: storageGet('cshop_admin_refresh')
     }
   }
 

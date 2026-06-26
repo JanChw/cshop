@@ -10,21 +10,23 @@
           取消
         </button>
         <button
-          v-if="currentStep === 1"
-          class="h-10 rounded bg-primary px-4 text-sm font-medium text-white hover:bg-primary/90 transition-colors disabled:opacity-50"
-          :disabled="saving"
-          @click="goToStep(2)"
-        >
-          {{ saving ? '保存中...' : '下一步' }}
-        </button>
-        <button
-          v-else
+          v-if="currentStep > 1"
           class="h-10 rounded border border-border px-4 text-sm font-medium text-text-primary hover:bg-gray-50 transition-colors"
-          @click="goToStep(1)"
+          :disabled="saving"
+          @click="goToStep(currentStep - 1)"
         >
           上一步
         </button>
         <button
+          v-if="currentStep < 3"
+          class="h-10 rounded bg-primary px-4 text-sm font-medium text-white hover:bg-primary/90 transition-colors disabled:opacity-50"
+          :disabled="saving"
+          @click="goToStep(currentStep + 1)"
+        >
+          {{ saving ? '保存中...' : '下一步' }}
+        </button>
+        <button
+          v-if="currentStep === 3"
           class="h-10 rounded bg-primary px-4 text-sm font-medium text-white hover:bg-primary/90 transition-colors disabled:opacity-50"
           :disabled="saving"
           @click="handleSave"
@@ -46,7 +48,7 @@
         <span
           class="text-sm font-medium"
           :class="currentStep >= 1 ? 'text-text-primary' : 'text-text-muted'"
-        >基本信息与规格选项</span>
+        >基本信息</span>
       </div>
       <div class="flex-1 h-px bg-border" />
       <div
@@ -60,6 +62,20 @@
         <span
           class="text-sm font-medium"
           :class="currentStep >= 2 ? 'text-text-primary' : 'text-text-muted'"
+        >底款设计图</span>
+      </div>
+      <div class="flex-1 h-px bg-border" />
+      <div
+        class="flex items-center gap-2 cursor-pointer"
+        @click="goToStep(3)"
+      >
+        <span
+          class="w-7 h-7 rounded-full flex items-center justify-center text-sm font-semibold transition-colors"
+          :class="currentStep >= 3 ? 'bg-primary text-white' : 'bg-border text-text-muted'"
+        >3</span>
+        <span
+          class="text-sm font-medium"
+          :class="currentStep >= 3 ? 'text-text-primary' : 'text-text-muted'"
         >规格管理</span>
       </div>
     </div>
@@ -238,7 +254,9 @@
         </div>
       </div>
 
-      <div v-show="currentStep === 1 && isBaseProduct" class="bg-card border border-border rounded-md px-6 py-5 flex flex-col gap-4">
+
+
+      <div v-show="currentStep === 2" class="bg-card border border-border rounded-md px-6 py-5 flex flex-col gap-4">
         <div>
           <h2 class="text-base font-semibold text-text-primary">底款设计图</h2>
           <p class="text-xs text-text-muted mt-1">上传原始设计图，系统将自动去除背景并生成遮罩</p>
@@ -248,30 +266,36 @@
             <span class="text-xs font-medium text-text-muted">原始图片（可上传/删除）</span>
             <div
               class="w-[160px] h-[160px] rounded border border-dashed border-primary bg-background flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-gray-100 transition-colors relative group"
+              @click="triggerBaseDesignInput"
             >
               <img
                 v-if="baseDesign?.originalImage"
                 :src="baseDesign.originalImage"
                 class="absolute inset-0 w-full h-full object-cover rounded"
               />
-              <template v-if="!baseDesign?.originalImage">
+              <template v-if="!baseDesign?.originalImage && !pendingBaseDesignFile">
                 <span class="text-2xl text-text-muted">+</span>
                 <span class="text-xs text-text-muted">上传图片</span>
               </template>
+              <template v-else-if="pendingBaseDesignFile">
+                <span class="text-xs text-text-muted">已选择文件</span>
+                <span class="text-xs text-primary font-medium">{{ pendingBaseDesignFile.name }}</span>
+              </template>
               <button
-                v-if="baseDesign?.originalImage"
-                class="absolute top-1 right-1 w-6 h-6 rounded bg-black/50 text-white text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                @click.stop="removeBaseDesign"
+                v-if="baseDesign?.originalImage || pendingBaseDesignFile"
+                class="absolute top-1 right-1 w-6 h-6 rounded bg-black/50 text-white text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                @click.stop="removeBaseDesignImage"
               >
                 ×
               </button>
-              <input
-                type="file"
-                accept="image/*"
-                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                @change="handleBaseDesignUpload"
-              />
             </div>
+            <input
+              ref="baseDesignInputRef"
+              type="file"
+              accept="image/*"
+              class="hidden"
+              @change="onBaseDesignFileSelected"
+            />
           </div>
           <div class="flex flex-col gap-2">
             <span class="text-xs font-medium text-text-muted">去除背景图（只读）</span>
@@ -300,9 +324,21 @@
             </div>
           </div>
         </div>
+        <div v-if="uploadingBaseDesign" class="flex flex-col gap-2">
+          <div class="flex items-center gap-3">
+            <div class="flex-1 h-2 rounded-full bg-border overflow-hidden">
+              <div
+                class="h-full rounded-full bg-primary transition-all duration-300"
+                :style="{ width: baseDesignProgress + '%' }"
+              />
+            </div>
+            <span class="text-xs text-text-muted w-10 text-right">{{ baseDesignProgress }}%</span>
+          </div>
+          <p class="text-xs text-text-muted">正在处理底款设计图（去除背景 + 生成遮罩）...</p>
+        </div>
       </div>
 
-      <div v-show="currentStep === 2" class="bg-card border border-border rounded-md px-6 py-5 flex flex-col gap-4">
+      <div v-show="currentStep === 3" class="bg-card border border-border rounded-md px-6 py-5 flex flex-col gap-4">
         <div>
           <h2 class="text-base font-semibold text-text-primary">规格管理</h2>
           <p class="text-sm text-text-muted mt-1">添加规格可让商品支持多种组合（如尺码、颜色）</p>
@@ -650,14 +686,18 @@ const form = reactive({
   description: '',
 })
 
-const isBaseProduct = computed(() => true)
-
 const images = ref<(string | null)[]>([null, null, null])
 const imageFiles = ref<(File | null)[]>([null, null, null])
-const baseDesign = ref<{ originalImage: string; frontImage: string; maskImage: string } | null>(null)
+const baseDesign = ref<{ originalImage: string | null; frontImage: string | null; maskImage: string | null } | null>(null)
 const categories = ref<{ id: number; name: string }[]>([])
 const saving = ref(false)
 const originalVariantIds = ref(new Set<number>())
+const pendingBaseDesignFile = ref<File | null>(null)
+const baseDesignProgress = ref(0)
+const uploadingBaseDesign = ref(false)
+const baseDesignInputRef = ref<HTMLInputElement | null>(null)
+let baseDesignXhr: XMLHttpRequest | null = null
+let pendingBaseDesignUpload: Promise<boolean> | null = null
 
 async function loadCategories() {
   const res = await api.get<{ items: { id: number; name: string }[] }>('/categories')
@@ -743,32 +783,86 @@ function removeImage(index: number) {
   imageFiles.value[index] = null
 }
 
-async function handleBaseDesignUpload(event: Event) {
+function triggerBaseDesignInput() {
+  baseDesignInputRef.value?.click()
+}
+
+function onBaseDesignFileSelected(event: Event) {
   const input = event.target as HTMLInputElement
   const file = input.files?.[0]
   if (!file) return
   input.value = ''
 
-  const fd = new FormData()
-  fd.append('file', file)
-  const res = await api.upload<{
-    originalImage: string
-    frontImage: string
-    maskImage: string
-  }>(`/admin/products/${route.params.id}/base-design`, fd)
-  if (res.success && res.data) {
-    baseDesign.value = res.data
-  } else {
-    toast.error(res.error || '底款设计图上传失败')
-  }
+  baseDesignXhr?.abort()
+
+  pendingBaseDesignFile.value = file
+  pendingBaseDesignUpload = uploadBaseDesign()
 }
 
-async function removeBaseDesign() {
-  const res = await api.delete(`/admin/products/${route.params.id}/base-design`)
-  if (res.success) {
-    baseDesign.value = null
-  } else {
-    toast.error(res.error || '删除失败')
+function uploadBaseDesign(): Promise<boolean> {
+  return new Promise((resolve) => {
+    const file = pendingBaseDesignFile.value
+    if (!file) { resolve(true); return }
+
+    const fd = new FormData()
+    fd.append('file', file)
+
+    const xhr = new XMLHttpRequest()
+    baseDesignXhr = xhr
+    xhr.open('POST', `/api/v1/admin/products/${route.params.id}/base-design`)
+
+    const token = localStorage.getItem('cshop_admin_token')
+    if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) {
+        baseDesignProgress.value = Math.round((e.loaded / e.total) * 100)
+      }
+    }
+
+    xhr.onabort = () => {
+      uploadingBaseDesign.value = false
+    }
+
+    xhr.onload = () => {
+      uploadingBaseDesign.value = false
+      try {
+        const json = JSON.parse(xhr.responseText)
+        if (json.success && json.data) {
+          baseDesign.value = json.data
+          pendingBaseDesignFile.value = null
+          baseDesignProgress.value = 100
+          resolve(true)
+        } else {
+          toast.error(json.error || '底款设计图上传失败')
+          resolve(false)
+        }
+      } catch {
+        toast.error('解析响应失败')
+        resolve(false)
+      }
+    }
+
+    xhr.onerror = () => {
+      uploadingBaseDesign.value = false
+      toast.error('底款设计图上传失败')
+      resolve(false)
+    }
+
+    uploadingBaseDesign.value = true
+    baseDesignProgress.value = 0
+    xhr.send(fd)
+  })
+}
+
+function removeBaseDesignImage() {
+  baseDesignXhr?.abort()
+  pendingBaseDesignFile.value = null
+  pendingBaseDesignUpload = null
+  if (baseDesign.value?.originalImage) {
+    api.delete(`/admin/products/${route.params.id}/base-design`).then(res => {
+      if (res.success) baseDesign.value = null
+    })
   }
 }
 
@@ -813,10 +907,19 @@ async function saveStep1(): Promise<number | null> {
 }
 
 async function handleSave() {
+  if (variants.value.length === 0) {
+    toast.info('请至少添加一个规格')
+    return
+  }
   saving.value = true
   try {
     const productId = await saveStep1()
     if (productId == null) return
+
+    if (pendingBaseDesignUpload) {
+      const ok = await pendingBaseDesignUpload
+      if (!ok) { saving.value = false; return }
+    }
 
     for (let i = 0; i < imageFiles.value.length; i++) {
       if (imageFiles.value[i]) {
@@ -855,7 +958,6 @@ async function handleSave() {
 
     toast.success(isEdit.value ? '商品已更新' : '商品已创建')
     if (!isEdit.value) {
-      // 新建完成后跳转到编辑页，方便继续管理规格
       router.replace(`/products/${productId}/edit`)
     } else {
       router.back()
@@ -867,21 +969,41 @@ async function handleSave() {
   }
 }
 
-const currentStep = ref<1 | 2>(Number(route.query.step) === 2 ? 2 : 1)
+const currentStep = ref<1 | 2 | 3>(
+  Number(route.query.step) === 2 ? 2 :
+  Number(route.query.step) === 3 ? 3 :
+  1
+)
 const activeOptionTab = ref<OptionType>('size')
 
-async function goToStep(n: 1 | 2) {
-  if (n === 2) {
-    saving.value = true
-    const pid = await saveStep1()
-    saving.value = false
-    if (pid == null) return
-    if (!isEdit.value) {
-      router.replace(`/products/${pid}/edit?step=2`)
-      return
+async function goToStep(n: number) {
+  if (n < 1 || n > 3) return
+  if (n > currentStep.value) {
+    if (currentStep.value === 1) {
+      const hasOptions = Object.values(productOptions).some(
+        items => items.some(o => !o.isDeleted)
+      )
+      if (!hasOptions) {
+        toast.info('请至少添加一个规格值（如尺寸、颜色）')
+        return
+      }
+      saving.value = true
+      const pid = await saveStep1()
+      saving.value = false
+      if (pid == null) return
+      if (!isEdit.value) {
+        router.replace(`/products/${pid}/edit?step=2`)
+        return
+      }
+    }
+    if (currentStep.value === 2 && pendingBaseDesignUpload) {
+      saving.value = true
+      const ok = await pendingBaseDesignUpload
+      saving.value = false
+      if (!ok) return
     }
   }
-  currentStep.value = n
+  currentStep.value = n as 1 | 2 | 3
 }
 
 type OptionType = 'size' | 'color' | 'material' | 'weight'

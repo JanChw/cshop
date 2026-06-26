@@ -2,7 +2,7 @@ import { getBool, getSetting } from './settings'
 import { config } from '../config'
 import nodemailer from 'nodemailer'
 
-export type NotificationEvent = 'new_order' | 'stock_alert' | 'user_register'
+export type NotificationEvent = 'new_order' | 'stock_alert' | 'user_register' | 'verification'
 
 export type NotificationChannel = 'email' | 'sms' | 'none'
 

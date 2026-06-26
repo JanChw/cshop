@@ -48,6 +48,18 @@ export default function MyDesigns() {
     }
   }
 
+  const togglePublic = async (e: MouseEvent, id: number) => {
+    e.preventDefault()
+    e.stopPropagation()
+    try {
+      const res = await api.designs.togglePublic(id)
+      setItems(items().map(i => i.id === id ? { ...i, isPublic: res.data.isPublic } : i))
+      showToast(res.data.isPublic ? '已设为公开' : '已设为私有')
+    } catch {
+      showToast('操作失败')
+    }
+  }
+
   const fmtDate = (s: string) => {
     try {
       const d = new Date(s)
@@ -127,6 +139,16 @@ export default function MyDesigns() {
                             class="w-full h-full"
                           />
                         </Show>
+                        <button
+                          type="button"
+                          onClick={(e) => togglePublic(e, item.id)}
+                          class="absolute top-2 right-2 p-1.5 rounded-full bg-surface/60 backdrop-blur-md text-sm transition-colors tap-target z-10 hover:bg-surface"
+                          aria-label={item.isPublic ? '设为私有' : '设为公开'}
+                        >
+                          <span class={`material-symbols-outlined text-base ${item.isPublic ? 'text-primary' : 'text-on-surface-variant'}`}>
+                            {item.isPublic ? 'public' : 'lock'}
+                          </span>
+                        </button>
                       </a>
                       <div class="p-3 flex justify-between items-start gap-2">
                         <div class="flex-1 min-w-0">

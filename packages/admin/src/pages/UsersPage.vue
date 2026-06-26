@@ -42,11 +42,15 @@
           <span class="w-[180px] text-xs font-semibold text-text-muted text-center">注册时间</span>
           <span class="w-[100px] text-xs font-semibold text-text-muted text-center">操作</span>
         </div>
-        <div
-          v-for="user in paginatedUsers"
-          :key="user.id"
-          class="flex items-center px-4 h-[52px] border-b border-border"
-        >
+        <div v-if="loading" class="flex items-center justify-center h-40">
+          <div class="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+        <template v-else>
+          <div
+            v-for="user in paginatedUsers"
+            :key="user.id"
+            class="flex items-center px-4 h-[52px] border-b border-border"
+          >
           <span class="w-[50px] text-sm text-text-primary text-center">{{ user.id }}</span>
           <span class="w-[140px] text-sm text-text-primary font-medium text-center">{{ user.name }}</span>
           <span class="flex-1 text-sm text-text-primary text-center font-mono">{{ user.email }}</span>
@@ -65,7 +69,8 @@
               <component :is="user.status === 'disabled' ? CheckCircle2 : Ban" :size="14" />
             </button>
           </div>
-        </div>
+          </div>
+        </template>
         <div v-if="!loading && paginatedUsers.length === 0" class="flex items-center justify-center h-40 text-sm text-text-muted">
           暂无用户
         </div>

@@ -83,7 +83,7 @@
                   <span class="text-sm font-medium text-text-primary">修改密码</span>
                   <span class="text-xs text-text-muted">定期修改密码以保障账户安全</span>
                 </div>
-                <button class="h-9 rounded border border-border px-4 text-sm font-medium text-text-primary hover:bg-gray-50 transition-colors">
+                <button class="h-9 rounded border border-border px-4 text-sm font-medium text-text-primary hover:bg-gray-50 transition-colors" @click="showChangePassword = true">
                   修改
                 </button>
               </div>
@@ -166,7 +166,7 @@
               <div class="flex items-center py-3 border-b border-border gap-6">
                 <div class="flex flex-col gap-0.5 shrink-0 min-w-[240px]">
                   <span class="text-sm font-medium text-text-primary">会话超时</span>
-                  <span class="text-xs text-text-muted">超过指定时间未操作将自动退出登录</span>
+                  <span class="text-xs text-text-muted">访问令牌过期时间，超过需刷新</span>
                 </div>
                 <div class="flex items-center gap-2">
                   <select
@@ -189,6 +189,37 @@
                   <div
                     class="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform"
                     :class="localLocks.sessionTimeout ? 'translate-x-4.5' : 'translate-x-0.5'"
+                  />
+                </div>
+              </div>
+
+              <div class="flex items-center py-3 border-b border-border gap-6">
+                <div class="flex flex-col gap-0.5 shrink-0 min-w-[240px]">
+                  <span class="text-sm font-medium text-text-primary">刷新令牌有效期</span>
+                  <span class="text-xs text-text-muted">超过此期限需重新登录</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <select
+                    v-model="securityForm.refreshTokenTtl"
+                    :disabled="!localLocks.refreshTokenTtl"
+                    class="w-[140px] h-9 rounded border border-border px-3 text-sm text-text-primary bg-white outline-none appearance-none cursor-pointer disabled:bg-gray-50 disabled:text-text-muted"
+                  >
+                    <option value="1">1 天</option>
+                    <option value="3">3 天</option>
+                    <option value="7">7 天</option>
+                    <option value="14">14 天</option>
+                    <option value="30">30 天</option>
+                  </select>
+                </div>
+                <div
+                  class="ml-auto w-10 h-6 rounded-full cursor-pointer transition-colors relative"
+                  :class="localLocks.refreshTokenTtl ? 'bg-primary' : 'bg-gray-300'"
+                  :title="localLocks.refreshTokenTtl ? '点击锁定' : '点击解锁以编辑'"
+                  @click="localLocks.refreshTokenTtl = !localLocks.refreshTokenTtl"
+                >
+                  <div
+                    class="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform"
+                    :class="localLocks.refreshTokenTtl ? 'translate-x-4.5' : 'translate-x-0.5'"
                   />
                 </div>
               </div>
@@ -370,11 +401,54 @@
       </div>
     </div>
   </div>
+
+  <Teleport to="body">
+    <Transition name="modal">
+      <div v-if="showChangePassword" class="fixed inset-0 z-50 flex items-center justify-center" @click.self="showChangePassword = false">
+        <div class="absolute inset-0 bg-black/50" />
+        <div class="relative bg-white rounded-lg w-[480px] shadow-lg flex flex-col">
+          <div class="flex items-center justify-between px-6 py-5 border-b border-border">
+            <h2 class="text-base font-semibold text-text-primary">修改密码</h2>
+            <button class="rounded p-1 text-text-muted hover:text-text-primary transition-colors" @click="showChangePassword = false">
+              <X :size="18" />
+            </button>
+          </div>
+          <div class="px-6 py-6 flex flex-col gap-5">
+            <div v-if="pwError" class="rounded-lg bg-red-500/10 border border-red-500/30 px-3 py-2 text-sm text-red-400">
+              {{ pwError }}
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <label class="text-sm font-medium text-text-primary">当前密码</label>
+              <input v-model="pwForm.oldPassword" type="password" placeholder="输入当前密码"
+                class="h-9 rounded border border-border px-3 text-sm text-text-primary placeholder:text-text-muted outline-none focus:border-primary transition-colors" />
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <label class="text-sm font-medium text-text-primary">新密码</label>
+              <input v-model="pwForm.newPassword" type="password" placeholder="至少 6 位"
+                class="h-9 rounded border border-border px-3 text-sm text-text-primary placeholder:text-text-muted outline-none focus:border-primary transition-colors" />
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <label class="text-sm font-medium text-text-primary">确认新密码</label>
+              <input v-model="pwForm.confirmPassword" type="password" placeholder="再次输入新密码"
+                class="h-9 rounded border border-border px-3 text-sm text-text-primary placeholder:text-text-muted outline-none focus:border-primary transition-colors" />
+            </div>
+          </div>
+          <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-border">
+            <button class="rounded px-4 py-2 text-sm font-medium text-text-primary border border-border hover:bg-gray-50 transition-colors" @click="showChangePassword = false">取消</button>
+            <button class="rounded px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary/90 transition-colors flex items-center gap-2 disabled:opacity-50" :disabled="pwSaving" @click="handleChangePassword">
+              <span v-if="pwSaving" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              {{ pwSaving ? '保存中...' : '确认修改' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { Check, RotateCcw, Mail } from 'lucide-vue-next'
+import { Check, RotateCcw, Mail, X } from 'lucide-vue-next'
 import { api } from '@/utils/api'
 import { useToast } from '@/composables/useToast'
 
@@ -398,7 +472,8 @@ const securityForm = reactive({
   loginLock: true,
   maxAttempts: 3,
   lockMinutes: 30,
-  sessionTimeout: '30',
+  sessionTimeout: '15',
+  refreshTokenTtl: '7',
   ipWhitelist: false,
   minPasswordLength: 8,
 })
@@ -407,6 +482,7 @@ const localLocks = reactive({
   maxAttempts: false,
   lockMinutes: false,
   sessionTimeout: false,
+  refreshTokenTtl: false,
   minPasswordLength: false,
 })
 
@@ -418,6 +494,46 @@ const notifyForm = reactive({
   smsNotify: false,
   notifyEmail: 'admin@cshop.com',
 })
+
+const showChangePassword = ref(false)
+const pwSaving = ref(false)
+const pwError = ref('')
+const pwForm = reactive({
+  oldPassword: '',
+  newPassword: '',
+  confirmPassword: '',
+})
+
+async function handleChangePassword() {
+  pwError.value = ''
+  if (!pwForm.oldPassword || !pwForm.newPassword || !pwForm.confirmPassword) {
+    pwError.value = '请填写所有字段'
+    return
+  }
+  if (pwForm.newPassword.length < 6) {
+    pwError.value = '新密码至少 6 位'
+    return
+  }
+  if (pwForm.newPassword !== pwForm.confirmPassword) {
+    pwError.value = '两次输入的新密码不一致'
+    return
+  }
+  pwSaving.value = true
+  const res = await api.post('/auth/change-password', {
+    oldPassword: pwForm.oldPassword,
+    newPassword: pwForm.newPassword,
+  })
+  pwSaving.value = false
+  if (res.success) {
+    toastSuccess('密码修改成功')
+    showChangePassword.value = false
+    pwForm.oldPassword = ''
+    pwForm.newPassword = ''
+    pwForm.confirmPassword = ''
+  } else {
+    pwError.value = res.error || '修改失败，请检查当前密码'
+  }
+}
 
 async function fetchSettings() {
   const res = await api.get<Record<string, string>>('/admin/settings')
@@ -433,6 +549,7 @@ async function fetchSettings() {
     if (d.login_max_attempts !== undefined) securityForm.maxAttempts = Number(d.login_max_attempts)
     if (d.login_lock_minutes !== undefined) securityForm.lockMinutes = Number(d.login_lock_minutes)
     if (d.session_timeout !== undefined) securityForm.sessionTimeout = d.session_timeout
+    if (d.refresh_token_ttl !== undefined) securityForm.refreshTokenTtl = d.refresh_token_ttl
     if (d.ip_whitelist !== undefined) securityForm.ipWhitelist = d.ip_whitelist === 'true'
     if (d.min_password_length !== undefined) securityForm.minPasswordLength = Number(d.min_password_length)
 
@@ -469,6 +586,7 @@ async function saveSecuritySettings() {
     login_max_attempts: String(securityForm.maxAttempts),
     login_lock_minutes: String(securityForm.lockMinutes),
     session_timeout: securityForm.sessionTimeout,
+    refresh_token_ttl: securityForm.refreshTokenTtl,
     ip_whitelist: String(securityForm.ipWhitelist),
     min_password_length: String(securityForm.minPasswordLength),
   })

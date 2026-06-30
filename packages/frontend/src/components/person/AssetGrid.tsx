@@ -142,7 +142,7 @@ export default function AssetGrid() {
         <div class="relative">
           <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">search</span>
           <input
-            class="w-full bg-surface border border-outline-variant rounded-lg py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors placeholder:text-on-surface-variant"
+            class="w-full bg-surface border border-outline-variant rounded-lg py-3 pl-12 pr-4 outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-colors placeholder:text-on-surface-variant"
             placeholder="查找素材名称..."
             type="text"
             value={search()}

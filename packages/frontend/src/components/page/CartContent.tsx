@@ -229,8 +229,8 @@ export default function CartContent() {
 
           {items().map((item) => (
             <div class="bg-surface-container-lowest p-stack-md rounded-lg border border-outline-variant flex gap-4 transition-shadow transition-transform hover:shadow-card hover:-translate-y-0.5">
-              <div class="w-24 h-30 flex-shrink-0">
-                <ProductImage src={item.image} alt={item.name} aspect="aspect-[4/5]" rounded="rounded-lg" fallbackLabel={item.name} />
+              <div class="w-28 flex-shrink-0 self-stretch">
+                <ProductImage src={item.image} alt={item.name} aspect="h-full" rounded="rounded-lg" fallbackLabel={item.name} />
               </div>
               <div class="flex-grow flex flex-col justify-between min-w-0">
                 <div>
@@ -238,7 +238,7 @@ export default function CartContent() {
                     <h3 class="text-body-lg text-on-surface truncate">{item.name}</h3>
                     <button
                       type="button"
-                      class="tap-target flex items-center justify-center text-red-500 hover:text-red-600 transition-colors shrink-0"
+                      class="tap-target flex items-center justify-center text-error hover:text-error/80 transition-colors shrink-0"
                       onClick={() => setRemoveTarget(item.id)}
                       aria-label="移除商品"
                     >

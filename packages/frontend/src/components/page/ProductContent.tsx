@@ -255,7 +255,7 @@ export default function ProductContent() {
                 <span class="bg-primary-container text-primary text-label-md px-2 py-1 rounded">可定制</span>
               )}
               {p().tags?.map(tag => (
-                <span class="bg-accent text-on-accent text-label-md px-2 py-1 rounded">{tag}</span>
+                <span class="bg-accent-container text-on-accent-container text-label-md font-bold px-2 py-1 rounded">{tag}</span>
               ))}
             </div>
             <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-surface mb-2">{p().name}</h2>

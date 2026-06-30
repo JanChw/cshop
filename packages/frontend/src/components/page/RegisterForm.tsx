@@ -93,7 +93,7 @@ export default function RegisterForm() {
                 <input
                   id="reg-name"
                   type="text"
-                  class={`w-full px-4 py-3 bg-surface rounded-lg border outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200 text-on-surface placeholder:text-outline ${errors().name ? 'border-error' : 'border-outline-variant'}`}
+                  class={`w-full px-4 py-3 bg-surface rounded-lg border outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-colors duration-200 text-on-surface placeholder:text-outline ${errors().name ? 'border-error' : 'border-outline-variant'}`}
                   placeholder="您的称呼"
                   value={name()}
                   onInput={(e) => { setName(e.currentTarget.value); setErrors((prev) => ({ ...prev, name: '' })) }}
@@ -106,7 +106,7 @@ export default function RegisterForm() {
                 <input
                   id="reg-email"
                   type="text"
-                  class={`w-full px-4 py-3 bg-surface rounded-lg border outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200 text-on-surface placeholder:text-outline ${errors().email ? 'border-error' : 'border-outline-variant'}`}
+                  class={`w-full px-4 py-3 bg-surface rounded-lg border outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-colors duration-200 text-on-surface placeholder:text-outline ${errors().email ? 'border-error' : 'border-outline-variant'}`}
                   placeholder="example@chooow.com"
                   value={email()}
                   onInput={(e) => { setEmail(e.currentTarget.value); setErrors((prev) => ({ ...prev, email: '' })) }}
@@ -119,7 +119,7 @@ export default function RegisterForm() {
                 <input
                   id="reg-password"
                   type={showPassword() ? 'text' : 'password'}
-                  class={`w-full px-4 py-3 bg-surface rounded-lg border outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200 text-on-surface placeholder:text-outline ${errors().password ? 'border-error' : 'border-outline-variant'}`}
+                  class={`w-full px-4 py-3 bg-surface rounded-lg border outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-colors duration-200 text-on-surface placeholder:text-outline ${errors().password ? 'border-error' : 'border-outline-variant'}`}
                   placeholder="至少 8 位字符"
                   value={password()}
                   onInput={(e) => { setPassword(e.currentTarget.value); setErrors((prev) => ({ ...prev, password: '' })) }}
@@ -140,7 +140,7 @@ export default function RegisterForm() {
                 <input
                   id="reg-confirm"
                   type="password"
-                  class={`w-full px-4 py-3 bg-surface rounded-lg border outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200 text-on-surface placeholder:text-outline ${errors().confirmPassword ? 'border-error' : 'border-outline-variant'}`}
+                  class={`w-full px-4 py-3 bg-surface rounded-lg border outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-colors duration-200 text-on-surface placeholder:text-outline ${errors().confirmPassword ? 'border-error' : 'border-outline-variant'}`}
                   placeholder="再次输入密码"
                   value={confirmPassword()}
                   onInput={(e) => { setConfirmPassword(e.currentTarget.value); setErrors((prev) => ({ ...prev, confirmPassword: '' })) }}

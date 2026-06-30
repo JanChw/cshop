@@ -23,7 +23,7 @@ export default function ProductSelector(props: Props) {
   })
 
   return (
-    <section class="mt-6 mb-12">
+    <section class="space-y-3">
       <Show
         when={!products.loading}
         fallback={

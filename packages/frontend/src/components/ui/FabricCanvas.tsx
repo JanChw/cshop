@@ -38,6 +38,7 @@ export interface CanvasAPI {
   toJSON: () => any
   toDataURL: (opts?: { width?: number; height?: number; format?: 'png' | 'jpeg' }) => string
   loadJSON: (json: any, scale?: number) => Promise<void>
+  getInternalWidth: () => number
   isEmpty: () => boolean
   hasActiveObject: () => boolean
   getDrawingCount: () => number
@@ -473,6 +474,10 @@ export default function FabricCanvas(props: Props) {
       toJSON: () => {
         if (!fabricCanvas) return null
         return fabricCanvas.toObject(['data'])
+      },
+      getInternalWidth: () => {
+        if (!fabricCanvas) return 0
+        return fabricCanvas.getWidth()
       },
       toDataURL: (opts) => {
         if (!fabricCanvas) return ''

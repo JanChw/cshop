@@ -31,8 +31,8 @@ function HeroSection(props: SectionRendererProps) {
       </div>
       <div class="relative container-content h-full flex flex-col justify-end md:justify-center pb-10 md:pb-0 md:min-h-[320px]">
         <div class="md:max-w-[45%]">
-          <p class="text-label-md text-red-500 mb-3 tracking-wider uppercase">{props.section.title}</p>
-          <h2 class="font-headline text-headline-lg-mobile md:text-headline-lg text-on-surface mb-5 md:mb-6 leading-[1.1]">{props.section.subTitle}</h2>
+          <p class="text-label-md text-accent font-medium mb-3">{props.section.title}</p>
+          <h1 class="font-headline text-headline-lg-mobile md:text-headline-lg text-on-surface mb-5 md:mb-6 leading-[1.1]">{props.section.subTitle}</h1>
           <div class="flex flex-col sm:flex-row gap-stack-sm">
             <a href="/design" class="bg-primary text-on-primary px-8 py-3.5 rounded-lg font-bold text-center hover:scale-[1.03] transition-transform duration-300 tap-target flex items-center justify-center">开始设计</a>
             <a href="/shop" class="bg-surface-container-high border border-outline-variant text-on-surface px-8 py-3.5 rounded-lg font-bold text-center hover:bg-surface-variant hover:scale-[1.03] transition-colors transition-transform duration-300 tap-target flex items-center justify-center">探索商店</a>
@@ -49,8 +49,8 @@ function VideosSection(props: SectionRendererProps) {
   return (
     <section class="mt-16 container-content">
       <div class="mb-stack-md">
-        <p class="text-label-md text-red-500 tracking-wider uppercase mb-1 border-l-2 border-l-accent pl-2">{props.section.title}</p>
-        <h3 class="font-headline text-title-md text-on-surface">{props.section.subTitle}</h3>
+        <p class="text-label-md text-on-surface-variant font-semibold mb-1">{props.section.title}</p>
+        <h2 class="font-headline text-title-md text-on-surface">{props.section.subTitle}</h2>
       </div>
       <div class="flex flex-col md:grid md:grid-cols-2 gap-gutter">
         <For each={videos()}>
@@ -63,7 +63,7 @@ function VideosSection(props: SectionRendererProps) {
                 </div>
                 <span class="absolute bottom-2 right-2 bg-black/60 text-white text-label-md px-2 py-0.5 rounded">{video.duration}</span>
               </div>
-              <h4 class="text-body-lg text-on-surface">{video.title}</h4>
+              <h3 class="text-body-lg text-on-surface">{video.title}</h3>
               <p class="text-label-md text-primary mt-1">立即观看</p>
             </div>
           )}
@@ -81,13 +81,13 @@ function ProductRowSection(props: SectionRendererProps) {
       <section class="mt-stack-lg bg-surface-container-low -mx-container-margin px-container-margin md:mx-0 md:px-0 md:rounded-xl py-stack-lg">
         <div class="flex justify-between items-end mb-stack-md">
           <div>
-            <h3 class="font-headline text-title-md text-red-500 border-l-2 border-l-accent pl-2">{props.section.title}</h3>
+            <p class="text-label-md text-on-surface-variant font-semibold mb-1">{props.section.title}</p>
             <Show when={props.section.subTitle}>
-              <p class="text-body-sm text-on-surface-variant mt-1">{props.section.subTitle}</p>
+              <h2 class="font-headline text-title-md text-on-surface">{props.section.subTitle}</h2>
             </Show>
           </div>
           <a href="/shop" class="text-on-surface-variant font-medium flex items-center gap-1 hover:text-primary transition-colors tap-target text-label-md">
-            全部 <span class="material-symbols-outlined text-base text-red-500">arrow_forward</span>
+            全部 <span class="material-symbols-outlined text-base text-on-surface-variant">arrow_forward</span>
           </a>
         </div>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-gutter">
@@ -120,9 +120,9 @@ function CardGridSection(props: SectionRendererProps) {
   return (
     <section class="mt-16 container-content">
       <div class="mb-stack-md">
-        <p class="text-label-md text-red-500 tracking-wider uppercase mb-1 border-l-2 border-l-accent pl-2">{props.section.title}</p>
+        <p class="text-label-md text-on-surface-variant font-semibold mb-1">{props.section.title}</p>
         <Show when={props.section.subTitle}>
-          <h3 class="font-headline text-title-md text-on-surface">{props.section.subTitle}</h3>
+          <h2 class="font-headline text-title-md text-on-surface">{props.section.subTitle}</h2>
         </Show>
       </div>
       <Show when={first()}>
@@ -133,7 +133,7 @@ function CardGridSection(props: SectionRendererProps) {
               <Show when={first().subtitle}>
                 <span class="inline-block bg-primary/90 backdrop-blur-sm text-on-primary text-label-md px-3 py-1 rounded-full mb-3 w-fit group-hover:scale-110 transition-transform duration-200">{first().subtitle}</span>
               </Show>
-              <h4 class="text-on-surface font-headline text-headline-lg group-hover:translate-y-[-2px] transition-transform duration-200" style="text-shadow: 0 2px 6px rgba(0,0,0,0.85)">{first().title}</h4>
+              <h3 class="text-on-surface font-headline text-headline-lg group-hover:translate-y-[-2px] transition-transform duration-200 text-shadow-overlay">{first().title}</h3>
             </div>
           </a>
           <For each={rest()}>
@@ -141,7 +141,7 @@ function CardGridSection(props: SectionRendererProps) {
               <a href={item.productId ? `/products/${item.productId}` : '/shop'} class="relative rounded-lg overflow-hidden group aspect-[3/4] md:aspect-auto">
                 <ProductImage src={item.cover} alt={item.title || ''} aspect="aspect-square" rounded="rounded-lg" fallbackLabel={item.title} class="absolute inset-0 w-full h-full object-cover group-hover:opacity-75 transition-opacity duration-200" />
                 <div class="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent flex flex-col justify-end p-4 md:p-6">
-                  <h4 class="text-on-surface font-headline text-title-md group-hover:translate-y-[-2px] transition-transform duration-200" style="text-shadow: 0 1px 3px rgba(0,0,0,0.8)">{item.title}</h4>
+                  <h3 class="text-on-surface font-headline text-title-md group-hover:translate-y-[-2px] transition-transform duration-200 text-shadow-overlay">{item.title}</h3>
                 </div>
               </a>
             )}
@@ -158,9 +158,9 @@ function DesignerGridSection(props: SectionRendererProps) {
   return (
     <section class="mt-stack-lg mb-12 container-content">
       <div class="mb-stack-md">
-        <p class="text-label-md text-red-500 tracking-wider uppercase mb-1 border-l-2 border-l-accent pl-2">{props.section.title}</p>
+        <p class="text-label-md text-on-surface-variant font-semibold mb-1">{props.section.title}</p>
         <Show when={props.section.subTitle}>
-          <h3 class="font-headline text-title-md text-on-surface">{props.section.subTitle}</h3>
+          <h2 class="font-headline text-title-md text-on-surface">{props.section.subTitle}</h2>
         </Show>
       </div>
       <ScrollRow class="flex md:grid md:grid-cols-3 overflow-x-auto hide-scrollbar gap-gutter">
@@ -169,12 +169,12 @@ function DesignerGridSection(props: SectionRendererProps) {
             <div class="flex-none w-[min(64vw,280px)] md:w-auto">
               <a href={item.productId ? `/products/${item.productId}` : '/shop?category=Designer'} class="block relative rounded-lg overflow-hidden group">
                 <div class="aspect-[3/4] overflow-hidden">
-                  <span class="absolute top-3 right-3 bg-accent text-on-accent text-label-md px-2.5 py-1 rounded-full z-10 group-hover:scale-110 transition-transform duration-300">限定</span>
+                  <span class="absolute top-3 right-3 bg-accent-container text-on-accent-container text-label-md font-bold px-2.5 py-1 rounded-full z-10 group-hover:scale-110 transition-transform duration-300">限定</span>
                   <ProductImage src={item.cover} alt={item.name || ''} aspect="aspect-[3/4]" rounded="rounded-none" fallbackLabel={item.name} class="absolute inset-0 w-full h-full object-cover group-hover:opacity-75 transition-opacity duration-200" />
                   <div class="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent flex flex-col justify-end p-4">
-                    <h5 class="text-on-surface font-headline text-title-md group-hover:translate-y-[-2px] transition-transform duration-200" style="text-shadow: 0 1px 3px rgba(0,0,0,0.8)">{item.name}</h5>
+                    <h3 class="text-on-surface font-headline text-title-md group-hover:translate-y-[-2px] transition-transform duration-200 text-shadow-overlay">{item.name}</h3>
                     <Show when={item.series}>
-                      <p class="text-label-md text-primary mt-1 group-hover:translate-y-[-2px] transition-transform duration-200" style="text-shadow: 0 1px 3px rgba(0,0,0,0.8)">{item.series}</p>
+                      <p class="text-label-md text-primary mt-1 group-hover:translate-y-[-2px] transition-transform duration-200 text-shadow-overlay">{item.series}</p>
                     </Show>
                   </div>
                 </div>

@@ -18,7 +18,7 @@ interface Props {
 
 export default function DrawingPanel(props: Props) {
   return (
-    <section class="px-0 mt-6 space-y-6">
+    <section class="space-y-4">
       <div class="grid grid-cols-2 gap-2 p-1 bg-surface-container-low rounded-xl border border-outline-variant">
         <button
           class={`flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold transition-colors ${
@@ -106,7 +106,7 @@ export default function DrawingPanel(props: Props) {
             <span class="text-xs font-bold text-primary">{props.size}px</span>
           </div>
           <input
-            class="w-full h-2 bg-surface-container-highest rounded-lg appearance-none cursor-pointer accent-primary"
+            class="w-full h-2 bg-surface-container-high rounded-lg appearance-none cursor-pointer accent-primary"
             type="range"
             min="1"
             max="24"

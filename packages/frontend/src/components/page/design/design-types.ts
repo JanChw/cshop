@@ -8,20 +8,14 @@ export interface DesignTextDraft {
   italic: boolean
 }
 
-export type MasterTab = 'select' | 'design'
+export type DesignTool = 'product' | 'color' | 'text' | 'assets' | 'drawing'
 
-export const MASTER_TABS: { key: MasterTab; label: string }[] = [
-  { key: 'select', label: '选择服装' },
-  { key: 'design', label: '设计服装' }
-]
-
-export type DesignTab = 'color' | 'text' | 'assets' | 'drawing'
-
-export const DESIGN_TABS: { key: DesignTab; label: string }[] = [
-  { key: 'color', label: '基础颜色' },
-  { key: 'text', label: '文字引擎' },
-  { key: 'assets', label: '素材' },
-  { key: 'drawing', label: '手绘' }
+export const DESIGN_TOOLS: { key: DesignTool; label: string; icon: string }[] = [
+  { key: 'product', label: '服装', icon: 'checkroom' },
+  { key: 'color', label: '颜色', icon: 'palette' },
+  { key: 'text', label: '文字', icon: 'text_fields' },
+  { key: 'assets', label: '素材', icon: 'auto_awesome' },
+  { key: 'drawing', label: '手绘', icon: 'draw' }
 ]
 
 export const TSHIRT_COLORS: { name: string; hex: string }[] = [

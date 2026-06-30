@@ -63,7 +63,6 @@ export default function TabletNavBar(props: Props) {
                 class={`text-sm font-medium transition-colors ${
                    active ? 'text-accent font-bold' : 'text-on-surface-variant hover:text-on-surface'
                 }`}
-                style={active ? { 'text-shadow': '0 2px 6px rgba(0,0,0,0.85)' } : undefined}
                 aria-current={active ? 'page' : undefined}
               >
                 {link.label}
@@ -81,7 +80,6 @@ export default function TabletNavBar(props: Props) {
               ? 'text-accent'
               : 'text-on-surface-variant'
           }`}
-          style={isActive(activePath(), '/search') ? { 'text-shadow': '0 2px 6px rgba(0,0,0,0.85)' } : undefined}
           aria-label="搜索"
         >
           <span class="material-symbols-outlined text-lg">search</span>
@@ -93,7 +91,6 @@ export default function TabletNavBar(props: Props) {
               ? 'text-accent'
               : 'text-on-surface-variant'
           }`}
-          style={isActive(activePath(), '/cart') ? { 'text-shadow': '0 2px 6px rgba(0,0,0,0.85)' } : undefined}
           aria-label="购物车"
         >
           <span class="relative">
@@ -112,7 +109,6 @@ export default function TabletNavBar(props: Props) {
               ? 'text-accent'
               : 'text-on-surface-variant'
           }`}
-          style={isActive(activePath(), '/person') || isActive(activePath(), '/login') ? { 'text-shadow': '0 2px 6px rgba(0,0,0,0.85)' } : undefined}
           aria-label={loggedIn() ? '个人中心' : '登录'}
         >
           <span class="material-symbols-outlined text-xl">{loggedIn() ? 'person' : 'login'}</span>

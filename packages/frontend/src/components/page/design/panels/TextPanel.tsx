@@ -32,7 +32,7 @@ export default function TextPanel(props: Props) {
   }
 
   return (
-    <div class="p-6 space-y-6">
+    <div class="space-y-4">
       <div class="space-y-3">
         <div class="flex justify-between items-center">
           <label class="text-label-md font-medium text-on-surface-variant">
@@ -42,7 +42,7 @@ export default function TextPanel(props: Props) {
         </div>
         <div class="relative">
           <textarea
-            class="w-full p-4 bg-surface border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none min-h-[100px] text-lg resize-none transition-shadow placeholder:text-outline-variant/60"
+            class="w-full p-4 bg-surface border border-outline-variant rounded-xl outline-none focus:ring-1 focus:ring-primary focus:border-primary min-h-[100px] text-lg resize-none transition-colors placeholder:text-outline-variant/60"
             placeholder="输入文字..."
             value={text()}
             maxLength={50}

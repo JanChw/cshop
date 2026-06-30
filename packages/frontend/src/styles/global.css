@@ -101,7 +101,7 @@
   --t-on-warning: #ffffff;
   --t-info: #2563eb;
   --t-on-info: #ffffff;
-  --t-accent: #ef4444;
+  --t-accent: #dc2626;
   --t-on-accent: #ffffff;
   --t-accent-container: #fee2e2;
   --t-on-accent-container: #991b1b;
@@ -285,6 +285,32 @@
   min-height: 44px;
 }
 
+@utility text-shadow-overlay {
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+}
+
+/* === Toast === */
+.toast-msg {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-surface-container-high);
+  color: var(--color-on-surface);
+  padding: 12px 24px;
+  border-radius: 8px;
+  z-index: 100;
+  font-size: 14px;
+  font-weight: 500;
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--color-outline-variant);
+  pointer-events: none;
+  max-width: 90vw;
+  text-align: center;
+}
+
 /* === Range Input === */
 input[type="range"] {
   accent-color: var(--color-primary);
@@ -313,14 +339,8 @@ input[type="range"]::-moz-range-thumb {
 }
 
 /* === Focus Visible === */
-:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
-}
 button:focus-visible,
-a:focus-visible,
-select:focus-visible,
-input:focus-visible {
+a:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }

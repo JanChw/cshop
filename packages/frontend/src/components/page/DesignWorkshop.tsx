@@ -2,18 +2,21 @@ import {
   createSignal,
   createMemo,
   Show,
-  For,
   onMount,
   onCleanup,
   createEffect
 } from 'solid-js'
 import DesignCanvas from './design/DesignCanvas'
+import DesignHeader from './design/DesignHeader'
+import ToolDock from './design/ToolDock'
+import PanelSheet from './design/PanelSheet'
+import CartBar from './design/CartBar'
 import ColorPanel from './design/panels/ColorPanel'
 import TextPanel from './design/panels/TextPanel'
 import AssetsPanel from './design/panels/AssetsPanel'
 import DrawingPanel from './design/panels/DrawingPanel'
 import ProductSelector from './design/panels/ProductSelector'
-import { MASTER_TABS, DESIGN_TABS, TSHIRT_COLORS, DEFAULT_CANVAS_INK, DEFAULT_DRAWING_COLOR, type MasterTab, type DesignTab, type BrushStyle } from './design/design-types'
+import { TSHIRT_COLORS, DEFAULT_CANVAS_INK, DEFAULT_DRAWING_COLOR, type DesignTool, type BrushStyle } from './design/design-types'
 import type { CanvasAPI } from '../ui/FabricCanvas'
 import { api } from '../../lib/api'
 import { refreshCartCount } from '../../lib/cartStore'
@@ -22,7 +25,6 @@ import { showToast } from '../../lib/toast'
 const FALLBACK_IMAGE = '/tshirt.png'
 const FALLBACK_MASK = '/tshirt-mask.png'
 const DEFAULT_PRODUCT_ID = 1
-const DEFAULT_VARIANT_ID: number | null = null
 
 type SaveState = 'idle' | 'saving' | 'saved' | 'error'
 
@@ -33,17 +35,16 @@ function defaultDesignName(): string {
 }
 
 export default function DesignWorkshop() {
-  const [activeTab, setActiveTab] = createSignal<DesignTab>('color')
-  const [drawerOpen, setDrawerOpen] = createSignal(false)
+  const [activeTool, setActiveTool] = createSignal<DesignTool | null>(null)
+  const [drawingActive, setDrawingActive] = createSignal(false)
   const [tshirtColor, setTshirtColor] = createSignal(TSHIRT_COLORS[0].hex)
-  const [bgColor] = createSignal('#ffffff')
   const [drawingColor, setDrawingColor] = createSignal(DEFAULT_DRAWING_COLOR)
   const [drawingSize, setDrawingSize] = createSignal(1)
   const [drawingMode, setDrawingMode] = createSignal<'brush' | 'move'>('brush')
   const [drawingStyle, setDrawingStyle] = createSignal<BrushStyle>('pencil')
 
   const drawing = createMemo(() => ({
-    enabled: activeTab() === 'drawing',
+    enabled: drawingActive(),
     mode: drawingMode(),
     color: drawingColor(),
     size: drawingSize(),
@@ -58,7 +59,7 @@ export default function DesignWorkshop() {
   const [canUndo, setCanUndo] = createSignal(false)
   const [ready, setReady] = createSignal(false)
   const [initState, setInitState] = createSignal<'loading' | 'ready'>('loading')
-  let pendingDesignCanvas: { canvas: any; scale: number } | null = null
+  let pendingDesignCanvas: { canvas: any; wrapped: any } | null = null
   const [editingText, setEditingText] = createSignal<{ text: string } | null>(null)
   const [editingName, setEditingName] = createSignal(false)
   const [nameDraft, setNameDraft] = createSignal('')
@@ -70,26 +71,36 @@ export default function DesignWorkshop() {
   const [selectedSize, setSelectedSize] = createSignal('M')
   const [quantity, setQuantity] = createSignal(1)
   const [addingCart, setAddingCart] = createSignal(false)
-  const [masterTab, setMasterTab] = createSignal<MasterTab>('select')
   const [showSavePrompt, setShowSavePrompt] = createSignal(false)
   const [pendingProduct, setPendingProduct] = createSignal<any>(null)
 
   const colorToName: Record<string, string> = Object.fromEntries(TSHIRT_COLORS.map(c => [c.hex, c.name]))
 
   let canvasAPI: CanvasAPI | null = null
-  let nameInputRef: HTMLInputElement | undefined
   let saveToken = 0
 
-  const handleColorChange = (hex: string) => {
-    setTshirtColor(hex)
+  const handleToolChange = (tool: DesignTool) => {
+    if (tool === activeTool()) {
+      if (tool === 'drawing') setDrawingActive(false)
+      setActiveTool(null)
+      return
+    }
+    if (tool !== 'drawing') setDrawingActive(false)
+    if (tool === 'drawing') setDrawingActive(true)
+    if (tool === 'text') {
+      const selected = canvasAPI?.getSelectedText()
+      setEditingText(selected ? { text: selected.text } : null)
+    }
+    setActiveTool(tool)
   }
 
   const handleCanvasReady = (api: CanvasAPI) => {
     canvasAPI = api
     setReady(true)
     if (pendingDesignCanvas) {
-      const { canvas, scale } = pendingDesignCanvas
+      const { canvas, wrapped } = pendingDesignCanvas
       pendingDesignCanvas = null
+      const scale = computeLoadScale(api.getInternalWidth(), wrapped)
       void api.loadJSON(canvas, scale).then(() => setDirty(false))
     }
   }
@@ -103,7 +114,6 @@ export default function DesignWorkshop() {
       if (!isNaN(pid)) {
         await loadProduct(pid, false)
         setInitState('ready')
-        setMasterTab('design')
         return
       }
     }
@@ -114,7 +124,6 @@ export default function DesignWorkshop() {
       if (!isNaN(designId)) {
         await loadDesignWithProduct(designId)
         setInitState('ready')
-        setMasterTab('design')
         return
       }
     }
@@ -163,6 +172,15 @@ export default function DesignWorkshop() {
     }
   }
 
+  const computeLoadScale = (currentInternalWidth: number, wrapped: any): number => {
+    const savedCanvasWidth = wrapped?.canvasWidth
+    if (savedCanvasWidth && savedCanvasWidth > 0) {
+      return currentInternalWidth / savedCanvasWidth
+    }
+    const savedRatio = wrapped?.renderRatio || 1
+    return 2 / savedRatio
+  }
+
   const loadDesignWithProduct = async (id: number) => {
     try {
       const res = await api.designs.get(id)
@@ -193,29 +211,26 @@ export default function DesignWorkshop() {
       setProductImage(frontImage)
       setProductMask(maskImage)
 
-      // reloadImages 由画布挂载时按 props 自动完成（initState ready 后才挂载）
       if (canvas) {
-        const savedRatio = wrapped?.renderRatio || 1
-        const scale = 2 / savedRatio
         if (canvasAPI) {
           await canvasAPI.reloadImages(frontImage, maskImage)
+          const scale = computeLoadScale(canvasAPI.getInternalWidth(), wrapped)
           await canvasAPI.loadJSON(canvas, scale)
         } else {
-          pendingDesignCanvas = { canvas, scale }
+          pendingDesignCanvas = { canvas, wrapped }
         }
       } else if (canvasAPI) {
         await canvasAPI.reloadImages(frontImage, maskImage)
       }
 
       setDirty(false)
-    } catch (err) {
+    } catch {
       showToast('加载设计失败')
     }
   }
 
   const collectSavePayload = (): {
     productId: number
-    variantId: number | null
     name: string
     canvasData: string
     previewImage: string | null
@@ -227,10 +242,14 @@ export default function DesignWorkshop() {
     try {
       previewImage = canvasAPI.toDataURL({ format: 'png' })
     } catch {}
-    const wrapped = { tshirtColor: tshirtColor(), canvas: json, renderRatio: 2 }
+    const wrapped = {
+      tshirtColor: tshirtColor(),
+      canvas: json,
+      renderRatio: 2,
+      canvasWidth: canvasAPI.getInternalWidth()
+    }
     return {
       productId: currentProductId(),
-      variantId: DEFAULT_VARIANT_ID,
       name: designName(),
       canvasData: JSON.stringify(wrapped),
       previewImage
@@ -276,24 +295,7 @@ export default function DesignWorkshop() {
     if (!dirty() || !canvasAPI) return
     const payload = collectSavePayload()
     if (!payload) return
-    const id = currentDesignId()
-    const url = id ? `/api/v1/designs/${id}` : '/api/v1/designs'
-    const method = id ? 'PUT' : 'POST'
-    const token = getToken()
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-    if (token) headers['Authorization'] = `Bearer ${token}`
-    const body = JSON.stringify(payload)
-    if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
-      const blob = new Blob([body], { type: 'application/json' })
-      navigator.sendBeacon(url, blob)
-    } else {
-      void fetch(url, { method, headers, body, keepalive: true }).catch(() => {})
-    }
-  }
-
-  const getToken = (): string | null => {
-    if (typeof sessionStorage === 'undefined') return null
-    return sessionStorage.getItem('cshop_token') || localStorage.getItem('cshop_token')
+    void api.designs.saveBeacon(payload, currentDesignId() ?? undefined)
   }
 
   onMount(() => {
@@ -316,18 +318,6 @@ export default function DesignWorkshop() {
     }
   })
 
-  const dirtyDot = () => dirty() && currentDesignId() !== null
-
-  const showSaveIndicator = () => {
-    if (!ready()) return { text: '加载中...', color: 'text-secondary' }
-    const s = saveState()
-    if (s === 'saving') return { text: '保存中...', color: 'text-secondary' }
-    if (s === 'error') return { text: '保存失败', color: 'text-error' }
-    if (currentDesignId() === null) return { text: '未保存', color: 'text-secondary' }
-    if (dirty()) return { text: '有未保存修改', color: 'text-secondary' }
-    return { text: '已保存', color: 'text-primary' }
-  }
-
   const startEditName = () => {
     setNameDraft(designName())
     setEditingName(true)
@@ -344,8 +334,6 @@ export default function DesignWorkshop() {
     }
     setEditingName(false)
   }
-
-  const cancelEditName = () => setEditingName(false)
 
   const variantSizes = () => [...new Set((product()?.variants?.map((v: any) => v.size) || []) as string[])].sort()
   const variantColors = () => [...new Set((product()?.variants?.map((v: any) => v.color).filter(Boolean) || []) as string[])]
@@ -367,7 +355,7 @@ export default function DesignWorkshop() {
     return (base + adj) * quantity()
   })
 
-  const handleAddToCart = async (buyNow: boolean) => {
+  const handleAddToCart = async () => {
     if (!canvasAPI) return
     const variant = selectedVariant()
     if (!variant) {
@@ -379,11 +367,8 @@ export default function DesignWorkshop() {
       const saved = await save()
       if (!saved) return
       await api.cart.addDesign(currentProductId(), variant.id, saved.id, quantity())
-      showToast(buyNow ? '已保存，正在跳转购物车' : '已加入购物车')
+      showToast('已加入购物车')
       refreshCartCount()
-      if (buyNow) {
-        window.location.href = '/cart'
-      }
     } catch (err: any) {
       showToast(err.message || '操作失败')
     } finally {
@@ -391,18 +376,18 @@ export default function DesignWorkshop() {
     }
   }
 
-  const handleSelectProduct = (product: any) => {
+  const handleSelectProduct = (p: any) => {
     if (dirty() && canvasAPI) {
-      setPendingProduct(product)
+      setPendingProduct(p)
       setShowSavePrompt(true)
     } else {
-      doSwitchProduct(product)
+      void doSwitchProduct(p)
     }
   }
 
-  const doSwitchProduct = async (product: any) => {
+  const doSwitchProduct = async (p: any) => {
     setTshirtColor(TSHIRT_COLORS[0].hex)
-    await loadProduct(product.id)
+    await loadProduct(p.id)
     canvasAPI?.clearDesign()
     setCurrentDesignId(null)
     setDesignName(defaultDesignName())
@@ -410,420 +395,161 @@ export default function DesignWorkshop() {
     url.searchParams.delete('design')
     window.history.replaceState({}, '', url.toString())
     setDirty(false)
+    setActiveTool('color')
+  }
+
+  const handleAddText = (opts: { text: string }) => {
+    canvasAPI?.addText({
+      text: opts.text,
+      font: 'Manrope',
+      color: DEFAULT_CANVAS_INK,
+      size: 32,
+      letterSpacing: 0,
+      bold: false,
+      italic: false
+    })
+    setEditingText({ text: opts.text })
+  }
+
+  const handleUpdateText = (opts: { text: string }) => {
+    const current = canvasAPI?.getSelectedText()
+    if (current) {
+      canvasAPI?.updateText({ ...current, text: opts.text })
+    }
   }
 
   return (
-    <div class="bg-background min-h-screen pb-24 md:pb-0 text-on-surface">
-      <header class="bg-surface sticky top-0 md:top-16 z-40 flex justify-between items-center px-4 h-16 w-full border-b border-outline-variant">
-        <button
-          class="p-2 hover:bg-primary/10 hover:text-primary rounded-full transition-colors transition-transform active:scale-95 duration-200"
-          onClick={() => setDrawerOpen(true)}
-          aria-label="菜单"
+    <div class="flex flex-col bg-background text-on-surface overflow-hidden h-[calc(100dvh-64px)] md:mt-16 md:h-[calc(100vh-64px)]">
+      <DesignHeader
+        designName={designName()}
+        editingName={editingName()}
+        nameDraft={nameDraft()}
+        saveState={saveState()}
+        dirty={dirty()}
+        currentDesignId={currentDesignId()}
+        ready={ready()}
+        onSave={() => void save()}
+        onStartEditName={startEditName}
+        onCommitName={() => void commitName()}
+        onCancelEditName={() => setEditingName(false)}
+        onNameDraftChange={setNameDraft}
+      />
+
+      <div class="flex-1 relative overflow-hidden">
+        {/* Canvas centered */}
+        <div
+          class="absolute inset-0 flex items-center justify-center p-4 md:transition-all md:duration-300 md:ease-out"
+          classList={{ 'md:pl-[25rem]': activeTool() !== null }}
         >
-          <span class="material-symbols-outlined text-primary">menu</span>
-        </button>
-        <div class="flex flex-col items-center">
           <Show
-            when={editingName()}
-            fallback={(
-              <button
-                class="font-headline text-xl font-bold tracking-tight text-primary leading-tight flex items-center gap-1"
-                onClick={startEditName}
-                aria-label="编辑设计名称"
-              >
-                {designName()}
-                <span class="material-symbols-outlined text-base text-secondary">edit</span>
-              </button>
-            )}
+            when={initState() === 'ready'}
+            fallback={
+              <div class="aspect-[4/5] w-full max-w-sm rounded-xl bg-surface-container flex items-center justify-center">
+                <span class="material-symbols-outlined animate-spin text-on-surface-variant">progress_activity</span>
+              </div>
+            }
           >
-            <input
-              aria-label="设计名称"
-              ref={(el) => { nameInputRef = el; if (el) el.focus() }}
-              class="font-headline text-xl font-bold tracking-tight text-primary leading-tight text-center bg-transparent border-b-2 border-primary outline-none min-w-40 max-w-52"
-              value={nameDraft()}
-              onInput={(e) => setNameDraft(e.currentTarget.value)}
-              onBlur={commitName}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') commitName()
-                if (e.key === 'Escape') cancelEditName()
-              }}
-              maxLength={40}
+            <DesignCanvas
+              tshirtImage={productImage()}
+              maskImage={productMask()}
+              tshirtColor={tshirtColor()}
+              drawing={drawing()}
+              onReady={handleCanvasReady}
+              onChange={handleCanvasChange}
             />
           </Show>
-          <div class="flex items-center gap-1.5 leading-none">
-            <Show when={dirtyDot()}>
-              <span class="w-1.5 h-1.5 rounded-full bg-error"></span>
-            </Show>
-            <span class={`text-label-md font-medium ${showSaveIndicator().color}`}>
-              {showSaveIndicator().text}
-            </span>
-          </div>
         </div>
-        <button
-          class="p-2 hover:bg-primary/10 hover:text-primary rounded-full transition-colors transition-transform active:scale-95 duration-200"
-          onClick={() => void save()}
-          aria-label="保存"
-          disabled={saveState() === 'saving'}
-        >
-          <span class="material-symbols-outlined text-primary">bookmark</span>
-        </button>
-      </header>
 
-      <main class="px-4 md:px-8 md:mx-auto md:flex md:gap-6 md:pt-20 pb-28 md:pb-8">
-        <div class="md:w-2/3 md:order-2 md:flex md:flex-col md:gap-4">
-        <Show when={product()}>
-          <div class="px-4 py-3 bg-surface border border-outline-variant rounded-lg">
-            <div class="md:hidden">
-              <div class="flex items-center justify-between gap-2">
-                <div class="min-w-0">
-                  <p class="text-label-md text-on-surface-variant truncate">{product()?.name}</p>
-                  <p class="text-lg font-bold text-primary leading-tight">
-                    ¥ {totalPrice().toFixed(2)}
-                  </p>
-                </div>
-                <button
-                  class="h-10 px-4 rounded-lg bg-primary text-on-primary font-bold text-body-sm hover:bg-primary/90 transition-colors disabled:opacity-50 whitespace-nowrap tap-target shrink-0"
-                  onClick={() => handleAddToCart(false)}
-                  disabled={addingCart()}
-                >
-                  加入购物车
-                </button>
-              </div>
-              <div class="flex items-center gap-2 mt-2">
-                <select
-                  aria-label="尺码"
-                  value={selectedSize()}
-                  onChange={(e) => setSelectedSize(e.currentTarget.value)}
-                  class="h-10 pl-2 pr-6 rounded-lg bg-surface border border-outline-variant text-body-sm font-bold text-on-surface focus:outline-none focus:border-primary"
-                >
-                  <For each={variantSizes()}>
-                    {(s) => <option value={s}>{s}</option>}
-                  </For>
-                </select>
-                <div class="flex items-center gap-1">
-                  <button
-                    class="w-9 h-9 rounded-lg border border-outline-variant flex items-center justify-center text-on-surface hover:bg-primary/10 hover:text-primary transition-colors tap-target"
-                    onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                    aria-label="减少数量"
-                  >
-                    <span class="material-symbols-outlined text-sm">remove</span>
-                  </button>
-                  <span class="w-5 text-center text-body-sm font-bold text-on-surface">{quantity()}</span>
-                  <button
-                    class="w-9 h-9 rounded-lg border border-outline-variant flex items-center justify-center text-on-surface hover:bg-primary/10 hover:text-primary transition-colors tap-target"
-                    onClick={() => setQuantity(q => q + 1)}
-                    aria-label="增加数量"
-                  >
-                    <span class="material-symbols-outlined text-sm">add</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="hidden md:flex md:items-center md:justify-between md:gap-3">
-              <div class="min-w-0">
-                <p class="text-label-md text-on-surface-variant truncate">{product()?.name}</p>
-                <p class="text-lg font-bold text-primary leading-tight">
-                  ¥ {totalPrice().toFixed(2)}
-                </p>
-              </div>
-              <div class="flex items-center gap-2 shrink-0">
-                <select
-                  aria-label="尺码"
-                  value={selectedSize()}
-                  onChange={(e) => setSelectedSize(e.currentTarget.value)}
-                  class="h-10 pl-2 pr-6 rounded-lg bg-surface border border-outline-variant text-body-sm font-bold text-on-surface focus:outline-none focus:border-primary"
-                >
-                  <For each={variantSizes()}>
-                    {(s) => <option value={s}>{s}</option>}
-                  </For>
-                </select>
-                <div class="flex items-center gap-1">
-                  <button
-                    class="w-9 h-9 rounded-lg border border-outline-variant flex items-center justify-center text-on-surface hover:bg-primary/10 hover:text-primary transition-colors tap-target"
-                    onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                    aria-label="减少数量"
-                  >
-                    <span class="material-symbols-outlined text-sm">remove</span>
-                  </button>
-                  <span class="w-5 text-center text-body-sm font-bold text-on-surface">{quantity()}</span>
-                  <button
-                    class="w-9 h-9 rounded-lg border border-outline-variant flex items-center justify-center text-on-surface hover:bg-primary/10 hover:text-primary transition-colors tap-target"
-                    onClick={() => setQuantity(q => q + 1)}
-                    aria-label="增加数量"
-                  >
-                    <span class="material-symbols-outlined text-sm">add</span>
-                  </button>
-                </div>
-                <button
-                  class="h-10 px-4 rounded-lg bg-primary text-on-primary font-bold text-body-sm hover:bg-primary/90 transition-colors disabled:opacity-50 whitespace-nowrap tap-target"
-                  onClick={() => handleAddToCart(false)}
-                  disabled={addingCart()}
-                >
-                  加入购物车
-                </button>
-              </div>
-            </div>
-          </div>
-        </Show>
+        {/* Tool Dock */}
+        <ToolDock activeTool={activeTool()} onToolChange={handleToolChange} />
 
-        <Show when={initState() === 'ready'} fallback={
-          <div class="aspect-[4/5] w-full rounded-xl bg-surface-container mt-4 flex items-center justify-center">
-            <span class="material-symbols-outlined animate-spin text-on-surface-variant">progress_activity</span>
-          </div>
-        }>
-          <DesignCanvas
-            tshirtImage={productImage()}
-            maskImage={productMask()}
-            tshirtColor={tshirtColor()}
-            bgColor={bgColor()}
-            drawing={drawing()}
-            onReady={handleCanvasReady}
-            onChange={handleCanvasChange}
-          />
-        </Show>
-
-        <nav class="mt-6 flex gap-2 md:hidden" role="tablist">
-          {MASTER_TABS.map((t) => (
-            <button
-              role="tab"
-              aria-selected={masterTab() === t.key}
-              class={`flex-1 text-center px-4 py-3 rounded-lg text-body-sm font-medium transition-colors ${
-                masterTab() === t.key
-                  ? 'bg-primary text-on-primary font-bold'
-                  : 'bg-surface-container text-on-surface-variant'
-              }`}
-              onClick={() => setMasterTab(t.key)}
-            >
-              {t.label}
-            </button>
-          ))}
-        </nav>
-
-        <Show when={masterTab() === 'select'}>
-          <div class="md:hidden">
+        {/* Panel Sheet */}
+        <PanelSheet activeTool={activeTool()} onClose={() => setActiveTool(null)}>
+          <Show when={activeTool() === 'product'}>
             <ProductSelector
               selectedProductId={currentProductId()}
               onSelect={handleSelectProduct}
             />
-          </div>
-        </Show>
-
-        <Show when={masterTab() === 'design'}>
-          <nav class="flex overflow-x-auto gap-6 border-b border-outline-variant/30 pb-2 md:hidden tab-scroll-hint" role="tablist" style={{ '-ms-overflow-style': 'none', 'scrollbar-width': 'none' }}>
-            {DESIGN_TABS.map((t) => (
-              <button
-                role="tab"
-                aria-selected={activeTab() === t.key}
-                class={`flex-shrink-0 text-sm font-body whitespace-nowrap pb-2 transition-colors ${
-                  activeTab() === t.key
-                    ? 'text-primary font-bold border-b-2 border-primary'
-                    : 'text-secondary hover:text-primary'
-                }`}
-                onClick={() => {
-                  if (t.key === 'text') {
-                    const selected = canvasAPI?.getSelectedText()
-                    setEditingText(selected ? { text: selected.text } : null)
-                  }
-                  setActiveTab(t.key)
-                }}
-              >
-                {t.label}
-              </button>
-            ))}
-          </nav>
-
-          <div class="md:hidden" role="tabpanel">
-            <Show when={activeTab() === 'color'}>
-              <ColorPanel selectedColor={tshirtColor()} onColorChange={handleColorChange} />
-            </Show>
-            <Show when={activeTab() === 'text'}>
-              <TextPanel
-                editingText={editingText()}
-                onAddText={(opts) => {
-                  canvasAPI?.addText({
-                    text: opts.text,
-                    font: 'Manrope',
-                    color: '#000000',
-                    size: 32,
-                    letterSpacing: 0,
-                    bold: false,
-                    italic: false
-                  })
-                  setEditingText({ text: opts.text })
-                }}
-                onUpdateText={(opts) => {
-                  const current = canvasAPI?.getSelectedText()
-                  if (current) {
-                    canvasAPI?.updateText({ ...current, text: opts.text })
-                  }
-                  setActiveTab('color')
-                }}
-              />
-            </Show>
-            <Show when={activeTab() === 'assets'}>
-              <AssetsPanel
-                onAddImage={(opts) => {
-                  void canvasAPI?.addImage(opts)
-                }}
-              />
-            </Show>
-            <Show when={activeTab() === 'drawing'}>
-              <DrawingPanel
-                mode={drawingMode()}
-                color={drawingColor()}
-                size={drawingSize()}
-                style={drawingStyle()}
-                onModeChange={setDrawingMode}
-                onColorChange={setDrawingColor}
-                onSizeChange={setDrawingSize}
-                onStyleChange={setDrawingStyle}
-                onUndo={() => canvasAPI?.undo()}
-                onClear={() => canvasAPI?.clearDrawing()}
-                canUndo={canUndo()}
-                hasDrawing={hasDrawing()}
-              />
-            </Show>
-          </div>
-        </Show>
-        </div>
-
-        <div class="md:w-1/3 md:order-1 md:sticky md:top-36 md:self-start md:max-h-[calc(100vh-10rem)] md:overflow-y-auto hide-scrollbar">
-          <nav class="hidden md:flex gap-2 mb-6" role="tablist">
-            {MASTER_TABS.map((t) => (
-              <button
-                type="button"
-                role="tab"
-                aria-selected={masterTab() === t.key}
-                class={`flex-1 text-center px-4 py-3 rounded-lg text-body-sm font-medium transition-colors tap-target ${
-                  masterTab() === t.key
-                    ? 'bg-primary text-on-primary font-bold'
-                    : 'bg-surface-container text-on-surface-variant hover:bg-primary/10 hover:text-primary'
-                }`}
-                onClick={() => setMasterTab(t.key)}
-              >
-                {t.label}
-              </button>
-            ))}
-          </nav>
-
-          <Show when={masterTab() === 'select'}>
-            <div class="hidden md:block">
-              <ProductSelector
-                selectedProductId={currentProductId()}
-                onSelect={handleSelectProduct}
-              />
-            </div>
           </Show>
-
-          <Show when={masterTab() === 'design'}>
-            <nav class="hidden md:flex md:flex-col gap-2 mb-6" role="tablist">
-              {DESIGN_TABS.map((t) => (
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={activeTab() === t.key}
-                  class={`text-left px-4 py-3 rounded-lg text-body-sm font-medium transition-colors tap-target ${
-                    activeTab() === t.key
-                      ? 'bg-primary-container text-primary font-bold'
-                      : 'bg-surface-container text-on-surface-variant hover:bg-primary/10 hover:text-primary'
-                  }`}
-                  onClick={() => {
-                    if (t.key === 'text') {
-                      const selected = canvasAPI?.getSelectedText()
-                      setEditingText(selected ? { text: selected.text } : null)
-                    }
-                    setActiveTab(t.key)
-                  }}
-                >
-                  {t.label}
-                </button>
-              ))}
-            </nav>
-            <div class="hidden md:block" role="tabpanel">
-              <Show when={activeTab() === 'color'}>
-                <ColorPanel selectedColor={tshirtColor()} onColorChange={handleColorChange} />
-              </Show>
-              <Show when={activeTab() === 'text'}>
-                <TextPanel
-                  editingText={editingText()}
-                  onAddText={(opts) => {
-                    canvasAPI?.addText({
-                      text: opts.text,
-                      font: 'Manrope',
-                    color: DEFAULT_CANVAS_INK,
-                      size: 32,
-                      letterSpacing: 0,
-                      bold: false,
-                      italic: false
-                    })
-                    setEditingText({ text: opts.text })
-                  }}
-                  onUpdateText={(opts) => {
-                    const current = canvasAPI?.getSelectedText()
-                    if (current) {
-                      canvasAPI?.updateText({ ...current, text: opts.text })
-                    }
-                    setActiveTab('color')
-                  }}
-                />
-              </Show>
-              <Show when={activeTab() === 'assets'}>
-                <AssetsPanel
-                  onAddImage={(opts) => {
-                    void canvasAPI?.addImage(opts)
-                  }}
-                />
-              </Show>
-              <Show when={activeTab() === 'drawing'}>
-                <DrawingPanel
-                  mode={drawingMode()}
-                  color={drawingColor()}
-                  size={drawingSize()}
-                  style={drawingStyle()}
-                  onModeChange={setDrawingMode}
-                  onColorChange={setDrawingColor}
-                  onSizeChange={setDrawingSize}
-                  onStyleChange={setDrawingStyle}
-                  onUndo={() => canvasAPI?.undo()}
-                  onClear={() => canvasAPI?.clearDrawing()}
-                  canUndo={canUndo()}
-                  hasDrawing={hasDrawing()}
-                />
-              </Show>
-            </div>
+          <Show when={activeTool() === 'color'}>
+            <ColorPanel selectedColor={tshirtColor()} onColorChange={setTshirtColor} />
           </Show>
-        </div>
-      </main>
+          <Show when={activeTool() === 'text'}>
+            <TextPanel
+              editingText={editingText()}
+              onAddText={handleAddText}
+              onUpdateText={handleUpdateText}
+            />
+          </Show>
+          <Show when={activeTool() === 'assets'}>
+            <AssetsPanel
+              onAddImage={(opts) => { void canvasAPI?.addImage(opts) }}
+            />
+          </Show>
+          <Show when={activeTool() === 'drawing'}>
+            <DrawingPanel
+              mode={drawingMode()}
+              color={drawingColor()}
+              size={drawingSize()}
+              style={drawingStyle()}
+              onModeChange={setDrawingMode}
+              onColorChange={setDrawingColor}
+              onSizeChange={setDrawingSize}
+              onStyleChange={setDrawingStyle}
+              onUndo={() => canvasAPI?.undo()}
+              onClear={() => canvasAPI?.clearDrawing()}
+              canUndo={canUndo()}
+              hasDrawing={hasDrawing()}
+            />
+          </Show>
+        </PanelSheet>
 
+        {/* Cart Bar */}
+        <Show when={product()}>
+          <CartBar
+            productName={product()?.name ?? ''}
+            totalPrice={totalPrice()}
+            selectedSize={selectedSize()}
+            quantity={quantity()}
+            variantSizes={variantSizes()}
+            addingCart={addingCart()}
+            onSizeChange={setSelectedSize}
+            onQuantityChange={(delta) => setQuantity((q) => Math.max(1, q + delta))}
+            onAddToCart={() => void handleAddToCart()}
+          />
+        </Show>
+      </div>
+
+      {/* Save Prompt Dialog */}
       <Show when={showSavePrompt()}>
         <div class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center px-6" onClick={() => setShowSavePrompt(false)}>
-          <div class="bg-surface rounded-2xl w-full max-w-sm p-6 space-y-4" onClick={(e) => e.stopPropagation()}>
+          <div class="bg-surface rounded-2xl w-full max-w-sm p-6 space-y-4 shadow-elevated border border-outline-variant" onClick={(e) => e.stopPropagation()}>
             <h3 class="font-headline text-lg font-bold text-on-surface">保存当前设计？</h3>
-            <p class="text-body-sm text-secondary">切换基础款将丢失当前设计内容</p>
+            <p class="text-body-sm text-on-surface-variant">切换基础款将丢失当前设计内容</p>
             <div class="flex flex-col gap-2">
               <button
-                class="w-full h-11 rounded-xl bg-primary text-on-primary font-bold text-body-sm"
+                class="w-full h-11 rounded-xl bg-primary text-on-primary font-bold text-body-sm hover:opacity-90 transition-opacity"
                 onClick={async () => {
                   setShowSavePrompt(false)
                   await save()
                   const p = pendingProduct()
-                  if (p) doSwitchProduct(p)
+                  if (p) void doSwitchProduct(p)
                 }}
               >
                 保存
               </button>
               <button
-                class="w-full h-11 rounded-xl bg-surface-container-high text-on-surface font-bold text-body-sm"
-                onClick={async () => {
+                class="w-full h-11 rounded-xl bg-surface-container-high text-on-surface font-bold text-body-sm hover:bg-surface-container transition-colors"
+                onClick={() => {
                   setShowSavePrompt(false)
                   const p = pendingProduct()
-                  if (p) doSwitchProduct(p)
+                  if (p) void doSwitchProduct(p)
                 }}
               >
                 放弃
               </button>
               <button
-                class="w-full h-11 rounded-xl text-secondary font-bold text-body-sm"
+                class="w-full h-11 rounded-xl text-on-surface-variant font-bold text-body-sm hover:bg-surface-container-high transition-colors"
                 onClick={() => setShowSavePrompt(false)}
               >
                 取消
@@ -832,42 +558,6 @@ export default function DesignWorkshop() {
           </div>
         </div>
       </Show>
-
-      <div class={`fixed inset-y-0 left-0 z-50 w-72 bg-surface border-r border-outline-variant transform transition-transform duration-300 ease-in-out ${drawerOpen() ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div class="p-6 flex flex-col h-full">
-          <div class="flex items-center gap-4 mb-8">
-            <div class="w-12 h-12 rounded-full bg-primary-container/30 flex items-center justify-center">
-              <span class="material-symbols-outlined text-primary">person</span>
-            </div>
-            <div>
-              <h3 class="font-bold text-on-surface">ByChooow 用户</h3>
-              <p class="text-xs text-on-surface-variant">设计师</p>
-            </div>
-          </div>
-          <nav class="space-y-1">
-            <a class="flex items-center gap-4 p-4 text-on-surface-variant hover:bg-primary/10 hover:text-primary rounded-xl transition-colors" href="/person/designs">
-              <span class="material-symbols-outlined">palette</span>
-              我的设计
-            </a>
-            <a class="flex items-center gap-4 p-4 text-on-surface-variant hover:bg-primary/10 hover:text-primary rounded-xl transition-colors" href="/order">
-              <span class="material-symbols-outlined">package_2</span>
-              订单查询
-            </a>
-            <a class="flex items-center gap-4 p-4 text-on-surface-variant hover:bg-primary/10 hover:text-primary rounded-xl transition-colors" href="/person/collection">
-              <span class="material-symbols-outlined">favorite</span>
-              收藏夹
-            </a>
-            <a class="flex items-center gap-4 p-4 text-on-surface-variant hover:bg-primary/10 hover:text-primary rounded-xl transition-colors" href="/person">
-              <span class="material-symbols-outlined">settings</span>
-              设置
-            </a>
-          </nav>
-        </div>
-      </div>
-      <div
-        class={`fixed inset-0 bg-black/60 z-40 transition-opacity duration-300 ${drawerOpen() ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-        onClick={() => setDrawerOpen(false)}
-      />
     </div>
   )
 }

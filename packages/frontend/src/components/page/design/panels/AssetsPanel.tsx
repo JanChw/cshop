@@ -159,12 +159,12 @@ export default function AssetsPanel(props: Props) {
   }
 
   const onStickerSelect = (sticker: StickerItem) => {
-    props.onAddImage({ url: sticker.url, maxWidth: 120, maxHeight: 120 })
+    props.onAddImage({ url: sticker.url, maxWidth: 60, maxHeight: 60 })
     showToast('已添加到设计')
   }
 
   return (
-    <div class="py-6 space-y-6">
+    <div class="space-y-5">
       <Show
         when={!pickerMode()}
         fallback={
@@ -188,7 +188,7 @@ export default function AssetsPanel(props: Props) {
                 }}
                 type="text"
                 placeholder="搜索贴纸..."
-                class="w-full h-10 pl-10 pr-4 rounded-lg bg-surface-container-high text-on-surface text-sm placeholder:text-outline outline-none focus:ring-2 focus:ring-primary"
+                class="w-full h-10 pl-10 pr-4 rounded-lg bg-surface-container-high text-on-surface text-sm placeholder:text-outline outline-none focus:ring-1 focus:ring-primary focus:border-primary"
                 value={pickerSearch()}
                 onInput={(e) => onPickerSearch(e.currentTarget.value)}
               />

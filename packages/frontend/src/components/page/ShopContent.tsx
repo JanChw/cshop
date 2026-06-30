@@ -1,6 +1,5 @@
 import { createSignal, createMemo, createEffect, Show, onMount, onCleanup } from 'solid-js'
 import ProductCard from '../ui/ProductCard'
-import CategoryChips from '../ui/CategoryChips'
 import ScrollRow from '../ui/ScrollRow'
 import SkeletonCard from '../ui/SkeletonCard'
 import { useInfiniteScroll } from '../../lib/useInfiniteScroll'
@@ -39,6 +38,7 @@ export default function ShopContent() {
   const [error, setError] = createSignal('')
 
   const [activeCategory, setActiveCategory] = createSignal('all')
+  const [query, setQuery] = createSignal('')
   const [filterOpen, setFilterOpen] = createSignal(false)
   const [filterFabric, setFilterFabric] = createSignal('')
   const [filterFit, setFilterFit] = createSignal('')
@@ -87,6 +87,11 @@ export default function ShopContent() {
       if (zh) setActiveCategory(cat)
     }
 
+    const q = params.get('q')
+    if (q) {
+      setQuery(q)
+    }
+
     const onScroll = () => setShowScrollTop(window.scrollY > 600)
     window.addEventListener('scroll', onScroll, { passive: true })
     onCleanup(() => window.removeEventListener('scroll', onScroll))
@@ -105,6 +110,13 @@ export default function ShopContent() {
 
   const filteredProducts = createMemo(() => {
     let list = products()
+
+    const q = query().trim().toLowerCase()
+    if (q) {
+      list = list.filter((p) =>
+        p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q)
+      )
+    }
 
     if (activeCategory() !== 'all') {
       const catZh = Object.entries(categoryMap).find(([, en]) => en === activeCategory())?.[0]
@@ -135,11 +147,6 @@ export default function ShopContent() {
     if (filterPrice()) c++
     return c
   })
-
-  const handleCategoryChange = (zh: string) => {
-    const en = categoryMap[zh] || 'all'
-    setActiveCategory(en)
-  }
 
   const filterLabel = (opts: { value: string; label: string }[], value: string): string =>
     opts.find(o => o.value === value)?.label ?? value
@@ -183,37 +190,59 @@ export default function ShopContent() {
   return (
     <main class="md:pt-16 pb-[calc(64px+env(safe-area-inset-bottom))] md:pb-0">
       {/* Category header */}
-      <section class="pt-stack-lg pb-stack-md relative">
-        <div class="container-content relative">
-          <div class="flex items-center justify-between">
-            <div class="min-w-0">
-              <span class="text-label-md text-on-surface-variant">商店</span>
-              <div class="flex items-center gap-4">
-                <h1 class="font-headline text-headline-lg-mobile md:text-headline-lg text-on-surface">探索精品</h1>
-                <div class="w-8 h-0.5 bg-red-500 rounded-full hidden md:block shrink-0" />
-              </div>
+      <section class="pt-stack-lg pb-stack-sm relative">
+        <div class="container-content">
+          {/* Title */}
+          <div>
+            <span class="text-label-md text-on-surface-variant">商店</span>
+            <div class="flex items-center gap-4">
+              <h1 class="font-headline text-headline-lg-mobile md:text-headline-lg text-on-surface">探索精品</h1>
+              <div class="w-8 h-0.5 bg-accent rounded-full hidden md:block shrink-0" />
             </div>
-            <a href="/search" class="md:hidden flex items-center justify-center w-10 h-10 text-on-surface-variant hover:text-on-surface transition-colors tap-target shrink-0" aria-label="搜索">
-              <span class="material-symbols-outlined text-2xl">search</span>
-            </a>
           </div>
-        </div>
-        {/* CategoryChips - mobile only */}
-        <div class="container-content mt-stack-md md:hidden">
-          <div class="bg-primary-container/20 -mx-container-margin px-container-margin md:mx-0 md:px-0 md:rounded-xl py-3">
-            <div class="-mr-container-margin md:mr-0">
-              <CategoryChips
-                items={[
-                  { zh: '全部' },
-                  { zh: '基础款', en: 'Basics' },
-                  { zh: '核心款', en: 'Essentials' },
-                  { zh: '设计师款', en: 'Designer' },
-                  { zh: '定制款', en: 'Custom' }
-                ]}
-                active={activeCategory() === 'all' ? '全部' : Object.entries(categoryMap).find(([, en]) => en === activeCategory())?.[0] || '全部'}
-                onChange={handleCategoryChange}
-                variant="rounded-full"
+
+          {/* Mobile search + category — unified pill group */}
+          <div class="md:hidden mt-stack-sm flex items-center bg-surface-container-low border border-outline-variant rounded-full focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-colors">
+            <div class="relative flex-1 min-w-0">
+              <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg w-5 text-center pointer-events-none">search</span>
+              <input
+                type="text"
+                class="w-full bg-transparent text-on-surface text-body-sm py-2.5 pl-11 pr-3 outline-none placeholder:text-on-surface-variant"
+                placeholder="搜索连帽衫、T恤..."
+                aria-label="搜索"
+                value={query()}
+                onInput={(e) => setQuery(e.currentTarget.value)}
               />
+              <Show when={query()}>
+                <button
+                  type="button"
+                  onClick={() => setQuery('')}
+                  class="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-on-surface-variant hover:text-primary rounded-full hover:bg-primary/10 transition-colors"
+                  aria-label="清除"
+                >
+                  <span class="material-symbols-outlined text-sm">close</span>
+                </button>
+              </Show>
+            </div>
+
+            {/* Divider */}
+            <div class="w-px h-5 bg-outline-variant shrink-0" />
+
+            {/* Category select */}
+            <div class="relative shrink-0">
+              <select
+                value={activeCategory()}
+                onChange={(e) => setActiveCategory(e.currentTarget.value)}
+                class="appearance-none bg-transparent text-on-surface text-body-sm py-2.5 pl-3 pr-7 focus:outline-none cursor-pointer"
+                aria-label="分类"
+              >
+                <option value="all">全部</option>
+                <option value="Basics">基础款</option>
+                <option value="Essentials">核心款</option>
+                <option value="Designer">设计师款</option>
+                <option value="Custom">定制款</option>
+              </select>
+              <span class="material-symbols-outlined absolute right-1 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg pointer-events-none">expand_more</span>
             </div>
           </div>
         </div>
@@ -355,22 +384,8 @@ export default function ShopContent() {
 
         <div class="flex-1 min-w-0 md:min-h-[60vh]">
           {/* Mobile filter bar */}
-          <section class="px-container-margin md:px-0 py-3 flex items-center justify-between sticky top-0 md:static bg-background/95 z-30">
-            <div class="flex items-center gap-2 overflow-x-auto hide-scrollbar md:hidden" style={{ '-ms-overflow-style': 'none', 'scrollbar-width': 'none' }}>
-              <span class="text-label-md text-on-surface-variant whitespace-nowrap mr-1">{filteredProducts().length}件</span>
-              {SORT_OPTS.map((opt, i) => [
-                i > 0 ? <span class="text-outline-variant text-label-md">·</span> : null,
-                <button
-                  type="button"
-                  onClick={() => setSortMode(opt.value)}
-                  class={`whitespace-nowrap text-label-md tap-target transition-colors ${
-                    sortMode() === opt.value ? 'text-primary font-bold' : 'text-on-surface-variant'
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ])}
-            </div>
+          <section class="px-container-margin md:px-0 pt-1 pb-2 flex items-center justify-between sticky top-0 md:static bg-background/95 z-30">
+            <span class="text-label-md text-on-surface-variant">{filteredProducts().length}件</span>
             <button
               type="button"
               onClick={() => setFilterOpen(true)}
@@ -379,6 +394,23 @@ export default function ShopContent() {
               <span class="material-symbols-outlined text-lg">tune</span>
               <span>筛选{activeFilterCount() > 0 ? ` (${activeFilterCount()})` : ''}</span>
             </button>
+          </section>
+
+          {/* Mobile sort bar */}
+          <section class="px-container-margin md:px-0 flex items-center gap-4 pb-2 md:hidden">
+            {SORT_OPTS.map(opt => (
+              <button
+                type="button"
+                onClick={() => setSortMode(opt.value)}
+                class={`text-label-md transition-colors tap-target flex-shrink-0 ${
+                  sortMode() === opt.value
+                    ? 'text-primary font-bold border-b-2 border-primary -mb-px pb-1'
+                    : 'text-on-surface-variant pb-1'
+                }`}
+              >
+                {opt.value === 'default' ? '综合' : opt.value === 'price-asc' ? '价格↑' : '最新'}
+              </button>
+            ))}
           </section>
 
           {/* Loading skeleton */}

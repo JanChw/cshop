@@ -25,7 +25,7 @@ export default function ColorPanel(props: Props) {
   const displayHex = () => toHex(props.selectedColor)
 
   return (
-    <section class="mt-6 mb-12 space-y-8">
+    <section class="space-y-6">
       <div class="p-4 bg-surface-container-low rounded-xl border border-outline-variant">
         <div class="flex items-center justify-between gap-4">
           <label

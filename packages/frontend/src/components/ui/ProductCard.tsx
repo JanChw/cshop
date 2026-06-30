@@ -51,7 +51,7 @@ export default function ProductCard(props: Props) {
           class="group-hover:opacity-60 transition-opacity duration-200"
         />
         {props.product.tags?.includes('New') && (
-          <div class="absolute top-3 left-3 bg-accent text-on-accent text-label-md px-2 py-0.5 rounded-lg font-medium group-hover:scale-110 transition-transform duration-200">新品</div>
+          <div class="absolute top-3 left-3 bg-accent-container text-on-accent-container text-label-md px-2 py-0.5 rounded-lg font-bold group-hover:scale-110 transition-transform duration-200">新品</div>
         )}
         {props.product.tags?.includes('Canvas Ready') && (
           <div class="absolute top-3 left-3 px-2.5 py-1 bg-surface rounded text-label-md text-primary border border-primary/20 group-hover:scale-110 transition-transform duration-200">可定制</div>

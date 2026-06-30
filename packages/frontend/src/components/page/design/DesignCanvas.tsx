@@ -6,7 +6,6 @@ interface Props {
   tshirtImage: string
   tshirtColor: string
   maskImage?: string
-  bgColor: string
   drawing: { enabled: boolean; mode?: 'brush' | 'move'; color: string; size: number; style?: 'pencil' | 'marker' | 'spray' }
   interactive?: boolean
   onReady?: (api: CanvasAPI) => void
@@ -84,9 +83,9 @@ export default function DesignCanvas(props: Props) {
 
   return (
     <section
-      class="relative aspect-[4/5] w-full rounded-xl overflow-hidden mt-4"
+      class="relative aspect-[4/5] w-full max-w-sm md:max-w-md rounded-xl overflow-hidden mx-auto"
       style={{
-        'background-color': props.bgColor,
+        'background-color': '#ffffff',
         cursor: inBrushMode() ? 'crosshair' : (isDragging() ? 'grabbing' : 'grab'),
         'touch-action': 'none'
       }}
@@ -108,7 +107,7 @@ export default function DesignCanvas(props: Props) {
       }}
     >
       <div
-        class="absolute inset-0 flex items-center justify-center"
+        class="absolute inset-0 flex items-center justify-center z-0"
         style={{ transform: imageTransform(), transition: isDragging() ? 'none' : 'transform 0.1s ease-out' }}
       >
         <FabricCanvas
@@ -126,7 +125,7 @@ export default function DesignCanvas(props: Props) {
         />
       </div>
 
-      <div class="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none z-10">
+      <div class="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none z-20">
         <Show when={!props.drawing.enabled}>
           <div class="bg-primary/90 text-on-primary px-3 py-1 rounded-full text-xs font-bold shadow-lg pointer-events-auto">
             实时预览
@@ -165,7 +164,7 @@ export default function DesignCanvas(props: Props) {
 
       <Show when={selectedText()}>
         {(text) => (
-          <div class="absolute right-3 top-1/2 -translate-y-1/2 flex-col items-center gap-2 bg-surface/95 backdrop-blur px-2 py-3 rounded-2xl shadow-lg border border-outline-variant/30 z-10 flex">
+          <div class="absolute left-3 top-1/2 -translate-y-1/2 flex-col items-center gap-2 bg-surface/95 backdrop-blur px-2 py-3 rounded-2xl shadow-lg border border-outline-variant/30 z-20 flex md:left-auto md:right-3">
             <label
               class="relative w-9 h-9 rounded-full overflow-hidden shrink-0 cursor-pointer ring-1 ring-outline-variant"
               style={{ 'background-color': text().color }}
@@ -183,7 +182,7 @@ export default function DesignCanvas(props: Props) {
             </label>
 
             <select
-              class="w-9 h-9 p-0 text-center rounded-lg bg-surface-container-high text-[10px] font-medium border border-outline-variant outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+              class="w-9 h-9 p-0 text-center rounded-lg bg-surface-container-high text-[10px] font-medium border border-outline-variant outline-none focus:border-primary focus:ring-1 focus:ring-primary"
               aria-label="字体"
               value={text().font}
               onChange={(e) => {
@@ -287,31 +286,28 @@ export default function DesignCanvas(props: Props) {
       </Show>
 
       <Show when={hasSelection() && !selectedText()}>
-        <div class="absolute bottom-20 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-surface/95 backdrop-blur px-3 py-2 rounded-full shadow-lg border border-outline-variant/30 z-10">
+        <div class="absolute left-3 top-1/2 -translate-y-1/2 flex-col items-center gap-2 bg-surface/95 backdrop-blur px-2 py-3 rounded-2xl shadow-lg border border-outline-variant/30 z-20 flex md:left-auto md:right-3">
           <button
-            class="flex items-center gap-1 text-sm font-bold text-on-surface px-2 py-1 rounded-lg hover:bg-primary/10 transition-colors"
+            class="w-9 h-9 flex items-center justify-center rounded-lg text-on-surface hover:bg-primary/10 hover:text-primary transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-[-2px]"
             onClick={() => canvasAPI?.bringToFront()}
             aria-label="置顶"
           >
-            <span class="material-symbols-outlined">vertical_align_top</span>
-            置顶
+            <span class="material-symbols-outlined text-sm">vertical_align_top</span>
           </button>
           <button
-            class="flex items-center gap-1 text-sm font-bold text-on-surface px-2 py-1 rounded-lg hover:bg-primary/10 transition-colors"
+            class="w-9 h-9 flex items-center justify-center rounded-lg text-on-surface hover:bg-primary/10 hover:text-primary transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-[-2px]"
             onClick={() => canvasAPI?.sendToBack()}
             aria-label="置底"
           >
-            <span class="material-symbols-outlined">vertical_align_bottom</span>
-            置底
+            <span class="material-symbols-outlined text-sm">vertical_align_bottom</span>
           </button>
-          <div class="w-px h-5 bg-outline-variant mx-1" />
+          <div class="h-px w-6 bg-outline-variant" />
           <button
-            class="flex items-center gap-1.5 text-sm font-bold text-error px-2 py-1 rounded-lg hover:bg-error/10 transition-colors"
+            class="w-9 h-9 flex items-center justify-center rounded-lg text-error hover:bg-error/10 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-[-2px]"
             onClick={() => canvasAPI?.removeSelected()}
             aria-label="删除选中对象"
           >
-            <span class="material-symbols-outlined">delete</span>
-            删除
+            <span class="material-symbols-outlined text-sm">delete</span>
           </button>
         </div>
       </Show>

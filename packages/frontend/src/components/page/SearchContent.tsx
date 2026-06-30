@@ -84,6 +84,15 @@ export default function SearchContent() {
     const q = params.get('q')
     const category = params.get('category')
 
+    // Mobile: redirect to /shop with query params (search merged into shop page)
+    if (window.innerWidth < 768) {
+      const shopParams = new URLSearchParams()
+      if (q) shopParams.set('q', q)
+      if (category) shopParams.set('category', category)
+      window.location.replace(`/shop${shopParams.toString() ? '?' + shopParams.toString() : ''}`)
+      return
+    }
+
     if (q) setQuery(q)
     if (category) setActiveChip(category)
 
@@ -205,7 +214,7 @@ export default function SearchContent() {
             <select
               value={activeChip()}
               onChange={(e) => setActiveChip(e.currentTarget.value)}
-              class="appearance-none bg-transparent text-on-surface text-body-sm focus:outline-none cursor-pointer py-[0.875rem] pr-5 text-center"
+              class="appearance-none bg-transparent text-on-surface text-body-sm outline-none cursor-pointer py-[0.875rem] pr-5 text-center"
               aria-label="分类筛选"
             >
               {CATEGORY_CHIPS.map(c => (
@@ -351,16 +360,18 @@ export default function SearchContent() {
             </button>
           </section>
 
-          <section class="px-container-margin md:px-0 flex gap-stack-md overflow-x-auto hide-scrollbar py-1 md:hidden" style={{ '-ms-overflow-style': 'none', 'scrollbar-width': 'none' }}>
+          <section class="px-container-margin md:px-0 flex items-center gap-4 py-2 md:hidden">
             {SORT_OPTS.map(opt => (
               <button
                 type="button"
                 onClick={() => setSortMode(opt.value)}
-                class={`flex items-center gap-1 border rounded-lg px-3 py-1.5 whitespace-nowrap bg-surface text-label-md tap-target transition-colors flex-shrink-0 ${
-                  sortMode() === opt.value ? 'border-primary text-primary' : 'border-outline text-on-surface'
+                class={`text-label-md transition-colors tap-target flex-shrink-0 ${
+                  sortMode() === opt.value
+                    ? 'text-primary font-bold border-b-2 border-primary -mb-px pb-1'
+                    : 'text-on-surface-variant pb-1'
                 }`}
               >
-                <span>{opt.label}</span>
+                {opt.value === 'default' ? '综合' : opt.value === 'price-asc' ? '价格↑' : '最新'}
               </button>
             ))}
           </section>

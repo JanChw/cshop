@@ -295,7 +295,15 @@ export const api = {
     listPublic: () =>
       request<{ success: boolean; data: { items: DesignItem[] } }>('/designs'),
     remove: (id: number) =>
-      request(`/designs/${id}`, { method: 'DELETE' })
+      request(`/designs/${id}`, { method: 'DELETE' }),
+    saveBeacon: (data: { productId: number; name: string; canvasData: string; previewImage?: string | null }, id?: number) => {
+      const token = getToken()
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+      if (token) headers['Authorization'] = `Bearer ${token}`
+      const url = id ? `${API_BASE}/designs/${id}` : `${API_BASE}/designs`
+      const method = id ? 'PUT' : 'POST'
+      return fetch(url, { method, headers, body: JSON.stringify(data), keepalive: true }).catch(() => {})
+    }
   },
   stickers: {
     list: (params?: { category?: string; q?: string; page?: number; limit?: number }) => {

@@ -13,6 +13,7 @@ import type { AppEnv } from '../../types/hono'
 
 const DEFAULTS: Record<string, string> = {
   trash_retention_days: '30',
+  activity_events_retention_days: '30',
   site_name: 'CShop 电商平台',
   contact_email: 'admin@cshop.com',
   login_lock: 'true',
@@ -41,6 +42,7 @@ function ensureDefaults(): void {
 
 const updateSchema = z.object({
   trash_retention_days: z.string().optional(),
+  activity_events_retention_days: z.string().optional(),
   site_name: z.string().optional(),
   contact_email: z.string().email('邮箱格式不正确').optional().or(z.literal('')),
   login_lock: z.string().optional(),

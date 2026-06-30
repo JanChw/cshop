@@ -51,12 +51,20 @@ describe('tracker middleware', () => {
     expect(event.deviceType).toBe('desktop')
   })
 
-  test('does not record event for unauthenticated request', async () => {
-    await api('/api/v1/products')
-    await flush()
+  test('records anonymous events for unauthenticated request (userId: null, 10% sample)', async () => {
+    // Force Math.random to return 0 so the 10% anonymous sampling always fires.
+    const origRandom = Math.random
+    Math.random = () => 0
+    try {
+      await api('/api/v1/products')
+      await flush()
+    } finally {
+      Math.random = origRandom
+    }
 
     const events = db.select().from(activityEvents).all()
-    expect(events.length).toBe(0)
+    expect(events.length).toBeGreaterThan(0)
+    expect(events[0].userId).toBeNull()
   })
 
   test('upserts user_online on authenticated request', async () => {

@@ -7,12 +7,15 @@ import { success, fail } from '../utils/response'
 import { auth } from '../middleware/auth'
 import { rateLimit } from '../middleware/rateLimit'
 import { validateJson } from '../utils/validate'
-import { registerSchema, loginSchema, refreshSchema, logoutSchema, changePasswordSchema, updateMeSchema, forgotPasswordSchema, deactivateAccountSchema, sendPhoneCodeSchema, bindPhoneSchema } from '../validators'
+import { mapDbError } from '../utils/dbError'
+import { getClientIP } from '../utils/request'
+import { registerSchema, loginSchema, refreshSchema, logoutSchema, changePasswordSchema, updateMeSchema, forgotPasswordSchema, deactivateAccountSchema, sendPhoneCodeSchema, bindPhoneSchema, sendEmailCodeSchema, emailCodeLoginSchema } from '../validators'
 import { trackLogin, trackLogout, trackBusinessEvent } from '../utils/track'
 import { loadStaffContext } from '../utils/staff'
 import { checkLockout, recordFailure, recordSuccess, formatLockMessage, formatRemainingMessage, formatLockedWaitMessage } from '../utils/loginGuard'
 import { sendNotification, sendEmail } from '../utils/notify'
 import { getInt } from '../utils/settings'
+import { verifyCaptcha } from '../utils/captcha'
 import type { AppEnv } from '../types/hono'
 
 const loginThrottle = rateLimit({ limit: 10, windowMs: 60_000 })
@@ -60,7 +63,15 @@ app.post('/register', registerThrottle, validateJson(registerSchema), async (c) 
   }
 
   const passwordHash = await Bun.password.hash(password, { algorithm: 'bcrypt', cost: BCRYPT_COST })
-  const [user] = await db.insert(users).values({ email, passwordHash, name }).returning()
+  let user
+  try {
+    [user] = await db.insert(users).values({ email, passwordHash, name }).returning()
+  } catch (err) {
+    const mapping = mapDbError(err)
+    if (mapping.kind === 'unique') return fail(c, '邮箱已注册', mapping.status)
+    console.error('[register] insert failed:', err)
+    return fail(c, mapping.message, mapping.status)
+  }
 
   trackBusinessEvent({ c, userId: user.id, eventType: 'register' })
 
@@ -85,7 +96,7 @@ app.post('/register', registerThrottle, validateJson(registerSchema), async (c) 
 app.post('/login', loginThrottle, validateJson(loginSchema), async (c) => {
   try {
     const { email, password, rememberMe = true } = c.req.valid('json')
-    const ip = c.req.header('x-forwarded-for')?.split(',')[0].trim() || c.req.header('x-real-ip') || 'unknown'
+    const ip = getClientIP(c)
     const userAgent = c.req.header('user-agent') ?? null
 
     const lockout = checkLockout(email)
@@ -359,14 +370,16 @@ app.delete('/sessions/:id', auth, async (c) => {
 app.post('/forgot-password', rateLimit({ limit: 5, windowMs: 60_000 }), validateJson(forgotPasswordSchema), async (c) => {
   const { email } = c.req.valid('json')
 
-  // Always return success to avoid email enumeration.
-  // In production, send a reset link via email; for now, log only.
+  // Email-based password reset is not yet wired up (no token store / SMTP
+  // reset template). Return a neutral message to avoid email enumeration
+  // while staying honest that no link will be sent. Admins can reset via
+  // /admin/users/:id/reset-password.
   const [user] = await db.select({ id: users.id }).from(users).where(eq(users.email, email)).limit(1)
   if (user) {
-    console.log(`[forgot-password] reset link would be sent to ${email} for user ${user.id}`)
+    console.log('[forgot-password] reset requested for user', user.id)
   }
 
-  return success(c, { message: '如果该邮箱已注册，重置链接将很快送达' })
+  return success(c, { message: '密码自助重置暂未启用，请联系管理员重置密码' })
 })
 
 const phoneCodeThrottle = rateLimit({ limit: 3, windowMs: 60_000 })
@@ -464,6 +477,112 @@ app.post('/phone/bind', auth, validateJson(bindPhoneSchema), async (c) => {
   await db.update(users).set({ phone }).where(eq(users.id, userId))
 
   return success(c, { phone })
+})
+
+const emailCodeSendThrottle = rateLimit({ limit: 3, windowMs: 60_000 })
+
+app.post('/email/send-code', emailCodeSendThrottle, validateJson(sendEmailCodeSchema), async (c) => {
+  const { email, captchaToken } = c.req.valid('json')
+
+  const valid = await verifyCaptcha(captchaToken)
+  if (!valid) return fail(c, '人机验证失败，请刷新后重试', 423)
+
+  const [user] = await db.select({ id: users.id, name: users.name }).from(users).where(eq(users.email, email)).limit(1)
+
+  if (user) {
+    const cooldownAt = new Date(Date.now() - 60_000).toISOString().replace('T', ' ').replace(/\.\d+Z$/, '')
+    const nowIso = new Date().toISOString()
+    const [recent] = await db.select({ id: verificationCodes.id }).from(verificationCodes)
+      .where(and(
+        eq(verificationCodes.userId, user.id),
+        eq(verificationCodes.purpose, 'email_login'),
+        isNull(verificationCodes.usedAt),
+        sql`${verificationCodes.expiresAt} > ${nowIso}`,
+        sql`${verificationCodes.createdAt} > ${cooldownAt}`
+      ))
+      .limit(1)
+    if (recent) return fail(c, '验证码发送过于频繁，请 60 秒后重试', 429)
+
+    const code = String(Math.floor(100000 + Math.random() * 900000))
+    const expiresAt = new Date(Date.now() + 10 * 60_000).toISOString()
+
+    await db.insert(verificationCodes).values({
+      userId: user.id,
+      purpose: 'email_login',
+      target: email,
+      code,
+      expiresAt
+    })
+
+    const subject = 'CShop 邮箱验证码登录'
+    const body = [
+      `您好，${user.name || '用户'}：`,
+      '',
+      `您正在尝试登录 CShop，验证码：${code}（10 分钟内有效，请勿泄露给他人）。`,
+      '',
+      '如非本人操作，请忽略本邮件。'
+    ].join('\n')
+
+    void sendEmail({ to: email, subject, body, event: 'verification' }).catch((err) => {
+      console.error('[EMAIL LOGIN CODE]', err)
+    })
+  }
+
+  return success(c, { message: '验证码已发送至您的邮箱' })
+})
+
+app.post('/email/code-login', validateJson(emailCodeLoginSchema), async (c) => {
+  const { email, code } = c.req.valid('json')
+
+  const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1)
+  if (!user) {
+    return fail(c, '邮箱或验证码错误', 401)
+  }
+
+  if (user.status === 'disabled') {
+    return fail(c, '账号已被禁用，请联系管理员', 403)
+  }
+  if (user.status === 'deactivated') {
+    return fail(c, '账号已注销', 403)
+  }
+
+  const [row] = await db.select().from(verificationCodes)
+    .where(and(
+      eq(verificationCodes.userId, user.id),
+      eq(verificationCodes.purpose, 'email_login'),
+      eq(verificationCodes.target, email),
+      isNull(verificationCodes.usedAt)
+    ))
+    .orderBy(desc(verificationCodes.createdAt))
+    .limit(1)
+
+  if (!row) return fail(c, '请先获取验证码', 400)
+  if (new Date(row.expiresAt).getTime() < Date.now()) return fail(c, '验证码已过期，请重新获取', 400)
+  if (row.attempts >= 5) return fail(c, '尝试次数过多，请重新获取验证码', 400)
+
+  if (row.code !== code) {
+    await db.update(verificationCodes).set({ attempts: row.attempts + 1 }).where(eq(verificationCodes.id, row.id))
+    return fail(c, '验证码错误', 400)
+  }
+
+  await db.update(verificationCodes).set({ usedAt: new Date().toISOString() }).where(eq(verificationCodes.id, row.id))
+
+  await cleanupExpiredSessions(user.id)
+  await db.update(users).set({ lastLoginAt: new Date().toISOString() }).where(eq(users.id, user.id))
+
+  const tokens = await issueTokensForUser(user.id)
+
+  trackLogin({ c, userId: user.id })
+
+  return success(c, {
+    accessToken: tokens.accessToken,
+    refreshToken: tokens.refreshToken,
+    user: { id: user.id, email: user.email, name: user.name },
+    isStaff: tokens.isStaff,
+    roleId: tokens.roleId,
+    roleName: tokens.roleName,
+    permissions: tokens.permissions
+  })
 })
 
 export default app

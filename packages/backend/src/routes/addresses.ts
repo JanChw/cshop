@@ -57,18 +57,20 @@ app.post('/', validateJson(addressSchema), async (c) => {
   const userId = c.get('userId')!
   const data = c.req.valid('json')
 
-  if (data.isDefault) {
-    await db.update(userAddresses)
-      .set({ isDefault: false })
-      .where(eq(userAddresses.userId, userId))
-      .run()
-  }
-
-  const [created] = await db
-    .insert(userAddresses)
-    .values({ userId, ...data, isDefault: data.isDefault ?? false })
-    .returning()
-    .all()
+  const created = db.transaction((tx) => {
+    if (data.isDefault) {
+      tx.update(userAddresses)
+        .set({ isDefault: false })
+        .where(eq(userAddresses.userId, userId))
+        .run()
+    }
+    const [row] = tx
+      .insert(userAddresses)
+      .values({ userId, ...data, isDefault: data.isDefault ?? false })
+      .returning()
+      .all()
+    return row
+  })
   return success(c, created, 201)
 })
 
@@ -84,23 +86,26 @@ app.put('/:id', validateJson(addressUpdateSchema), async (c) => {
     .limit(1)
   if (!existing) return fail(c, '地址不存在', 404)
 
-  if (data.isDefault) {
-    await db.update(userAddresses)
-      .set({ isDefault: false })
-      .where(eq(userAddresses.userId, userId))
+  const updated = db.transaction((tx) => {
+    if (data.isDefault) {
+      tx.update(userAddresses)
+        .set({ isDefault: false })
+        .where(eq(userAddresses.userId, userId))
+        .run()
+    }
+    tx.update(userAddresses)
+      .set({ ...data, updatedAt: new Date().toISOString() })
+      .where(and(eq(userAddresses.id, id), eq(userAddresses.userId, userId)))
       .run()
-  }
 
-  await db.update(userAddresses)
-    .set({ ...data, updatedAt: new Date().toISOString() })
-    .where(and(eq(userAddresses.id, id), eq(userAddresses.userId, userId)))
-    .run()
-
-  const [updated] = await db
-    .select()
-    .from(userAddresses)
-    .where(eq(userAddresses.id, id))
-    .limit(1)
+    const [row] = tx
+      .select()
+      .from(userAddresses)
+      .where(eq(userAddresses.id, id))
+      .limit(1)
+      .all()
+    return row
+  })
   return success(c, updated)
 })
 
@@ -132,14 +137,16 @@ app.post('/default/:id', async (c) => {
     .limit(1)
   if (!existing) return fail(c, '地址不存在', 404)
 
-  await db.update(userAddresses)
-    .set({ isDefault: false })
-    .where(eq(userAddresses.userId, userId))
-    .run()
-  await db.update(userAddresses)
-    .set({ isDefault: true, updatedAt: new Date().toISOString() })
-    .where(eq(userAddresses.id, id))
-    .run()
+  db.transaction((tx) => {
+    tx.update(userAddresses)
+      .set({ isDefault: false })
+      .where(eq(userAddresses.userId, userId))
+      .run()
+    tx.update(userAddresses)
+      .set({ isDefault: true, updatedAt: new Date().toISOString() })
+      .where(eq(userAddresses.id, id))
+      .run()
+  })
   return success(c, { id, isDefault: true })
 })
 

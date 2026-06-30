@@ -14,6 +14,8 @@ import { productSchema, productVariantSchema, orderStatusSchema, variantBatchDel
 import { trackBusinessEvent } from '../utils/track'
 import { canTransition } from '../utils/orderTransitions'
 import { processImage, removeBackground, generateMask, flattenOnWhite } from '../utils/image'
+import { acceptImageUpload, uploadErrorPayload } from '../utils/upload'
+import { cached } from '../utils/cache'
 import { config } from '../config'
 import backupRoutes from './admin/backup'
 import { adminStickerRoutes } from './stickers'
@@ -36,25 +38,30 @@ app.use('*', auth)
 app.use('*', requireStaff)
 
 app.get('/dashboard', requirePermission('analytics.read'), async (c) => {
-  const [productRow] = await db.select({ n: count() }).from(products)
-  const [orderRow] = await db.select({ n: count() }).from(orders)
-  const [pendingRow] = await db
-    .select({ n: count() })
-    .from(orders)
-    .where(eq(orders.status, 'pending'))
-  const [revenueRow] = await db
-    .select({ total: sum(orders.total) })
-    .from(orders)
-    .where(eq(orders.status, 'completed'))
+  // Dashboard counts don't need real-time precision; cache 1 minute.
+  const data = cached('admin:dashboard', 60_000, () => {
+    const [productRow] = db.select({ n: count() }).from(products).all()
+    const [orderRow] = db.select({ n: count() }).from(orders).all()
+    const [pendingRow] = db
+      .select({ n: count() })
+      .from(orders)
+      .where(eq(orders.status, 'pending'))
+      .all()
+    const [revenueRow] = db
+      .select({ total: sum(orders.total) })
+      .from(orders)
+      .where(eq(orders.status, 'completed'))
+      .all()
 
-  const totalRevenue = revenueRow?.total ? Number(revenueRow.total) : 0
-
-  return success(c, {
-    productCount: productRow?.n ?? 0,
-    orderCount: orderRow?.n ?? 0,
-    pendingCount: pendingRow?.n ?? 0,
-    totalRevenue
+    return {
+      productCount: productRow?.n ?? 0,
+      orderCount: orderRow?.n ?? 0,
+      pendingCount: pendingRow?.n ?? 0,
+      totalRevenue: revenueRow?.total ? Number(revenueRow.total) : 0
+    }
   })
+
+  return success(c, data)
 })
 
 app.get('/products', requirePermission('product.read'), async (c) => {
@@ -213,6 +220,9 @@ app.post('/products/import', requirePermission('product.create'), async (c) => {
   let imported = 0
   let errors: string[] = []
 
+  // Parse all rows first, then batch-insert valid ones in one query.
+  const validRows: Array<{ name: string; basePrice: number; stock: number; description: string | null; tags: string | null; fabric: string | null; fit: string | null; designer: string | null; isActive: boolean }> = []
+
   for (let i = 1; i < lines.length; i++) {
     const cols = parseLine(lines[i])
     if (cols.length < 3) {
@@ -225,22 +235,35 @@ app.post('/products/import', requirePermission('product.create'), async (c) => {
       errors.push(`第 ${i + 1} 行：名称或价格无效`)
       continue
     }
+    validRows.push({
+      name,
+      basePrice: price,
+      stock: parseInt(cols[3]?.trim()) || 0,
+      description: cols[6]?.trim() || null,
+      tags: cols[7]?.trim() || null,
+      fabric: cols[8]?.trim() || null,
+      fit: cols[9]?.trim() || null,
+      designer: cols[10]?.trim() || null,
+      isActive: (cols[5]?.trim() || '上架') === '上架'
+    })
+  }
 
+  if (validRows.length > 0) {
     try {
-      const [product] = await db.insert(products).values({
-        name,
-        basePrice: price,
-        stock: parseInt(cols[3]?.trim()) || 0,
-        description: cols[6]?.trim() || null,
-        tags: cols[7]?.trim() || null,
-        fabric: cols[8]?.trim() || null,
-        fit: cols[9]?.trim() || null,
-        designer: cols[10]?.trim() || null,
-        isActive: (cols[5]?.trim() || '上架') === '上架',
-      }).returning().all()
-      imported++
-    } catch (err: any) {
-      errors.push(`第 ${i + 1} 行：${err.message || '导入失败'}`)
+      const result = db.insert(products).values(validRows).returning({ id: products.id }).all()
+      imported = result.length
+    } catch (err) {
+      console.error('[products.import] batch insert failed, falling back to per-row:', err)
+      // Fallback: insert one by one so a single bad row doesn't abort the batch.
+      for (const row of validRows) {
+        try {
+          db.insert(products).values(row).run()
+          imported++
+        } catch (e) {
+          console.error('[products.import] row failed:', e)
+          errors.push('导入失败')
+        }
+      }
     }
   }
 
@@ -279,7 +302,7 @@ app.put('/products/:id', requirePermission('product.update'), validateJson(produ
     return fail(c, '商品不存在', 404)
   }
 
-  const dbData = { ...data, images: data.images ? JSON.stringify(data.images) : undefined }
+  const dbData = { ...data, images: data.images ? JSON.stringify(data.images) : undefined, updatedAt: sql`datetime('now')` }
   await db.update(products).set(dbData).where(eq(products.id, id))
   return success(c, null)
 })
@@ -293,7 +316,7 @@ app.patch('/products/:id/status', requirePermission('product.update'), async (c)
   const [existing] = await db.select({ id: products.id }).from(products).where(eq(products.id, id)).limit(1)
   if (!existing) return fail(c, '商品不存在', 404)
 
-  await db.update(products).set({ isActive }).where(eq(products.id, id))
+  await db.update(products).set({ isActive, updatedAt: sql`datetime('now')` }).where(eq(products.id, id))
   return success(c, null)
 })
 
@@ -311,47 +334,47 @@ app.post('/products/:id/image', requirePermission('product.update'), async (c) =
     return fail(c, '请选择文件', 400)
   }
 
-  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
-  if (!ALLOWED_TYPES.includes(file.type)) {
-    return fail(c, '不支持的文件格式，仅支持 jpg/png/webp', 400)
+  let accepted
+  try {
+    accepted = await acceptImageUpload(file)
+  } catch (err) {
+    const { message, status } = uploadErrorPayload(err)
+    return fail(c, message, status)
   }
-  if (file.size > config.uploadMaxBytes) {
-    return fail(c, `文件大小不能超过 ${Math.round(config.uploadMaxBytes / 1024 / 1024)}MB`, 400)
-  }
-
-  const ext = file.name.split('.').pop() ?? 'bin'
-  const tmpPath = `/tmp/cshop-product-img-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-  await Bun.write(tmpPath, file)
 
   try {
-    const variants = await processImage(tmpPath)
+    const variants = accepted.variants
     const imageUrl = `/api/v1/uploads/${variants.large.path}`
 
-    await db.insert(uploads).values({
-      userId: c.get('userId'),
-      originalName: file.name,
-      baseName: variants.baseName,
-      mimeType: file.type,
-      thumbPath: variants.thumb.path,
-      smallPath: variants.small.path,
-      mediumPath: variants.medium.path,
-      largePath: variants.large.path,
-      thumbSize: variants.thumb.size,
-      smallSize: variants.small.size,
-      mediumSize: variants.medium.size,
-      largeSize: variants.large.size,
-      width: variants.large.width,
-      height: variants.large.height
+    // Atomic: insert upload record + append to product images.
+    const currentImages = db.transaction((tx) => {
+      tx.insert(uploads).values({
+        userId: c.get('userId'),
+        originalName: file.name,
+        baseName: variants.baseName,
+        mimeType: accepted.detectedMime,
+        thumbPath: variants.thumb.path,
+        smallPath: variants.small.path,
+        mediumPath: variants.medium.path,
+        largePath: variants.large.path,
+        thumbSize: variants.thumb.size,
+        smallSize: variants.small.size,
+        mediumSize: variants.medium.size,
+        largeSize: variants.large.size,
+        width: variants.large.width,
+        height: variants.large.height
+      }).run()
+
+      const [current] = tx.select({ images: products.images }).from(products).where(eq(products.id, id)).limit(1).all()
+      const images = current?.images ? JSON.parse(current.images) : []
+      images.push(imageUrl)
+      tx.update(products).set({ images: JSON.stringify(images), updatedAt: sql`datetime('now')` }).where(eq(products.id, id)).run()
+      return images
     })
 
-    const [current] = await db.select({ images: products.images }).from(products).where(eq(products.id, id)).limit(1)
-    const currentImages = current?.images ? JSON.parse(current.images) : []
-    currentImages.push(imageUrl)
-    await db.update(products).set({ images: JSON.stringify(currentImages) }).where(eq(products.id, id))
     return success(c, { images: currentImages })
   } finally {
-    const { unlink } = await import('node:fs/promises')
-    await unlink(tmpPath).catch(() => {})
+    await accepted.cleanup()
   }
 })
 
@@ -365,23 +388,23 @@ app.post('/products/:id/front-image', requirePermission('product.update'), async
   const file = formData.get('file')
   if (!(file instanceof File)) return fail(c, '请选择文件', 400)
 
-  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
-  if (!ALLOWED_TYPES.includes(file.type)) return fail(c, '不支持的文件格式，仅支持 jpg/png/webp', 400)
-  if (file.size > config.uploadMaxBytes) return fail(c, `文件大小不能超过 ${Math.round(config.uploadMaxBytes / 1024 / 1024)}MB`, 400)
-
-  const ext = file.name.split('.').pop() ?? 'bin'
-  const tmpPath = `/tmp/cshop-product-img-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-  await Bun.write(tmpPath, file)
+  let accepted
+  try {
+    accepted = await acceptImageUpload(file)
+  } catch (err) {
+    const { message, status } = uploadErrorPayload(err)
+    return fail(c, message, status)
+  }
 
   let debgPath: string | null = null
   let maskPath: string | null = null
   let flatPath: string | null = null
 
   try {
-    debgPath = await removeBackground(tmpPath)
-    const frontPath = debgPath ?? tmpPath
-    maskPath = await generateMask(frontPath)
+    const frontPath = (await removeBackground(accepted.tmpPath)) ?? accepted.tmpPath
+    if (frontPath !== accepted.tmpPath) debgPath = frontPath
 
+    maskPath = await generateMask(frontPath)
     flatPath = await flattenOnWhite(frontPath)
     const frontVariants = await processImage(flatPath)
     const maskVariants = await processImage(maskPath)
@@ -389,51 +412,55 @@ app.post('/products/:id/front-image', requirePermission('product.update'), async
     const frontUrl = `/api/v1/uploads/${frontVariants.large.path}`
     const maskUrl = `/api/v1/uploads/${maskVariants.large.path}`
 
-    await db.insert(uploads).values({
-      userId: c.get('userId'),
-      originalName: file.name,
-      baseName: frontVariants.baseName,
-      mimeType: file.type,
-      thumbPath: frontVariants.thumb.path,
-      smallPath: frontVariants.small.path,
-      mediumPath: frontVariants.medium.path,
-      largePath: frontVariants.large.path,
-      thumbSize: frontVariants.thumb.size,
-      smallSize: frontVariants.small.size,
-      mediumSize: frontVariants.medium.size,
-      largeSize: frontVariants.large.size,
-      width: frontVariants.large.width,
-      height: frontVariants.large.height
+    // Atomic: write both upload rows + upsert base design in one tx.
+    db.transaction((tx) => {
+      tx.insert(uploads).values({
+        userId: c.get('userId'),
+        originalName: file.name,
+        baseName: frontVariants.baseName,
+        mimeType: accepted.detectedMime,
+        thumbPath: frontVariants.thumb.path,
+        smallPath: frontVariants.small.path,
+        mediumPath: frontVariants.medium.path,
+        largePath: frontVariants.large.path,
+        thumbSize: frontVariants.thumb.size,
+        smallSize: frontVariants.small.size,
+        mediumSize: frontVariants.medium.size,
+        largeSize: frontVariants.large.size,
+        width: frontVariants.large.width,
+        height: frontVariants.large.height
+      }).run()
+
+      tx.insert(uploads).values({
+        userId: c.get('userId'),
+        originalName: `mask-${file.name}`,
+        baseName: maskVariants.baseName,
+        mimeType: 'image/png',
+        thumbPath: maskVariants.thumb.path,
+        smallPath: maskVariants.small.path,
+        mediumPath: maskVariants.medium.path,
+        largePath: maskVariants.large.path,
+        thumbSize: maskVariants.thumb.size,
+        smallSize: maskVariants.small.size,
+        mediumSize: maskVariants.medium.size,
+        largeSize: maskVariants.large.size,
+        width: maskVariants.large.width,
+        height: maskVariants.large.height
+      }).run()
+
+      const now = sql`datetime('now')`
+      const [existingBase] = tx.select({ id: productBaseDesigns.id }).from(productBaseDesigns).where(eq(productBaseDesigns.productId, id)).limit(1).all()
+      if (existingBase) {
+        tx.update(productBaseDesigns).set({ frontImage: frontUrl, maskImage: maskUrl, updatedAt: now }).where(eq(productBaseDesigns.id, existingBase.id)).run()
+      } else {
+        tx.insert(productBaseDesigns).values({ productId: id, frontImage: frontUrl, maskImage: maskUrl, createdAt: now, updatedAt: now }).run()
+      }
     })
 
-    await db.insert(uploads).values({
-      userId: c.get('userId'),
-      originalName: `mask-${file.name}`,
-      baseName: maskVariants.baseName,
-      mimeType: 'image/png',
-      thumbPath: maskVariants.thumb.path,
-      smallPath: maskVariants.small.path,
-      mediumPath: maskVariants.medium.path,
-      largePath: maskVariants.large.path,
-      thumbSize: maskVariants.thumb.size,
-      smallSize: maskVariants.small.size,
-      mediumSize: maskVariants.medium.size,
-      largeSize: maskVariants.large.size,
-      width: maskVariants.large.width,
-      height: maskVariants.large.height
-    })
-
-    const now = sql`datetime('now')`
-    const [existingBase] = await db.select({ id: productBaseDesigns.id }).from(productBaseDesigns).where(eq(productBaseDesigns.productId, id)).limit(1)
-    if (existingBase) {
-      await db.update(productBaseDesigns).set({ frontImage: frontUrl, maskImage: maskUrl, updatedAt: now }).where(eq(productBaseDesigns.id, existingBase.id))
-    } else {
-      await db.insert(productBaseDesigns).values({ productId: id, frontImage: frontUrl, maskImage: maskUrl, createdAt: now, updatedAt: now })
-    }
     return success(c, { frontImage: frontUrl, maskImage: maskUrl })
   } finally {
+    await accepted.cleanup()
     const { unlink } = await import('node:fs/promises')
-    await unlink(tmpPath).catch(() => {})
     if (debgPath) await unlink(debgPath).catch(() => {})
     if (maskPath) await unlink(maskPath).catch(() => {})
     if (flatPath) await unlink(flatPath).catch(() => {})
@@ -456,107 +483,86 @@ app.post('/products/:id/base-design', requirePermission('product.update'), async
   const file = formData.get('file')
   if (!(file instanceof File)) return fail(c, '请选择文件', 400)
 
-  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
-  if (!ALLOWED_TYPES.includes(file.type)) return fail(c, '不支持的文件格式，仅支持 jpg/png/webp', 400)
-  if (file.size > config.uploadMaxBytes) return fail(c, `文件大小不能超过 ${Math.round(config.uploadMaxBytes / 1024 / 1024)}MB`, 400)
-
-  const ext = file.name.split('.').pop() ?? 'bin'
-  const tmpPath = `/tmp/cshop-base-design-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-  await Bun.write(tmpPath, file)
+  let accepted
+  try {
+    accepted = await acceptImageUpload(file)
+  } catch (err) {
+    const { message, status } = uploadErrorPayload(err)
+    return fail(c, message, status)
+  }
 
   let debgPath: string | null = null
   let maskPath: string | null = null
   let flatPath: string | null = null
 
   try {
-    const originalVariants = await processImage(tmpPath)
+    const originalVariants = await processImage(accepted.tmpPath)
     const originalUrl = `/api/v1/uploads/${originalVariants.large.path}`
-    await db.insert(uploads).values({
-      userId: c.get('userId'),
-      originalName: file.name,
-      baseName: originalVariants.baseName,
-      mimeType: file.type,
-      thumbPath: originalVariants.thumb.path,
-      smallPath: originalVariants.small.path,
-      mediumPath: originalVariants.medium.path,
-      largePath: originalVariants.large.path,
-      thumbSize: originalVariants.thumb.size,
-      smallSize: originalVariants.small.size,
-      mediumSize: originalVariants.medium.size,
-      largeSize: originalVariants.large.size,
-      width: originalVariants.large.width,
-      height: originalVariants.large.height
-    })
 
-    debgPath = await removeBackground(tmpPath)
-    const frontPath = debgPath ?? tmpPath
+    const frontPath = (await removeBackground(accepted.tmpPath)) ?? accepted.tmpPath
+    if (frontPath !== accepted.tmpPath) debgPath = frontPath
 
     flatPath = await flattenOnWhite(frontPath)
     const frontVariants = await processImage(flatPath)
     const frontUrl = `/api/v1/uploads/${frontVariants.large.path}`
-    await db.insert(uploads).values({
-      userId: c.get('userId'),
-      originalName: file.name,
-      baseName: frontVariants.baseName,
-      mimeType: file.type,
-      thumbPath: frontVariants.thumb.path,
-      smallPath: frontVariants.small.path,
-      mediumPath: frontVariants.medium.path,
-      largePath: frontVariants.large.path,
-      thumbSize: frontVariants.thumb.size,
-      smallSize: frontVariants.small.size,
-      mediumSize: frontVariants.medium.size,
-      largeSize: frontVariants.large.size,
-      width: frontVariants.large.width,
-      height: frontVariants.large.height
-    })
 
     maskPath = await generateMask(frontPath)
     const maskVariants = await processImage(maskPath)
     const maskUrl = `/api/v1/uploads/${maskVariants.large.path}`
-    await db.insert(uploads).values({
-      userId: c.get('userId'),
-      originalName: `mask-${file.name}`,
-      baseName: maskVariants.baseName,
-      mimeType: 'image/png',
-      thumbPath: maskVariants.thumb.path,
-      smallPath: maskVariants.small.path,
-      mediumPath: maskVariants.medium.path,
-      largePath: maskVariants.large.path,
-      thumbSize: maskVariants.thumb.size,
-      smallSize: maskVariants.small.size,
-      mediumSize: maskVariants.medium.size,
-      largeSize: maskVariants.large.size,
-      width: maskVariants.large.width,
-      height: maskVariants.large.height
+
+    // Atomic: write all 3 upload rows + upsert base design in one tx.
+    db.transaction((tx) => {
+      const insertUpload = (v: typeof originalVariants, name: string, mime: string) => {
+        tx.insert(uploads).values({
+          userId: c.get('userId'),
+          originalName: name,
+          baseName: v.baseName,
+          mimeType: mime,
+          thumbPath: v.thumb.path,
+          smallPath: v.small.path,
+          mediumPath: v.medium.path,
+          largePath: v.large.path,
+          thumbSize: v.thumb.size,
+          smallSize: v.small.size,
+          mediumSize: v.medium.size,
+          largeSize: v.large.size,
+          width: v.large.width,
+          height: v.large.height
+        }).run()
+      }
+      insertUpload(originalVariants, file.name, accepted.detectedMime)
+      insertUpload(frontVariants, file.name, accepted.detectedMime)
+      insertUpload(maskVariants, `mask-${file.name}`, 'image/png')
+
+      const now = sql`datetime('now')`
+      const [existingBase] = tx.select({ id: productBaseDesigns.id }).from(productBaseDesigns).where(eq(productBaseDesigns.productId, productId)).limit(1).all()
+      if (existingBase) {
+        tx.update(productBaseDesigns).set({
+          originalImage: originalUrl,
+          frontImage: frontUrl,
+          maskImage: maskUrl,
+          updatedAt: now
+        }).where(eq(productBaseDesigns.id, existingBase.id)).run()
+      } else {
+        tx.insert(productBaseDesigns).values({
+          productId,
+          originalImage: originalUrl,
+          frontImage: frontUrl,
+          maskImage: maskUrl,
+          createdAt: now,
+          updatedAt: now
+        }).run()
+      }
     })
 
-    const now = sql`datetime('now')`
-    const [existingBase] = await db.select({ id: productBaseDesigns.id }).from(productBaseDesigns).where(eq(productBaseDesigns.productId, productId)).limit(1)
-    if (existingBase) {
-      await db.update(productBaseDesigns).set({
-        originalImage: originalUrl,
-        frontImage: frontUrl,
-        maskImage: maskUrl,
-        updatedAt: now
-      }).where(eq(productBaseDesigns.id, existingBase.id))
-    } else {
-      await db.insert(productBaseDesigns).values({
-        productId,
-        originalImage: originalUrl,
-        frontImage: frontUrl,
-        maskImage: maskUrl,
-        createdAt: now,
-        updatedAt: now
-      })
-    }
     const [design] = await db.select().from(productBaseDesigns).where(eq(productBaseDesigns.productId, productId)).limit(1)
     return success(c, design, 201)
-  } catch (err: any) {
-    return fail(c, err.message || '服务器内部错误', 500)
+  } catch (err) {
+    console.error('[admin.products.base-design] failed:', err)
+    return fail(c, '底款处理失败,请联系管理员', 500)
   } finally {
+    await accepted.cleanup()
     const { unlink } = await import('node:fs/promises')
-    await unlink(tmpPath).catch(() => {})
     if (debgPath) await unlink(debgPath).catch(() => {})
     if (maskPath) await unlink(maskPath).catch(() => {})
     if (flatPath) await unlink(flatPath).catch(() => {})
@@ -591,17 +597,27 @@ app.post('/products/:id/restore', requirePermission('product.update'), async (c)
   return success(c, null)
 })
 
-async function checkProductReferences(ids: number[]): Promise<{ referenced: number[] }> {
-  const referenced: number[] = []
-  for (const id of ids) {
-    const [orderRef] = await db.select({ n: count() }).from(orderItems).where(eq(orderItems.productId, id))
-    const [cartRef] = await db.select({ n: count() }).from(cartItems).where(eq(cartItems.productId, id))
-    const [designRef] = await db.select({ n: count() }).from(designs).where(eq(designs.productId, id))
-    if (orderRef.n > 0 || cartRef.n > 0 || designRef.n > 0) {
-      referenced.push(id)
-    }
+// Detect which product ids are still referenced by orders/cart/designs in a
+// single grouped query per source (3 queries total, regardless of id count).
+function checkProductReferences(ids: number[]): { referenced: number[] } {
+  if (ids.length === 0) return { referenced: [] }
+
+  const collect = (rows: Array<{ productId: number }>): Set<number> => {
+    const set = new Set<number>()
+    for (const r of rows) set.add(r.productId)
+    return set
   }
-  return { referenced }
+
+  const orderRows = db.select({ productId: orderItems.productId }).from(orderItems).where(inArray(orderItems.productId, ids)).all()
+  const cartRows = db.select({ productId: cartItems.productId }).from(cartItems).where(inArray(cartItems.productId, ids)).all()
+  const designRows = db.select({ productId: designs.productId }).from(designs).where(inArray(designs.productId, ids)).all()
+
+  const referenced = new Set<number>([
+    ...collect(orderRows),
+    ...collect(cartRows),
+    ...collect(designRows)
+  ])
+  return { referenced: [...referenced] }
 }
 
 app.post('/products/:id/permanent', requirePermission('product.hardDelete'), async (c) => {
@@ -610,7 +626,7 @@ app.post('/products/:id/permanent', requirePermission('product.hardDelete'), asy
   if (!existing) {
     return fail(c, '商品不存在', 404)
   }
-  const { referenced } = await checkProductReferences([id])
+  const { referenced } = checkProductReferences([id])
   if (referenced.length > 0) {
     return fail(c, '该商品有订单/购物车/设计记录，无法彻底删除', 409)
   }
@@ -626,7 +642,7 @@ app.post('/products/batch-delete', requirePermission('product.delete'), validate
 
 app.post('/products/batch-permanent', requirePermission('product.hardDelete'), validateJson(productBatchDeleteSchema), async (c) => {
   const { ids } = c.req.valid('json')
-  const { referenced } = await checkProductReferences(ids)
+  const { referenced } = checkProductReferences(ids)
   if (referenced.length > 0) {
     return fail(c, `选中商品中有 ${referenced.length} 个有订单/购物车/设计记录，无法彻底删除`, 409)
   }
@@ -660,7 +676,7 @@ app.put('/products/:productId/variants/:variantId', requirePermission('product.u
     return fail(c, '规格不存在', 404)
   }
 
-  await db.update(productVariants).set(data).where(eq(productVariants.id, variantId))
+  await db.update(productVariants).set({ ...data, updatedAt: sql`datetime('now')` }).where(eq(productVariants.id, variantId))
   return success(c, null)
 })
 
@@ -731,7 +747,7 @@ app.post('/products/:id/variants/batch-delete', requirePermission('product.delet
 
 app.post('/products/:id/variants/batch-update', requirePermission('product.update'), validateJson(variantBatchUpdateSchema), async (c) => {
   const { ids, data } = c.req.valid('json')
-  db.update(productVariants).set(data).where(inArray(productVariants.id, ids)).run()
+  db.update(productVariants).set({ ...data, updatedAt: sql`datetime('now')` }).where(inArray(productVariants.id, ids)).run()
   return success(c, { updated: ids.length })
 })
 
@@ -923,12 +939,12 @@ app.put('/orders/:id', requirePermission('order.update_status'), validateJson(or
       for (const item of items) {
         if (item.variantId !== null) {
           tx.update(productVariants)
-            .set({ stock: sql`${productVariants.stock} + ${item.quantity}` })
+            .set({ stock: sql`${productVariants.stock} + ${item.quantity}`, updatedAt: sql`datetime('now')` })
             .where(eq(productVariants.id, item.variantId))
             .run()
         } else {
           tx.update(products)
-            .set({ stock: sql`${products.stock} + ${item.quantity}` })
+            .set({ stock: sql`${products.stock} + ${item.quantity}`, updatedAt: sql`datetime('now')` })
             .where(eq(products.id, item.productId))
             .run()
         }

@@ -2,9 +2,20 @@ import { Hono } from 'hono'
 import { db } from '../db'
 import { homeSections } from '../db/schema'
 import { eq, asc } from 'drizzle-orm'
-import { success } from '../utils/response'
+import { success, fail } from '../utils/response'
 
 const app = new Hono()
+
+// Parse the JSON blob stored in home_sections.data; tolerate corruption
+// rather than letting it bubble to the global 500 handler.
+function parseSectionData (raw: string): unknown {
+  try {
+    return JSON.parse(raw)
+  } catch (err) {
+    console.error('[home] corrupt section.data, falling back to empty object:', err)
+    return {}
+  }
+}
 
 app.get('/', async (c) => {
   const items = db
@@ -16,7 +27,7 @@ app.get('/', async (c) => {
 
   const parsed = items.map(section => ({
     ...section,
-    data: JSON.parse(section.data)
+    data: parseSectionData(section.data)
   }))
 
   return success(c, { items: parsed })
@@ -32,10 +43,10 @@ app.get('/:id', async (c) => {
     .all()
 
   if (!section) {
-    return c.json({ success: false, data: null, error: '区块不存在' }, 404)
+    return fail(c, '区块不存在', 404)
   }
 
-  return success(c, { ...section, data: JSON.parse(section.data) })
+  return success(c, { ...section, data: parseSectionData(section.data) })
 })
 
 export default app

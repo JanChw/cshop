@@ -6,6 +6,7 @@ import { eq, desc, count, and } from 'drizzle-orm'
 import { success, fail } from '../../utils/response'
 import { auth } from '../../middleware/auth'
 import { requireStaff, requirePermission } from '../../middleware/permission'
+import { parsePagination } from '../../utils/request'
 import { config } from '../../config'
 import type { AppEnv } from '../../types/hono'
 
@@ -14,9 +15,7 @@ app.use('*', auth)
 app.use('*', requireStaff)
 
 app.get('/', requirePermission('settings.read'), async (c) => {
-  const page = Math.max(1, parseInt(c.req.query('page') ?? '1'))
-  const limit = Math.min(100, Math.max(1, parseInt(c.req.query('limit') ?? '20')))
-  const offset = (page - 1) * limit
+  const { page, limit, offset } = parsePagination(c)
   const userId = c.req.query('userId')
 
   const conditions = []

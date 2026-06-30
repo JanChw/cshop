@@ -7,5 +7,6 @@ export type AppEnv = {
     roleId: number | null
     roleName: string | null
     permissions: PermissionCode[]
+    requestId: string
   }
 }

@@ -10,3 +10,13 @@ todo.md
 *.todo.md
 /design-page*.png
 .opencode/plans/
+# 真实环境变量凭据(SMTP/JWT_SECRET 等),严禁提交
+*.env.local
+.env.*.local
+# 设计截图,不提交
+/design-*.png
+/frontend-*.png
+/search-*.png
+/shop-*.png
+/tablet-*.png
+/focus-*.png

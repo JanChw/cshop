@@ -4,7 +4,7 @@ import { join } from 'node:path'
 import sharp from 'sharp'
 import { db } from '../db'
 import { designDrafts } from '../db/schema'
-import { eq, and, desc } from 'drizzle-orm'
+import { eq, and, desc, sql } from 'drizzle-orm'
 import { auth } from '../middleware/auth'
 import { success, fail } from '../utils/response'
 import { validateJson } from '../utils/validate'
@@ -12,6 +12,7 @@ import { designDraftSchema } from '../validators'
 import { config } from '../config'
 import { isSafeFilename } from '../utils/safePath'
 import { mimeFromFilename } from '../utils/mime'
+import { parsePagination } from '../utils/request'
 import type { AppEnv } from '../types/hono'
 
 const PREVIEW_WIDTH = 400
@@ -51,7 +52,8 @@ publicApp.get('/:id/preview', async (c) => {
   return new Response(file, {
     headers: {
       'Content-Type': mimeFromFilename(filename),
-      'Cache-Control': 'public, max-age=31536000, immutable'
+      'Cache-Control': 'public, max-age=31536000, immutable',
+      'X-Content-Type-Options': 'nosniff'
     }
   })
 })
@@ -63,6 +65,7 @@ protectedApp.use('*', auth)
 protectedApp.get('/', async (c) => {
   const userId = c.get('userId')
   const productId = c.req.query('productId')
+  const { page, limit, offset } = parsePagination(c)
   const conditions = [eq(designDrafts.userId, userId)]
   if (productId) {
     const pid = parseInt(productId)
@@ -70,13 +73,29 @@ protectedApp.get('/', async (c) => {
       conditions.push(eq(designDrafts.productId, pid))
     }
   }
-  const items = await db
-    .select()
-    .from(designDrafts)
-    .where(and(...conditions))
-    .orderBy(desc(designDrafts.updatedAt))
+  const where = and(...conditions)
 
-  return success(c, { items: items.map(d => ({ ...d, previewImage: versionPreviewUrl(d.previewImage, d.updatedAt) })) })
+  const [items, [{ n: total }]] = await Promise.all([
+    db
+      .select({
+        id: designDrafts.id,
+        userId: designDrafts.userId,
+        productId: designDrafts.productId,
+        variantId: designDrafts.variantId,
+        name: designDrafts.name,
+        previewImage: designDrafts.previewImage,
+        createdAt: designDrafts.createdAt,
+        updatedAt: designDrafts.updatedAt
+      })
+      .from(designDrafts)
+      .where(where)
+      .orderBy(desc(designDrafts.updatedAt))
+      .limit(limit)
+      .offset(offset),
+    db.select({ n: sql<number>`count(*)` }).from(designDrafts).where(where)
+  ])
+
+  return success(c, { items: items.map(d => ({ ...d, previewImage: versionPreviewUrl(d.previewImage, d.updatedAt) })), total, page, limit })
 })
 
 protectedApp.post('/', validateJson(designDraftSchema), async (c) => {

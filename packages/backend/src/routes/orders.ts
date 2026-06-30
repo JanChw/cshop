@@ -3,7 +3,9 @@ import { db } from '../db'
 import { orders, orderItems, cartItems, products, productVariants } from '../db/schema'
 import { eq, and, desc, inArray, isNull, sql } from 'drizzle-orm'
 import { auth } from '../middleware/auth'
+import { rateLimit } from '../middleware/rateLimit'
 import { success, fail } from '../utils/response'
+import { parsePagination } from '../utils/request'
 import { orderSchema } from '../validators'
 import { validateJson } from '../utils/validate'
 import { trackBusinessEvent } from '../utils/track'
@@ -13,13 +15,13 @@ import type { AppEnv } from '../types/hono'
 const app = new Hono<AppEnv>()
 app.use('*', auth)
 
+// 10 orders / minute / IP — prevents cart->order flooding.
+const orderThrottle = rateLimit({ limit: 10, windowMs: 60_000 })
+
 app.get('/', async (c) => {
   const userId = c.get('userId')!
-  const page = Math.max(1, parseInt(c.req.query('page') ?? '1'))
-  const limit = Math.min(100, Math.max(1, parseInt(c.req.query('limit') ?? '20')))
+  const { page, limit, offset } = parsePagination(c)
   const status = c.req.query('status')
-  const offset = (page - 1) * limit
-
   const conditions = [eq(orders.userId, userId)]
   if (status && ['pending', 'paid', 'processing', 'shipped', 'completed', 'cancelled'].includes(status)) {
     conditions.push(eq(orders.status, status as 'pending' | 'paid' | 'processing' | 'shipped' | 'completed' | 'cancelled'))
@@ -28,7 +30,14 @@ app.get('/', async (c) => {
 
   const [items, [{ n: total }]] = await Promise.all([
     db
-      .select()
+      .select({
+        id: orders.id,
+        status: orders.status,
+        total: orders.total,
+        trackingNo: orders.trackingNo,
+        createdAt: orders.createdAt,
+        updatedAt: orders.updatedAt
+      })
       .from(orders)
       .where(where)
       .orderBy(desc(orders.createdAt))
@@ -40,7 +49,7 @@ app.get('/', async (c) => {
   return success(c, { items, total, page, limit })
 })
 
-app.post('/', validateJson(orderSchema), async (c) => {
+app.post('/', orderThrottle, validateJson(orderSchema), async (c) => {
   const userId = c.get('userId')!
   const { address } = c.req.valid('json')
 
@@ -55,9 +64,15 @@ app.post('/', validateJson(orderSchema), async (c) => {
     new Set(items.map(i => i.variantId).filter((v): v is number => v !== null))
   )
 
-  const productList = await db.select().from(products).where(and(inArray(products.id, productIds), isNull(products.deletedAt)))
+  const productList = await db.select({
+    id: products.id, name: products.name, basePrice: products.basePrice,
+    stock: products.stock, isActive: products.isActive
+  }).from(products).where(and(inArray(products.id, productIds), isNull(products.deletedAt)))
   const variantList = variantIds.length > 0
-    ? await db.select().from(productVariants).where(inArray(productVariants.id, variantIds))
+    ? await db.select({
+        id: productVariants.id, productId: productVariants.productId,
+        stock: productVariants.stock, priceAdjustment: productVariants.priceAdjustment
+      }).from(productVariants).where(inArray(productVariants.id, variantIds))
     : []
 
   const productMap = new Map(productList.map(p => [p.id, p]))
@@ -119,17 +134,18 @@ app.post('/', validateJson(orderSchema), async (c) => {
       .returning()
       .all()
 
-    for (const line of lines) {
-      tx.insert(orderItems).values({ orderId: created.id, ...line }).run()
+    // Batch-insert all order items in one statement.
+    tx.insert(orderItems).values(lines.map(line => ({ orderId: created.id, ...line }))).run()
 
+    for (const line of lines) {
       if (line.variantId !== null) {
         tx.update(productVariants)
-          .set({ stock: sql`${productVariants.stock} - ${line.quantity}` })
+          .set({ stock: sql`${productVariants.stock} - ${line.quantity}`, updatedAt: sql`datetime('now')` })
           .where(eq(productVariants.id, line.variantId))
           .run()
       } else {
         tx.update(products)
-          .set({ stock: sql`${products.stock} - ${line.quantity}` })
+          .set({ stock: sql`${products.stock} - ${line.quantity}`, updatedAt: sql`datetime('now')` })
           .where(eq(products.id, line.productId))
           .run()
       }
@@ -154,22 +170,30 @@ app.post('/', validateJson(orderSchema), async (c) => {
     `订单号 ORD-${String(order.id).padStart(5, '0')}，金额 ¥${order.total}，收货地址 ${address}`
   )
 
-  // 通知: 库存预警（订单扣减后检查每个变体/商品的剩余库存）
+  // 通知: 库存预警（订单扣减后批量检查剩余库存）
   const STOCK_ALERT_THRESHOLD = 5
   const lowStockIds: string[] = []
-  for (const line of lines) {
-    if (line.variantId !== null) {
-      const [v] = db.select({ stock: productVariants.stock, size: productVariants.size, color: productVariants.color, productId: productVariants.productId })
-        .from(productVariants).where(eq(productVariants.id, line.variantId)).limit(1).all()
-      if (v && v.stock <= STOCK_ALERT_THRESHOLD) {
-        lowStockIds.push(`变体 #${v.productId} ${v.size}/${v.color} 库存剩 ${v.stock}`)
-      }
-    } else {
-      const [p] = db.select({ stock: products.stock, name: products.name })
-        .from(products).where(eq(products.id, line.productId)).limit(1).all()
-      if (p && p.stock <= STOCK_ALERT_THRESHOLD) {
-        lowStockIds.push(`商品 #${p.name} 库存剩 ${p.stock}`)
-      }
+  const variantLineIds = lines.filter(l => l.variantId !== null).map(l => l.variantId!)
+  const productLineIds = Array.from(new Set(lines.filter(l => l.variantId === null).map(l => l.productId)))
+
+  if (variantLineIds.length > 0) {
+    const lowVariants = db.select({
+      stock: productVariants.stock, size: productVariants.size,
+      color: productVariants.color, productId: productVariants.productId
+    }).from(productVariants)
+      .where(and(inArray(productVariants.id, variantLineIds), sql`${productVariants.stock} <= ${STOCK_ALERT_THRESHOLD}`))
+      .all()
+    for (const v of lowVariants) {
+      lowStockIds.push(`变体 #${v.productId} ${v.size}/${v.color} 库存剩 ${v.stock}`)
+    }
+  }
+  if (productLineIds.length > 0) {
+    const lowProducts = db.select({ stock: products.stock, name: products.name })
+      .from(products)
+      .where(and(inArray(products.id, productLineIds), sql`${products.stock} <= ${STOCK_ALERT_THRESHOLD}`))
+      .all()
+    for (const p of lowProducts) {
+      lowStockIds.push(`商品 #${p.name} 库存剩 ${p.stock}`)
     }
   }
   if (lowStockIds.length > 0) {
@@ -218,19 +242,19 @@ app.post('/:id/cancel', async (c) => {
 
   db.transaction((tx) => {
     tx.update(orders)
-      .set({ status: 'cancelled', cancelledAt: new Date().toISOString() })
+      .set({ status: 'cancelled', cancelledAt: new Date().toISOString(), updatedAt: new Date().toISOString() })
       .where(eq(orders.id, id))
       .run()
 
     for (const line of lines) {
       if (line.variantId !== null) {
         tx.update(productVariants)
-          .set({ stock: sql`${productVariants.stock} + ${line.quantity}` })
+          .set({ stock: sql`${productVariants.stock} + ${line.quantity}`, updatedAt: sql`datetime('now')` })
           .where(eq(productVariants.id, line.variantId))
           .run()
       } else {
         tx.update(products)
-          .set({ stock: sql`${products.stock} + ${line.quantity}` })
+          .set({ stock: sql`${products.stock} + ${line.quantity}`, updatedAt: sql`datetime('now')` })
           .where(eq(products.id, line.productId))
           .run()
       }

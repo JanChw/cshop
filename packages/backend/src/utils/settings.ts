@@ -7,7 +7,7 @@ interface CacheEntry {
   loadedAt: number
 }
 
-const TTL_MS = 1000
+const TTL_MS = 60_000 // 1 minute — config rarely changes; invalidate() fires on admin writes
 const cache = new Map<string, CacheEntry>()
 
 export function getSetting(key: string, fallback = ''): string {

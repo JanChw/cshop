@@ -2,11 +2,19 @@ import jwt from 'jsonwebtoken'
 import { randomUUID } from 'node:crypto'
 import type { PermissionCode } from './permissions'
 
+let devSecretWarned = false
+
 function getSecret(): string {
   const fromEnv = process.env.JWT_SECRET
   if (fromEnv) return fromEnv
   if (process.env.NODE_ENV === 'production') {
     throw new Error('JWT_SECRET must be set in production')
+  }
+  // Dev fallback — print a loud warning once so a forgotten JWT_SECRET is
+  // never silently used in a deployment that mistakenly stays in dev mode.
+  if (!devSecretWarned) {
+    devSecretWarned = true
+    console.warn('[security] JWT_SECRET not set — using insecure dev-only fallback. NEVER deploy this to production.')
   }
   return 'cshop-dev-secret'
 }

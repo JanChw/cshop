@@ -35,7 +35,10 @@ export const config = {
   get smtpHost(): string | undefined { return process.env.SEND_EMAIL },
   get smtpPort(): number { return Number(process.env.SEND_PORT ?? 465) },
   get smtpUser(): string | undefined { return process.env.EMAIL },
-  get smtpPass(): string | undefined { return process.env.EMAIL_AUTH_PASSWORD }
+  get smtpPass(): string | undefined { return process.env.EMAIL_AUTH_PASSWORD },
+
+  get turnstileSiteKey(): string { return process.env.CLOUDFLARE_SITE_KEY ?? '' },
+  get turnstileSecretKey(): string { return process.env.CLOUDFLARE_SECRET_KEY ?? '' }
 }
 
 export function isProd(): boolean {

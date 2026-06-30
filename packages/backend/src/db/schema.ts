@@ -95,6 +95,7 @@ export const products = sqliteTable('products', {
   stock: integer('stock').notNull().default(0),
   isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
   deletedAt: text('deleted_at')
 }, (t) => ({
   categoryIdx: index('products_category_idx').on(t.categoryId),
@@ -110,9 +111,13 @@ export const productVariants = sqliteTable('product_variants', {
   material: text('material'),
   weight: integer('weight'),
   priceAdjustment: real('price_adjustment').notNull().default(0),
-  stock: integer('stock').notNull().default(0)
+  stock: integer('stock').notNull().default(0),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`)
 }, (t) => ({
-  productIdx: index('variants_product_idx').on(t.productId)
+  productIdx: index('variants_product_idx').on(t.productId),
+  // Cart resolution: WHERE productId=? AND size=? (AND color=?)
+  productSizeIdx: index('variants_product_size_idx').on(t.productId, t.size, t.color)
 }))
 
 export const productBaseDesigns = sqliteTable('product_base_designs', {
@@ -140,7 +145,10 @@ export const designs = sqliteTable('designs', {
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
   updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`)
 }, (t) => ({
-  userIdx: index('designs_user_idx').on(t.userId)
+  userIdx: index('designs_user_idx').on(t.userId),
+  // checkProductReferences / variant lookup
+  productIdx: index('designs_product_idx').on(t.productId),
+  variantIdx: index('designs_variant_idx').on(t.variantId)
 }))
 
 export const designDrafts = sqliteTable('design_drafts', {
@@ -166,7 +174,10 @@ export const cartItems = sqliteTable('cart_items', {
   variantId: integer('variant_id').references(() => productVariants.id),
   quantity: integer('quantity').notNull().default(1)
 }, (t) => ({
-  userIdx: index('cart_user_idx').on(t.userId)
+  userIdx: index('cart_user_idx').on(t.userId),
+  // checkProductReferences / variant deletion checks
+  productIdx: index('cart_product_idx').on(t.productId),
+  variantIdx: index('cart_variant_idx').on(t.variantId)
 }))
 
 export const orders = sqliteTable('orders', {
@@ -185,7 +196,11 @@ export const orders = sqliteTable('orders', {
   updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`)
 }, (t) => ({
   userIdx: index('orders_user_idx').on(t.userId),
-  statusIdx: index('orders_status_idx').on(t.status)
+  // Client list: WHERE userId=? ORDER BY createdAt DESC
+  userCreatedIdx: index('orders_user_created_idx').on(t.userId, t.createdAt),
+  statusIdx: index('orders_status_idx').on(t.status),
+  // Admin list: WHERE status=? ORDER BY createdAt DESC
+  statusCreatedIdx: index('orders_status_created_idx').on(t.status, t.createdAt)
 }))
 
 export const orderItems = sqliteTable('order_items', {
@@ -197,7 +212,10 @@ export const orderItems = sqliteTable('order_items', {
   quantity: integer('quantity').notNull().default(1),
   price: real('price').notNull()
 }, (t) => ({
-  orderIdx: index('order_items_order_idx').on(t.orderId)
+  orderIdx: index('order_items_order_idx').on(t.orderId),
+  // checkProductReferences / inventory turnover
+  productIdx: index('order_items_product_idx').on(t.productId),
+  variantIdx: index('order_items_variant_idx').on(t.variantId)
 }))
 
 export const sessions = sqliteTable('sessions', {
@@ -238,7 +256,9 @@ export const uploads = sqliteTable('uploads', {
   height: integer('height'),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`)
 }, (t) => ({
-  userIdx: index('uploads_user_idx').on(t.userId)
+  userIdx: index('uploads_user_idx').on(t.userId),
+  // Client list: WHERE userId=? ORDER BY createdAt DESC
+  userCreatedIdx: index('uploads_user_created_idx').on(t.userId, t.createdAt)
 }))
 
 export const stickers = sqliteTable('stickers', {
@@ -275,7 +295,9 @@ export const activityEvents = sqliteTable('activity_events', {
   userIdIdx: index('activity_events_user_idx').on(t.userId),
   eventTypeIdx: index('activity_events_type_idx').on(t.eventType),
   createdAtIdx: index('activity_events_created_idx').on(t.createdAt),
-  countryIdx: index('activity_events_country_idx').on(t.country)
+  countryIdx: index('activity_events_country_idx').on(t.country),
+  // Analytics: WHERE eventType=? AND createdAt>=?
+  typeCreatedIdx: index('activity_events_type_created_idx').on(t.eventType, t.createdAt)
 }))
 
 export const userOnline = sqliteTable('user_online', {

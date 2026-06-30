@@ -1,31 +1,32 @@
 import { Hono } from 'hono'
-import { mkdirSync } from 'node:fs'
 import { z } from 'zod'
 import { db } from '../db'
 import { stickers } from '../db/schema'
 import { eq, and, isNull, like, count } from 'drizzle-orm'
 import { auth } from '../middleware/auth'
 import { requireStaff, requirePermission } from '../middleware/permission'
+import { rateLimit } from '../middleware/rateLimit'
 import { success, fail } from '../utils/response'
 import { validateJson } from '../utils/validate'
 import { isSafeFilename } from '../utils/safePath'
 import { mimeFromFilename } from '../utils/mime'
+import { acceptStickerUpload, uploadErrorPayload } from '../utils/upload'
+import { parsePagination, escapeLikePattern } from '../utils/request'
 import { config } from '../config'
 import type { AppEnv } from '../types/hono'
 
-const ALLOWED_STICKER_TYPES = ['image/png', 'image/webp']
+const NO_SNIFF = { 'X-Content-Type-Options': 'nosniff' }
 
 const publicApp = new Hono()
 
 publicApp.get('/', async (c) => {
   const category = c.req.query('category')
   const q = c.req.query('q')
-  const page = Math.max(1, parseInt(c.req.query('page') || '1'))
-  const limit = Math.min(100, Math.max(1, parseInt(c.req.query('limit') || '20')))
+  const { page, limit, offset } = parsePagination(c)
 
   const conds = [isNull(stickers.userId)]
   if (category) conds.push(eq(stickers.category, category))
-  if (q) conds.push(like(stickers.name, `%${q}%`))
+  if (q) conds.push(like(stickers.name, `%${escapeLikePattern(q)}%`))
   const cond = and(...conds)
 
   const [totalResult] = await db.select({ value: count() }).from(stickers).where(cond)
@@ -37,7 +38,7 @@ publicApp.get('/', async (c) => {
     .from(stickers)
     .where(cond)
     .limit(limit)
-    .offset((page - 1) * limit)
+    .offset(offset)
 
   const items = rows.map(s => ({
     id: s.id,
@@ -65,7 +66,8 @@ publicApp.get('/:filename', async (c) => {
   return new Response(file, {
     headers: {
       'Content-Type': mimeFromFilename(filename),
-      'Cache-Control': 'public, max-age=31536000, immutable'
+      'Cache-Control': 'public, max-age=31536000, immutable',
+      ...NO_SNIFF
     }
   })
 })
@@ -74,7 +76,9 @@ const adminStickerApp = new Hono<AppEnv>()
 adminStickerApp.use('*', auth)
 adminStickerApp.use('*', requireStaff)
 
-adminStickerApp.post('/', requirePermission('sticker.create'), async (c) => {
+const stickerUploadThrottle = rateLimit({ limit: 30, windowMs: 60_000 })
+
+adminStickerApp.post('/', stickerUploadThrottle, requirePermission('sticker.create'), async (c) => {
   const formData = await c.req.formData()
   const file = formData.get('file')
   const name = formData.get('name')
@@ -83,33 +87,18 @@ adminStickerApp.post('/', requirePermission('sticker.create'), async (c) => {
   if (!(file instanceof File) || typeof name !== 'string' || name.length === 0) {
     return fail(c, '缺少文件或名称')
   }
-  if (!ALLOWED_STICKER_TYPES.includes(file.type)) {
-    return fail(c, '仅支持 png/webp 格式（svg 因 XSS 风险不再支持）')
-  }
-  if (file.size > config.stickerMaxBytes) {
-    return fail(c, `文件大小不能超过 ${Math.round(config.stickerMaxBytes / 1024 / 1024)}MB`)
-  }
 
-  mkdirSync(config.stickerDir, { recursive: true })
-
-  const ext = file.type === 'image/png' ? 'png' : 'webp'
-  const filename = `sticker-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
-  const filePath = `${config.stickerDir}/${filename}`
-  await Bun.write(filePath, file)
-
-  const img = Bun.file(filePath)
-  let width = 200
-  let height = 200
+  let accepted
   try {
-    const sharp = (await import('sharp')).default
-    const meta = await sharp(filePath).metadata()
-    if (meta.width) width = meta.width
-    if (meta.height) height = meta.height
-  } catch {}
+    accepted = await acceptStickerUpload(file)
+  } catch (err) {
+    const { message, status } = uploadErrorPayload(err)
+    return fail(c, message, status)
+  }
 
   const [record] = await db
     .insert(stickers)
-    .values({ name, category, imagePath: filename, width, height })
+    .values({ name, category, imagePath: accepted.filename, width: accepted.width, height: accepted.height })
     .returning()
 
   return success(c, record, 201)
@@ -135,28 +124,18 @@ adminStickerApp.put('/:id', requirePermission('sticker.update'), async (c) => {
     if (typeof name === 'string' && name.length > 0) updateData.name = name
     if (typeof category === 'string' && category.length > 0) updateData.category = category
 
-    if (file instanceof File && ALLOWED_STICKER_TYPES.includes(file.type)) {
-      if (file.size > config.stickerMaxBytes) {
-        return fail(c, `文件大小不能超过 ${Math.round(config.stickerMaxBytes / 1024 / 1024)}MB`)
+    if (file instanceof File) {
+      let accepted
+      try {
+        accepted = await acceptStickerUpload(file)
+      } catch (err) {
+        const { message, status } = uploadErrorPayload(err)
+        return fail(c, message, status)
       }
 
-      const ext = file.type === 'image/png' ? 'png' : 'webp'
-      const filename = `sticker-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
-      const filePath = `${config.stickerDir}/${filename}`
-      await Bun.write(filePath, file)
-
-      let width = 200
-      let height = 200
-      try {
-        const sharp = (await import('sharp')).default
-        const meta = await sharp(filePath).metadata()
-        if (meta.width) width = meta.width
-        if (meta.height) height = meta.height
-      } catch {}
-
-      updateData.imagePath = filename
-      updateData.width = width
-      updateData.height = height
+      updateData.imagePath = accepted.filename
+      updateData.width = accepted.width
+      updateData.height = accepted.height
 
       if (isSafeFilename(existing.imagePath)) {
         const oldFile = Bun.file(`${config.stickerDir}/${existing.imagePath}`)

@@ -7,11 +7,19 @@ import { validateJson } from '../../utils/validate'
 import { auth } from '../../middleware/auth'
 import { requireStaff, requirePermission } from '../../middleware/permission'
 import { z } from 'zod'
+import { getInt } from '../../utils/settings'
+import { parsePagination, escapeLikePattern } from '../../utils/request'
+import { invalidateStaffCache } from '../../utils/staff'
 import type { AppEnv } from '../../types/hono'
 
 const createSchema = z.object({
   email: z.string().email('邮箱格式不正确'),
-  password: z.string().min(6, '密码至少6位'),
+  password: z.string().superRefine((val, ctx) => {
+    const min = getInt('min_password_length', 8)
+    if (val.length < min) {
+      ctx.addIssue({ code: z.ZodIssueCode.too_small, type: 'string', minimum: min, inclusive: true, message: `密码至少 ${min} 位` })
+    }
+  }),
   name: z.string().min(1, '名称不能为空'),
   roleId: z.number().int().positive(),
   employeeNo: z.string().optional(),
@@ -31,16 +39,14 @@ app.use('*', auth)
 app.use('*', requireStaff)
 
 app.get('/', requirePermission('staff.read'), async (c) => {
-  const page = Math.max(1, parseInt(c.req.query('page') ?? '1'))
-  const limit = Math.min(100, Math.max(1, parseInt(c.req.query('limit') ?? '20')))
-  const offset = (page - 1) * limit
+  const { page, limit, offset } = parsePagination(c)
   const search = c.req.query('q')?.trim()
   const role = c.req.query('role')
   const status = c.req.query('status')
 
   const conditions = []
   if (search) {
-    const escaped = search.replace(/[\\%_]/g, ch => '\\' + ch)
+    const escaped = escapeLikePattern(search)
     conditions.push(sql`(${users.email} LIKE ${'%' + escaped + '%'} ESCAPE '\\' OR ${users.name} LIKE ${'%' + escaped + '%'} ESCAPE '\\')`)
   }
   if (role) conditions.push(eq(roles.name, role))
@@ -168,6 +174,8 @@ app.put('/:id', requirePermission('staff.update'), validateJson(updateSchema), a
     updatedAt: new Date().toISOString()
   }).where(eq(staff.id, id))
 
+  invalidateStaffCache(existing.userId)
+
   return success(c, null)
 })
 
@@ -189,6 +197,8 @@ app.post('/:id/resign', requirePermission('staff.delete'), async (c) => {
   }
 
   await db.update(staff).set({ status: 'resigned', updatedAt: new Date().toISOString() }).where(eq(staff.id, id))
+
+  invalidateStaffCache(existing.userId)
 
   return success(c, { id, status: 'resigned' })
 })

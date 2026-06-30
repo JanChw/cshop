@@ -22,10 +22,20 @@ app.get('/', async (c) => {
 
   const parsed = items.map(item => ({
     ...item,
-    extra: item.extra ? JSON.parse(item.extra) : null
+    extra: parseExtra(item.extra)
   }))
 
   return success(c, { items: parsed })
 })
+
+function parseExtra (raw: string | null): unknown {
+  if (!raw) return null
+  try {
+    return JSON.parse(raw)
+  } catch (err) {
+    console.error('[design-config] corrupt extra, falling back to null:', err)
+    return null
+  }
+}
 
 export default app

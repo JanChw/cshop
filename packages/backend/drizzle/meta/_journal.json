@@ -29,6 +29,20 @@
       "when": 1782463800831,
       "tag": "0003_lovely_earthquake",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1782808696933,
+      "tag": "0004_secret_puck",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1782820159580,
+      "tag": "0005_soft_nextwave",
+      "breakpoints": true
     }
   ]
 }

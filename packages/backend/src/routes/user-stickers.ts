@@ -1,29 +1,34 @@
 import { Hono } from 'hono'
-import { mkdirSync } from 'node:fs'
 import { z } from 'zod'
 import { db } from '../db'
 import { stickers } from '../db/schema'
-import { eq, and } from 'drizzle-orm'
+import { eq, and, desc, count } from 'drizzle-orm'
 import { auth } from '../middleware/auth'
+import { rateLimit } from '../middleware/rateLimit'
 import { success, fail } from '../utils/response'
+import { parsePagination } from '../utils/request'
 import { validateJson } from '../utils/validate'
 import { isSafeFilename } from '../utils/safePath'
 import { mimeFromFilename } from '../utils/mime'
+import { acceptStickerUpload, uploadErrorPayload } from '../utils/upload'
 import { config } from '../config'
 import type { AppEnv } from '../types/hono'
-
-const ALLOWED_STICKER_TYPES = ['image/png', 'image/webp']
 
 const app = new Hono<AppEnv>()
 app.use('*', auth)
 
+const stickerUploadThrottle = rateLimit({ limit: 30, windowMs: 60_000 })
+
 app.get('/', async (c) => {
   const userId = c.get('userId')
   const category = c.req.query('category')
-  const cond = eq(stickers.userId, userId)
-  const rows = category
-    ? await db.select().from(stickers).where(and(cond, eq(stickers.category, category)))
-    : await db.select().from(stickers).where(cond)
+  const { page, limit, offset } = parsePagination(c)
+  const cond = category ? and(eq(stickers.userId, userId), eq(stickers.category, category)) : eq(stickers.userId, userId)
+
+  const [rows, [{ n: total }]] = await Promise.all([
+    db.select().from(stickers).where(cond).orderBy(desc(stickers.createdAt)).limit(limit).offset(offset),
+    db.select({ n: count() }).from(stickers).where(cond)
+  ])
   const items = rows.map(s => ({
     id: s.id,
     userId: s.userId,
@@ -35,10 +40,10 @@ app.get('/', async (c) => {
     createdAt: s.createdAt,
     url: `/api/v1/stickers/${s.imagePath}`
   }))
-  return success(c, { items })
+  return success(c, { items, total, page, limit })
 })
 
-app.post('/', async (c) => {
+app.post('/', stickerUploadThrottle, async (c) => {
   const userId = c.get('userId')
   const formData = await c.req.formData()
   const file = formData.get('file')
@@ -48,32 +53,18 @@ app.post('/', async (c) => {
   if (!(file instanceof File) || typeof name !== 'string' || name.length === 0) {
     return fail(c, '缺少文件或名称')
   }
-  if (!ALLOWED_STICKER_TYPES.includes(file.type)) {
-    return fail(c, '仅支持 png/webp 格式')
-  }
-  if (file.size > config.stickerMaxBytes) {
-    return fail(c, `文件大小不能超过 ${Math.round(config.stickerMaxBytes / 1024 / 1024)}MB`)
-  }
 
-  mkdirSync(config.stickerDir, { recursive: true })
-
-  const ext = file.type === 'image/png' ? 'png' : 'webp'
-  const filename = `sticker-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
-  const filePath = `${config.stickerDir}/${filename}`
-  await Bun.write(filePath, file)
-
-  let width = 200
-  let height = 200
+  let accepted
   try {
-    const sharp = (await import('sharp')).default
-    const meta = await sharp(filePath).metadata()
-    if (meta.width) width = meta.width
-    if (meta.height) height = meta.height
-  } catch {}
+    accepted = await acceptStickerUpload(file)
+  } catch (err) {
+    const { message, status } = uploadErrorPayload(err)
+    return fail(c, message, status)
+  }
 
   const [record] = await db
     .insert(stickers)
-    .values({ name, category, imagePath: filename, width, height, userId })
+    .values({ name, category, imagePath: accepted.filename, width: accepted.width, height: accepted.height, userId })
     .returning()
 
   return success(c, {

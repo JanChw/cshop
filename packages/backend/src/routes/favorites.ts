@@ -1,9 +1,10 @@
 import { Hono } from 'hono'
 import { db } from '../db'
 import { userFavorites, products } from '../db/schema'
-import { eq, and, desc, sql } from 'drizzle-orm'
+import { eq, and, desc, sql, count } from 'drizzle-orm'
 import { auth } from '../middleware/auth'
 import { success, fail } from '../utils/response'
+import { parsePagination } from '../utils/request'
 import { z } from 'zod'
 import { validateJson } from '../utils/validate'
 import type { AppEnv } from '../types/hono'
@@ -15,26 +16,35 @@ const favoriteSchema = z.object({
   productId: z.number().int().positive()
 })
 
-// List current user's favorites with product info
+// List current user's favorites with product info (paginated)
 app.get('/', async (c) => {
   const userId = c.get('userId')!
+  const { page, limit, offset } = parsePagination(c)
+  const where = and(eq(userFavorites.userId, userId), sql`${products.deletedAt} IS NULL`)
 
-  const rows = await db
-    .select({
-      id: userFavorites.id,
-      productId: userFavorites.productId,
-      createdAt: userFavorites.createdAt,
-      name: products.name,
-      basePrice: products.basePrice,
-      originalPrice: products.originalPrice,
-      images: products.images,
-      designer: products.designer,
-      tags: products.tags
-    })
-    .from(userFavorites)
-    .innerJoin(products, eq(userFavorites.productId, products.id))
-    .where(and(eq(userFavorites.userId, userId), sql`${products.deletedAt} IS NULL`))
-    .orderBy(desc(userFavorites.createdAt))
+  const [rows, [{ n: total }]] = await Promise.all([
+    db
+      .select({
+        id: userFavorites.id,
+        productId: userFavorites.productId,
+        createdAt: userFavorites.createdAt,
+        name: products.name,
+        basePrice: products.basePrice,
+        originalPrice: products.originalPrice,
+        images: products.images,
+        designer: products.designer,
+        tags: products.tags
+      })
+      .from(userFavorites)
+      .innerJoin(products, eq(userFavorites.productId, products.id))
+      .where(where)
+      .orderBy(desc(userFavorites.createdAt))
+      .limit(limit)
+      .offset(offset),
+    db.select({ n: count() }).from(userFavorites)
+      .innerJoin(products, eq(userFavorites.productId, products.id))
+      .where(where)
+  ])
 
   const items = rows.map((r) => ({
     id: r.id,
@@ -51,7 +61,7 @@ app.get('/', async (c) => {
     }
   }))
 
-  return success(c, { items, total: items.length })
+  return success(c, { items, total, page, limit })
 })
 
 // Add favorite

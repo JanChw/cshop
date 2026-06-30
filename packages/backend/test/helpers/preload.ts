@@ -17,6 +17,8 @@ import {
   staff
 } from '../../src/db/schema'
 import { resetQueue } from '../../src/utils/eventQueue'
+import { invalidateStaffCache } from '../../src/utils/staff'
+import { invalidateCache } from '../../src/utils/cache'
 import { reseedRbac } from './rbacSeed'
 
 migrate(db, { migrationsFolder: './drizzle' })
@@ -31,6 +33,8 @@ const TABLES = [
 
 beforeEach(() => {
   resetQueue()
+  invalidateStaffCache()
+  invalidateCache()
   for (const t of TABLES) {
     db.delete(t).run()
   }

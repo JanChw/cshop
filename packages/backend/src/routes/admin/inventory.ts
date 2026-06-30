@@ -4,53 +4,61 @@ import { products, productVariants, categories, orderItems, orders } from '../..
 import { eq, count, sum, sql, isNull, isNotNull, and, gte } from 'drizzle-orm'
 import { requirePermission } from '../../middleware/permission'
 import { success } from '../../utils/response'
+import { cached } from '../../utils/cache'
 import type { AppEnv } from '../../types/hono'
 
 const app = new Hono<AppEnv>()
 
 app.get('/summary', requirePermission('analytics.read'), async (c) => {
-  const [productRow] = await db
-    .select({ n: count(), totalValue: sum(sql`${products.basePrice} * ${products.stock}`) })
-    .from(products)
-    .where(isNull(products.deletedAt))
+  // Inventory aggregates scan products + variants; cache 1 minute.
+  const data = cached('admin:inventory:summary', 60_000, () => {
+    const [productRow] = db
+      .select({ n: count(), totalValue: sum(sql`${products.basePrice} * ${products.stock}`) })
+      .from(products)
+      .where(isNull(products.deletedAt))
+      .all()
 
-  const [variantRow] = await db
-    .select({
-      n: count(),
-      totalValue: sum(sql`(${productVariants.priceAdjustment} + (SELECT base_price FROM products WHERE id = ${productVariants.productId})) * ${productVariants.stock}`),
-    })
-    .from(productVariants)
+    const [variantRow] = db
+      .select({
+        n: count(),
+        totalValue: sum(sql`(${productVariants.priceAdjustment} + (SELECT base_price FROM products WHERE id = ${productVariants.productId})) * ${productVariants.stock}`),
+      })
+      .from(productVariants)
+      .all()
 
-  const lowStockCount = db
-    .select({ n: count() })
-    .from(products)
-    .where(and(isNull(products.deletedAt), sql`${products.stock} > 0`, sql`${products.stock} <= 5`))
-    .all()
+    const lowStockCount = db
+      .select({ n: count() })
+      .from(products)
+      .where(and(isNull(products.deletedAt), sql`${products.stock} > 0`, sql`${products.stock} <= 5`))
+      .all()
 
-  const outOfStockCount = db
-    .select({ n: count() })
-    .from(products)
-    .where(and(isNull(products.deletedAt), sql`${products.stock} = 0`))
-    .all()
+    const outOfStockCount = db
+      .select({ n: count() })
+      .from(products)
+      .where(and(isNull(products.deletedAt), sql`${products.stock} = 0`))
+      .all()
 
-  const [catRow] = await db.select({ n: count() }).from(categories)
-  const [variantCount] = await db.select({ n: count() }).from(productVariants)
+    const [catRow] = db.select({ n: count() }).from(categories).all()
+    const [variantCount] = db.select({ n: count() }).from(productVariants).all()
 
-  const productTotal = productRow?.n ?? 0
-  const productValue = Number(productRow?.totalValue ?? 0)
-  const variantValue = Number(variantRow?.totalValue ?? 0)
-
-  return success(c, {
-    productCount: productTotal,
-    variantCount: variantCount?.n ?? 0,
-    totalStock: productRow?.n
+    const productValue = Number(productRow?.totalValue ?? 0)
+    const variantValue = Number(variantRow?.totalValue ?? 0)
+    const totalStock = productRow?.n
       ? db.select({ n: sum(products.stock) }).from(products).where(isNull(products.deletedAt)).all()[0]?.n ?? 0
-      : 0,
-    totalValue: Math.round((productValue + variantValue) * 100) / 100,
-    lowStockCount: lowStockCount[0]?.n ?? 0,
-    outOfStockCount: outOfStockCount[0]?.n ?? 0,
-    categoryCount: catRow?.n ?? 0,
+      : 0
+
+    return {
+      productCount: productRow?.n ?? 0,
+      variantCount: variantCount?.n ?? 0,
+      totalStock,
+      totalValue: Math.round((productValue + variantValue) * 100) / 100,
+      lowStockCount: lowStockCount[0]?.n ?? 0,
+      outOfStockCount: outOfStockCount[0]?.n ?? 0,
+      categoryCount: catRow?.n ?? 0
+    }
   })
+
+  return success(c, data)
 })
 
 app.get('/low-stock', requirePermission('analytics.read'), async (c) => {

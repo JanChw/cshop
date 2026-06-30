@@ -25,10 +25,11 @@ app.post('/', requirePermission('backup.create'), async (c) => {
     const [record] = await db.insert(backups).values({ filename, size }).returning()
     return success(c, record, 201)
   } catch (err) {
+    console.error('[backup.create] failed:', err)
     if (filename) {
       await deleteBackupFile(filename).catch(() => {})
     }
-    return fail(c, '备份失败: ' + (err as Error).message, 500)
+    return fail(c, '备份失败,请联系管理员', 500)
   }
 })
 
@@ -90,7 +91,8 @@ app.post('/:id/restore', requirePermission('backup.create'), async (c) => {
   try {
     restoreBackup(record.filename)
   } catch (err) {
-    return fail(c, '恢复失败: ' + (err as Error).message, 500)
+    console.error('[backup.restore] failed:', err)
+    return fail(c, '恢复失败,请联系管理员', 500)
   }
 
   return success(c, { restored: record.filename, note: '服务需要重启以加载恢复后的数据库' })

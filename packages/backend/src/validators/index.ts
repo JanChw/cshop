@@ -1,10 +1,29 @@
 import { z } from 'zod'
+import { getInt } from '../utils/settings'
 
 export const phoneRegex = /^1[3-9]\d{9}$/
 
+// Read the configured minimum password length at validation time so admins
+// can raise the floor via settings without a code change. Default 8 matches
+// the DEFAULTS in routes/admin/settings.ts.
+function passwordField () {
+  return z.string().superRefine((val, ctx) => {
+    const min = getInt('min_password_length', 8)
+    if (val.length < min) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.too_small,
+        type: 'string',
+        minimum: min,
+        inclusive: true,
+        message: `密码至少 ${min} 位`
+      })
+    }
+  })
+}
+
 export const registerSchema = z.object({
   email: z.string().email('邮箱格式不正确'),
-  password: z.string().min(6, '密码至少6位'),
+  password: passwordField(),
   name: z.string().min(1, '名称不能为空')
 })
 
@@ -112,7 +131,7 @@ export const categorySchema = z.object({
 
 export const changePasswordSchema = z.object({
   oldPassword: z.string().min(1),
-  newPassword: z.string().min(6, '新密码至少 6 位')
+  newPassword: passwordField()
 })
 
 export const updateMeSchema = z.object({
@@ -135,6 +154,16 @@ export const sendPhoneCodeSchema = z.object({
 
 export const bindPhoneSchema = z.object({
   phone: z.string().regex(phoneRegex, '手机号格式不正确'),
+  code: z.string().regex(/^\d{6}$/, '验证码为 6 位数字')
+})
+
+export const sendEmailCodeSchema = z.object({
+  email: z.string().email('邮箱格式不正确'),
+  captchaToken: z.string().min(1, '人机验证未通过')
+})
+
+export const emailCodeLoginSchema = z.object({
+  email: z.string().email('邮箱格式不正确'),
   code: z.string().regex(/^\d{6}$/, '验证码为 6 位数字')
 })
 

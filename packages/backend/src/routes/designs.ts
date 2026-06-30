@@ -4,7 +4,7 @@ import { join } from 'node:path'
 import sharp from 'sharp'
 import { db } from '../db'
 import { designs } from '../db/schema'
-import { eq, and, desc } from 'drizzle-orm'
+import { eq, and, desc, sql } from 'drizzle-orm'
 import { auth } from '../middleware/auth'
 import { verifyAccessToken } from '../utils/jwt'
 import { success, fail } from '../utils/response'
@@ -14,10 +14,12 @@ import { trackBusinessEvent } from '../utils/track'
 import { config } from '../config'
 import { isSafeFilename } from '../utils/safePath'
 import { mimeFromFilename } from '../utils/mime'
+import { parsePagination } from '../utils/request'
 import type { AppEnv } from '../types/hono'
 
 const PREVIEW_WIDTH = 400
 const PREVIEW_HEIGHT = 500
+const NO_SNIFF = { 'X-Content-Type-Options': 'nosniff' }
 
 function versionPreviewUrl(previewImage: string | null, updatedAt: string | null): string | null {
   if (!previewImage || !updatedAt) return previewImage
@@ -53,7 +55,8 @@ publicApp.get('/:id/preview', async (c) => {
   return new Response(file, {
     headers: {
       'Content-Type': mimeFromFilename(filename),
-      'Cache-Control': 'public, max-age=31536000, immutable'
+      'Cache-Control': 'public, max-age=31536000, immutable',
+      ...NO_SNIFF
     }
   })
 })
@@ -65,12 +68,17 @@ protectedApp.use('*', auth)
 protectedApp.post('/', validateJson(designSchema), async (c) => {
   const userId = c.get('userId')
   const data = c.req.valid('json')
+
+  // Insert the design row first so persistPreview can name the file by id.
   const [record] = await db.insert(designs).values({ ...data, userId }).returning()
   if (!record) return fail(c, '创建失败', 500)
 
   const previewUrl = await persistPreview(record.id, data.previewImage)
   if (previewUrl) {
-    await db.update(designs).set({ previewImage: previewUrl }).where(eq(designs.id, record.id))
+    // Atomic update of previewImage; if this fails we still keep the design row.
+    db.transaction((tx) => {
+      tx.update(designs).set({ previewImage: previewUrl }).where(eq(designs.id, record.id)).run()
+    })
     record.previewImage = previewUrl
   }
 
@@ -175,22 +183,36 @@ const app = new Hono()
 app.get('/', async (c) => {
   const header = c.req.header('Authorization')
   const token = header?.startsWith('Bearer ') ? verifyAccessToken(header.slice(7)) : null
+  const { page, limit, offset } = parsePagination(c)
 
-  if (token) {
-    const items = await db
-      .select()
-      .from(designs)
-      .where(eq(designs.userId, token.userId))
-      .orderBy(desc(designs.updatedAt))
-    return success(c, { items: items.map(d => ({ ...d, previewImage: versionPreviewUrl(d.previewImage, d.updatedAt) })) })
+  // List projection: exclude canvasData (can be MB-sized) from list views.
+  const listFields = {
+    id: designs.id,
+    userId: designs.userId,
+    productId: designs.productId,
+    variantId: designs.variantId,
+    name: designs.name,
+    previewImage: designs.previewImage,
+    isPublic: designs.isPublic,
+    createdAt: designs.createdAt,
+    updatedAt: designs.updatedAt
   }
 
-  const items = await db
-    .select()
-    .from(designs)
-    .where(eq(designs.isPublic, true))
-    .orderBy(desc(designs.updatedAt))
-  return success(c, { items: items.map(d => ({ ...d, previewImage: versionPreviewUrl(d.previewImage, d.updatedAt) })) })
+  if (token) {
+    const where = eq(designs.userId, token.userId)
+    const [items, [{ n: total }]] = await Promise.all([
+      db.select(listFields).from(designs).where(where).orderBy(desc(designs.updatedAt)).limit(limit).offset(offset),
+      db.select({ n: sql<number>`count(*)` }).from(designs).where(where)
+    ])
+    return success(c, { items: items.map(d => ({ ...d, previewImage: versionPreviewUrl(d.previewImage, d.updatedAt) })), total, page, limit })
+  }
+
+  const where = eq(designs.isPublic, true)
+  const [items, [{ n: total }]] = await Promise.all([
+    db.select(listFields).from(designs).where(where).orderBy(desc(designs.updatedAt)).limit(limit).offset(offset),
+    db.select({ n: sql<number>`count(*)` }).from(designs).where(where)
+  ])
+  return success(c, { items: items.map(d => ({ ...d, previewImage: versionPreviewUrl(d.previewImage, d.updatedAt) })), total, page, limit })
 })
 
 app.route('/', publicApp)

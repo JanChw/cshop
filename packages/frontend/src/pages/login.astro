@@ -1,8 +1,12 @@
 ---
 import MainLayout from '../layouts/MainLayout.astro'
 import LoginForm from '../components/page/LoginForm.tsx'
+
+const siteKey = process.env.CLOUDFLARE_SITE_KEY || '1x00000000000000000000AA'
 ---
 
+<script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" />
+
 <MainLayout title="登录" hideNav>
-  <LoginForm client:load />
+  <LoginForm client:load siteKey={siteKey} />
 </MainLayout>

@@ -1,6 +1,6 @@
 import { db } from '../db'
 import { activityEvents, userOnline, settings, uploads, products, cartItems, designs, orderItems } from '../db/schema'
-import { eq, and, lt, isNull, isNotNull, inArray, sql } from 'drizzle-orm'
+import { eq, and, lt, gte, isNull, isNotNull, inArray, sql } from 'drizzle-orm'
 import { readdir, unlink, stat } from 'node:fs/promises'
 import { config } from '../config'
 import type { DeviceType } from './deviceDetect'
@@ -70,36 +70,68 @@ export async function flush(): Promise<void> {
   }
 
   try {
-    if (events.length > 0) {
-      const values = events.map(e => ({
-        userId: e.userId,
-        eventType: e.eventType,
-        path: e.path,
-        method: e.method ?? null,
-        statusCode: e.statusCode ?? null,
-        duration: e.duration ?? null,
-        ip: e.ip ?? null,
-        userAgent: e.userAgent ?? null,
-        deviceType: e.deviceType,
-        country: e.geo?.country ?? null,
-        region: e.geo?.region ?? null,
-        city: e.geo?.city ?? null,
-        metadata: e.metadata ? JSON.stringify(e.metadata) : null
-      }))
-      db.insert(activityEvents).values(values).run()
-    }
+    // Wrap all writes in one transaction so WAL fsync happens once instead
+    // of once per statement.
+    db.transaction(() => {
+      if (events.length > 0) {
+        const values = events.map(e => ({
+          userId: e.userId,
+          eventType: e.eventType,
+          path: e.path,
+          method: e.method ?? null,
+          statusCode: e.statusCode ?? null,
+          duration: e.duration ?? null,
+          ip: e.ip ?? null,
+          userAgent: e.userAgent ?? null,
+          deviceType: e.deviceType,
+          country: e.geo?.country ?? null,
+          region: e.geo?.region ?? null,
+          city: e.geo?.city ?? null,
+          metadata: e.metadata ? JSON.stringify(e.metadata) : null
+        }))
+        db.insert(activityEvents).values(values).run()
+      }
 
-    for (const o of onlines) {
       const now = new Date().toISOString()
-      const geo = o.geo ?? { country: null, region: null, city: null }
-      const existing = db
-        .select({ userId: userOnline.userId })
-        .from(userOnline)
-        .where(and(eq(userOnline.userId, o.userId), eq(userOnline.deviceType, o.deviceType)))
-        .limit(1)
-        .all()
+      const resolvedGeo = onlines.map(o => o.geo ?? { country: null, region: null, city: null })
 
-      if (existing.length > 0) {
+      // Batch-select existing (userId, deviceType) rows once, then split the
+      // queue into insert vs update buckets. Reduces 2*N queries to 1 select
+      // + 1 bulk insert + (updates, which are bounded by active session count).
+      const userIds = [...new Set(onlines.map(o => o.userId))]
+      const existing = userIds.length > 0
+        ? db.select({ userId: userOnline.userId, deviceType: userOnline.deviceType }).from(userOnline).where(inArray(userOnline.userId, userIds)).all()
+        : []
+      const existingKeys = new Set(existing.map(e => `${e.userId}|${e.deviceType}`))
+
+      const toInsertIdx: number[] = []
+      const toUpdateIdx: number[] = []
+      onlines.forEach((o, i) => {
+        if (existingKeys.has(`${o.userId}|${o.deviceType}`)) toUpdateIdx.push(i)
+        else toInsertIdx.push(i)
+      })
+
+      if (toInsertIdx.length > 0) {
+        db.insert(userOnline).values(toInsertIdx.map(i => {
+          const o = onlines[i]
+          const geo = resolvedGeo[i]
+          return {
+            userId: o.userId,
+            deviceType: o.deviceType,
+            loginAt: now,
+            lastActiveAt: now,
+            ip: o.ip ?? null,
+            userAgent: o.userAgent ?? null,
+            country: geo.country,
+            region: geo.region,
+            city: geo.city
+          }
+        })).run()
+      }
+
+      for (const i of toUpdateIdx) {
+        const o = onlines[i]
+        const geo = resolvedGeo[i]
         db.update(userOnline)
           .set({
             lastActiveAt: now,
@@ -111,20 +143,8 @@ export async function flush(): Promise<void> {
           })
           .where(and(eq(userOnline.userId, o.userId), eq(userOnline.deviceType, o.deviceType)))
           .run()
-      } else {
-        db.insert(userOnline).values({
-          userId: o.userId,
-          deviceType: o.deviceType,
-          loginAt: o.isLogin ? now : now,
-          lastActiveAt: now,
-          ip: o.ip ?? null,
-          userAgent: o.userAgent ?? null,
-          country: geo.country,
-          region: geo.region,
-          city: geo.city
-        }).run()
       }
-    }
+    })
   } catch (err) {
     console.error('[eventQueue] flush error:', err)
   }
@@ -166,6 +186,17 @@ export async function lazyClean(): Promise<void> {
     db.delete(userOnline)
       .where(lt(userOnline.lastActiveAt, staleThreshold))
       .run()
+
+    // Prune activity_events so the analytics table stays bounded. Default
+    // 30 days; tunable via the `activity_events_retention_days` setting.
+    const [evtRow] = db.select({ value: settings.value }).from(settings).where(eq(settings.key, 'activity_events_retention_days')).limit(1).all()
+    const evtDays = evtRow ? parseInt(evtRow.value) : 30
+    if (Number.isFinite(evtDays) && evtDays > 0) {
+      const evtThreshold = new Date(Date.now() - evtDays * 86400000).toISOString()
+      db.delete(activityEvents)
+        .where(lt(activityEvents.createdAt, evtThreshold))
+        .run()
+    }
   } catch (err) {
     console.error('[eventQueue] lazyClean error:', err)
   }
@@ -181,6 +212,10 @@ export async function lazyCleanUploads(): Promise<void> {
     if (rows.length === 0) return
 
     const referenced = new Set<string>()
+    // Only scan recent upload rows — old orphans were already cleaned in
+    // prior sweeps, and scanning the full table grows linearly with total
+    // upload history.
+    const recentThreshold = new Date(Date.now() - 7 * 86400000).toISOString()
     const dbRows = db
       .select({
         thumb: uploads.thumbPath,
@@ -189,6 +224,7 @@ export async function lazyCleanUploads(): Promise<void> {
         large: uploads.largePath
       })
       .from(uploads)
+      .where(gte(uploads.createdAt, recentThreshold))
       .all()
     for (const r of dbRows) {
       if (r.thumb) referenced.add(r.thumb)

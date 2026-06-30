@@ -4,6 +4,7 @@ import { roles, permissions, rolePermissions, staff } from '../../db/schema'
 import { eq, asc, inArray, and, count } from 'drizzle-orm'
 import { success, fail } from '../../utils/response'
 import { validateJson } from '../../utils/validate'
+import { invalidateStaffCache } from '../../utils/staff'
 import { auth } from '../../middleware/auth'
 import { requireStaff, requirePermission } from '../../middleware/permission'
 import { z } from 'zod'
@@ -88,11 +89,12 @@ app.put('/:id/permissions', requirePermission('staff.create'), validateJson(upda
   db.transaction((tx) => {
     tx.delete(rolePermissions).where(eq(rolePermissions.roleId, id)).run()
     if (data.permissionIds.length > 0) {
-      for (const permId of data.permissionIds) {
-        tx.insert(rolePermissions).values({ roleId: id, permissionId: permId }).run()
-      }
+      tx.insert(rolePermissions).values(data.permissionIds.map(permId => ({ roleId: id, permissionId: permId }))).run()
     }
   })
+
+  // Role permissions changed — all staff with this role need refreshed context.
+  invalidateStaffCache()
 
   return success(c, null)
 })

@@ -1,14 +1,11 @@
 import { createMiddleware } from 'hono/factory'
 import { fail } from '../utils/response'
 import { loadStaffContext } from '../utils/staff'
-import { db } from '../db'
-import { staff } from '../db/schema'
-import { eq, and } from 'drizzle-orm'
 import type { AppEnv } from '../types/hono'
 import type { PermissionCode } from '../utils/permissions'
 
 // Requires the user to be an active staff member.
-// Refreshes staff context from DB so role/status changes take effect immediately.
+// loadStaffContext already filters by status='active' and caches for 30s.
 export const requireStaff = createMiddleware<AppEnv>(async (c, next) => {
   const userId = c.get('userId')
   if (!userId) {
@@ -18,17 +15,6 @@ export const requireStaff = createMiddleware<AppEnv>(async (c, next) => {
 
   if (!ctx.isStaff) {
     return fail(c, '无权限', 403)
-  }
-
-  const [row] = db
-    .select({ status: staff.status })
-    .from(staff)
-    .where(and(eq(staff.userId, userId), eq(staff.status, 'active')))
-    .limit(1)
-    .all()
-
-  if (!row) {
-    return fail(c, '账号已停用', 403)
   }
 
   c.set('isStaff', true)

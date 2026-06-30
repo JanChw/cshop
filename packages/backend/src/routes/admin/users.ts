@@ -7,6 +7,8 @@ import { validateJson } from '../../utils/validate'
 import { auth } from '../../middleware/auth'
 import { requireStaff, requirePermission } from '../../middleware/permission'
 import { z } from 'zod'
+import { getInt } from '../../utils/settings'
+import { parsePagination, escapeLikePattern } from '../../utils/request'
 import type { AppEnv } from '../../types/hono'
 
 const updateSchema = z.object({
@@ -15,7 +17,12 @@ const updateSchema = z.object({
 })
 
 const resetPasswordSchema = z.object({
-  newPassword: z.string().min(6, '密码至少6位')
+  newPassword: z.string().superRefine((val, ctx) => {
+    const min = getInt('min_password_length', 8)
+    if (val.length < min) {
+      ctx.addIssue({ code: z.ZodIssueCode.too_small, type: 'string', minimum: min, inclusive: true, message: `密码至少 ${min} 位` })
+    }
+  })
 })
 
 const app = new Hono<AppEnv>()
@@ -23,15 +30,13 @@ app.use('*', auth)
 app.use('*', requireStaff)
 
 app.get('/', requirePermission('user.read'), async (c) => {
-  const page = Math.max(1, parseInt(c.req.query('page') ?? '1'))
-  const limit = Math.min(100, Math.max(1, parseInt(c.req.query('limit') ?? '20')))
-  const offset = (page - 1) * limit
+  const { page, limit, offset } = parsePagination(c)
   const search = c.req.query('q')
   const status = c.req.query('status')
 
   const conditions = [isNull(staff.id)]
   if (search) {
-    const escaped = search.replace(/[\\%_]/g, ch => '\\' + ch)
+    const escaped = escapeLikePattern(search)
     conditions.push(sql`(${users.email} LIKE ${'%' + escaped + '%'} ESCAPE '\\' OR ${users.name} LIKE ${'%' + escaped + '%'} ESCAPE '\\')`)
   }
   if (status === 'active' || status === 'disabled' || status === 'deactivated') {
@@ -39,6 +44,14 @@ app.get('/', requirePermission('user.read'), async (c) => {
   }
 
   const where = and(...conditions)
+
+  // LEFT JOIN to a pre-aggregated order-count subquery instead of a
+  // correlated subquery per row.
+  const orderCounts = db
+    .select({ userId: orders.userId, n: count() })
+    .from(orders)
+    .groupBy(orders.userId)
+    .as('oc')
 
   const [items, [{ n: total }]] = await Promise.all([
     db
@@ -49,10 +62,11 @@ app.get('/', requirePermission('user.read'), async (c) => {
         status: users.status,
         lastLoginAt: users.lastLoginAt,
         createdAt: users.createdAt,
-        orderCount: sql<number>`(SELECT COUNT(*) FROM ${orders} WHERE ${orders.userId} = ${users.id})`
+        orderCount: sql<number>`COALESCE(${orderCounts.n}, 0)`
       })
       .from(users)
       .leftJoin(staff, eq(users.id, staff.userId))
+      .leftJoin(orderCounts, eq(orderCounts.userId, users.id))
       .where(where)
       .orderBy(desc(users.createdAt))
       .limit(limit)

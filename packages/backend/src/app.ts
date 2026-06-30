@@ -1,5 +1,8 @@
 import { Hono } from 'hono'
+import { sql } from 'drizzle-orm'
+import { db } from './db'
 import { cors } from './middleware/cors'
+import { requestId } from './middleware/requestId'
 import { logger } from './middleware/logger'
 import { tracker } from './middleware/tracker'
 import { errorHandler } from './middleware/error'
@@ -26,6 +29,7 @@ export function createApp() {
 
   app.onError(errorHandler)
   app.use('*', cors)
+  app.use('*', requestId)
   app.use('*', logger)
   app.use('*', tracker)
 
@@ -47,8 +51,21 @@ export function createApp() {
   app.route('/api/v1/user/favorites', favoriteRoutes)
   app.route('/api/v1/design-configs', designConfigRoutesPublic)
 
+  // Liveness: always 200 while the process is up.
   app.get('/api/v1/health', (c) => {
     return c.json({ success: true, data: { status: 'ok' }, error: null })
+  })
+
+  // Readiness: probe the database. Returns 503 if the DB is unreachable so
+  // orchestrators stop routing traffic here.
+  app.get('/api/v1/readyz', (c) => {
+    try {
+      db.select({ one: sql`1` }).from(sql`(SELECT 1 AS one) AS probe`).all()
+      return c.json({ success: true, data: { status: 'ready' }, error: null })
+    } catch (err) {
+      console.error('[readyz] db probe failed:', err)
+      return c.json({ success: false, data: null, error: 'not ready' }, 503)
+    }
   })
 
   return app

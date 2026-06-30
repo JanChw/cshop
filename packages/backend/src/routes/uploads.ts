@@ -3,8 +3,9 @@ import { unlink } from 'node:fs/promises'
 import { db } from '../db'
 import { uploads } from '../db/schema'
 import { auth } from '../middleware/auth'
+import { rateLimit } from '../middleware/rateLimit'
 import { success, fail } from '../utils/response'
-import { processImage } from '../utils/image'
+import { acceptImageUpload, uploadErrorPayload } from '../utils/upload'
 import { isSafeFilename } from '../utils/safePath'
 import { mimeFromFilename } from '../utils/mime'
 import { trackBusinessEvent } from '../utils/track'
@@ -12,7 +13,7 @@ import { config } from '../config'
 import { eq, and, desc, count, sql, isNull } from 'drizzle-orm'
 import type { AppEnv } from '../types/hono'
 
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+const NO_SNIFF = { 'X-Content-Type-Options': 'nosniff' }
 
 // Public sub-app: serves uploaded files (GET /:filename) without auth.
 const publicApp = new Hono()
@@ -29,7 +30,8 @@ publicApp.get('/:filename', async (c) => {
   return new Response(file, {
     headers: {
       'Content-Type': mimeFromFilename(filename),
-      'Cache-Control': 'public, max-age=31536000, immutable'
+      'Cache-Control': 'public, max-age=31536000, immutable',
+      ...NO_SNIFF
     }
   })
 })
@@ -38,7 +40,10 @@ publicApp.get('/:filename', async (c) => {
 const protectedApp = new Hono<AppEnv>()
 protectedApp.use('*', auth)
 
-protectedApp.post('/', async (c) => {
+// 30 uploads / minute / IP — prevents storage abuse.
+const uploadThrottle = rateLimit({ limit: 30, windowMs: 60_000 })
+
+protectedApp.post('/', uploadThrottle, async (c) => {
   const userId = c.get('userId')!
   const formData = await c.req.formData()
   const file = formData.get('file')
@@ -46,26 +51,23 @@ protectedApp.post('/', async (c) => {
   if (!(file instanceof File)) {
     return fail(c, '请选择文件')
   }
-  if (!ALLOWED_TYPES.includes(file.type)) {
-    return fail(c, '不支持的文件格式，仅支持 jpg/png/webp')
-  }
-  if (file.size > config.uploadMaxBytes) {
-    return fail(c, `文件大小不能超过 ${Math.round(config.uploadMaxBytes / 1024 / 1024)}MB`)
-  }
 
-  const ext = file.name.split('.').pop() ?? 'bin'
-  const tmpPath = `/tmp/cshop-upload-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-
-  await Bun.write(tmpPath, file)
+  let accepted
+  try {
+    accepted = await acceptImageUpload(file)
+  } catch (err) {
+    const { message, status } = uploadErrorPayload(err)
+    return fail(c, message, status)
+  }
 
   try {
-    const variants = await processImage(tmpPath)
+    const variants = accepted.variants
 
     await db.insert(uploads).values({
       userId,
       originalName: file.name,
       baseName: variants.baseName,
-      mimeType: file.type,
+      mimeType: accepted.detectedMime,
       thumbPath: variants.thumb.path,
       smallPath: variants.small.path,
       mediumPath: variants.medium.path,
@@ -95,7 +97,7 @@ protectedApp.post('/', async (c) => {
       }
     }, 201)
   } finally {
-    await unlink(tmpPath).catch(() => {})
+    await accepted.cleanup()
   }
 })
 

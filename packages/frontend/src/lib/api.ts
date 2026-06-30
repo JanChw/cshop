@@ -247,6 +247,10 @@ export const api = {
       request<{ success: boolean; data: { message: string } }>('/auth/phone/send-code', { method: 'POST', body: JSON.stringify({ phone }) }),
     bindPhone: (phone: string, code: string) =>
       request<{ success: boolean; data: { phone: string } }>('/auth/phone/bind', { method: 'POST', body: JSON.stringify({ phone, code }) }),
+    sendEmailCode: (email: string, captchaToken: string) =>
+      request<{ success: boolean; data: { message: string } }>('/auth/email/send-code', { method: 'POST', body: JSON.stringify({ email, captchaToken }) }),
+    emailCodeLogin: (email: string, code: string) =>
+      request<{ success: boolean; data: { accessToken: string; refreshToken: string; user: any } }>('/auth/email/code-login', { method: 'POST', body: JSON.stringify({ email, code }) }),
     sessions: () =>
       request<{ success: boolean; data: any[] }>('/auth/sessions')
   },

@@ -85,7 +85,21 @@ app.get('/events', requirePermission('analytics.read'), async (c) => {
   const where = conditions.length > 0 ? and(...conditions) : undefined
 
   const [items, [{ n: total }]] = await Promise.all([
-    db.select().from(activityEvents).where(where).orderBy(desc(activityEvents.createdAt)).limit(limit).offset(offset),
+    db.select({
+      id: activityEvents.id,
+      userId: activityEvents.userId,
+      eventType: activityEvents.eventType,
+      path: activityEvents.path,
+      method: activityEvents.method,
+      statusCode: activityEvents.statusCode,
+      duration: activityEvents.duration,
+      ip: activityEvents.ip,
+      deviceType: activityEvents.deviceType,
+      country: activityEvents.country,
+      region: activityEvents.region,
+      city: activityEvents.city,
+      createdAt: activityEvents.createdAt
+    }).from(activityEvents).where(where).orderBy(desc(activityEvents.createdAt)).limit(limit).offset(offset),
     db.select({ n: count() }).from(activityEvents).where(where)
   ])
 
@@ -96,17 +110,16 @@ app.get('/summary', requirePermission('analytics.read'), async (c) => {
   const period = c.req.query('period') ?? 'today'
   const fromISO = periodToFrom(period)
 
-  const [dauRow] = db
-    .select({ n: sql<number>`COUNT(DISTINCT ${activityEvents.userId})` })
-    .from(activityEvents)
-    .where(and(
-      gte(activityEvents.createdAt, fromISO),
-      sql`${activityEvents.userId} IS NOT NULL`
-    ))
-    .all()
-
-  const [pvRow] = db
-    .select({ n: count() })
+  // Single pass over the time-windowed partition for all scalar counts.
+  // Replaces 5 independent full-scan count queries with one.
+  const [stats] = db
+    .select({
+      dau: sql<number>`COUNT(DISTINCT CASE WHEN ${activityEvents.userId} IS NOT NULL THEN ${activityEvents.userId} END)`,
+      pv: sql<number>`COUNT(*)`,
+      productViews: sql<number>`SUM(CASE WHEN ${activityEvents.eventType}='product_view' THEN 1 ELSE 0 END)`,
+      cartAdds: sql<number>`SUM(CASE WHEN ${activityEvents.eventType}='cart_add' THEN 1 ELSE 0 END)`,
+      orderCreates: sql<number>`SUM(CASE WHEN ${activityEvents.eventType}='order_create' THEN 1 ELSE 0 END)`
+    })
     .from(activityEvents)
     .where(gte(activityEvents.createdAt, fromISO))
     .all()
@@ -125,24 +138,6 @@ app.get('/summary', requirePermission('analytics.read'), async (c) => {
     .groupBy(sql`JSON_EXTRACT(${activityEvents.metadata}, '$.productId')`)
     .orderBy(desc(count()))
     .limit(10)
-    .all()
-
-  const [viewCount] = db
-    .select({ n: count() })
-    .from(activityEvents)
-    .where(and(eq(activityEvents.eventType, 'product_view'), gte(activityEvents.createdAt, fromISO)))
-    .all()
-
-  const [cartCount] = db
-    .select({ n: count() })
-    .from(activityEvents)
-    .where(and(eq(activityEvents.eventType, 'cart_add'), gte(activityEvents.createdAt, fromISO)))
-    .all()
-
-  const [orderCount] = db
-    .select({ n: count() })
-    .from(activityEvents)
-    .where(and(eq(activityEvents.eventType, 'order_create'), gte(activityEvents.createdAt, fromISO)))
     .all()
 
   const deviceDistribution = db
@@ -170,13 +165,13 @@ app.get('/summary', requirePermission('analytics.read'), async (c) => {
     .all()
 
   return success(c, {
-    dau: dauRow?.n ?? 0,
-    pv: pvRow?.n ?? 0,
+    dau: stats?.dau ?? 0,
+    pv: stats?.pv ?? 0,
     topProducts,
     funnel: {
-      productView: viewCount?.n ?? 0,
-      cartAdd: cartCount?.n ?? 0,
-      orderCreate: orderCount?.n ?? 0
+      productView: stats?.productViews ?? 0,
+      cartAdd: stats?.cartAdds ?? 0,
+      orderCreate: stats?.orderCreates ?? 0
     },
     deviceDistribution,
     trend
@@ -246,7 +241,21 @@ app.get('/audit', requirePermission('analytics.read'), async (c) => {
   const where = and(...conditions)
 
   const [items, [{ n: total }]] = await Promise.all([
-    db.select().from(activityEvents).where(where).orderBy(desc(activityEvents.createdAt)).limit(limit).offset(offset),
+    db.select({
+      id: activityEvents.id,
+      userId: activityEvents.userId,
+      eventType: activityEvents.eventType,
+      path: activityEvents.path,
+      method: activityEvents.method,
+      statusCode: activityEvents.statusCode,
+      duration: activityEvents.duration,
+      ip: activityEvents.ip,
+      deviceType: activityEvents.deviceType,
+      country: activityEvents.country,
+      region: activityEvents.region,
+      city: activityEvents.city,
+      createdAt: activityEvents.createdAt
+    }).from(activityEvents).where(where).orderBy(desc(activityEvents.createdAt)).limit(limit).offset(offset),
     db.select({ n: count() }).from(activityEvents).where(where)
   ])
 
@@ -294,24 +303,35 @@ app.get('/retention', requirePermission('analytics.read'), async (c) => {
   const userIds = cohortUsers.map(u => u.userId).filter((id): id is number => id !== null)
   const retention: Array<{ day: number; count: number; rate: number }> = []
 
+  // Single query: GROUP BY DATE(createdAt) over the 8-day window, counting
+  // distinct users per day. Replaces 8 separate selectDistinct queries.
+  const windowEnd = new Date(cohortStart.getTime() + 8 * 86400000)
+  const dayRows = db
+    .select({
+      day: sql<string>`DATE(${activityEvents.createdAt})`,
+      n: sql<number>`COUNT(DISTINCT ${activityEvents.userId})`
+    })
+    .from(activityEvents)
+    .where(and(
+      inArray(activityEvents.userId, userIds),
+      gte(activityEvents.createdAt, cohortStart.toISOString()),
+      lte(activityEvents.createdAt, windowEnd.toISOString())
+    ))
+    .groupBy(sql`DATE(${activityEvents.createdAt})`)
+    .all()
+
+  const dayMap = new Map<string, number>()
+  for (const r of dayRows) dayMap.set(r.day, r.n)
+
+  const cohortDateStr = cohortStart.toISOString().slice(0, 10)
   for (let day = 0; day <= 7; day++) {
-    const dayStart = new Date(cohortStart.getTime() + day * 86400000)
-    const dayEnd = new Date(dayStart.getTime() + 86400000)
-
-    const returned = db
-      .selectDistinct({ userId: activityEvents.userId })
-      .from(activityEvents)
-      .where(and(
-        inArray(activityEvents.userId, userIds),
-        gte(activityEvents.createdAt, dayStart.toISOString()),
-        lte(activityEvents.createdAt, dayEnd.toISOString())
-      ))
-      .all()
-
+    const dayDate = new Date(cohortStart.getTime() + day * 86400000)
+    const dayStr = dayDate.toISOString().slice(0, 10)
+    const count = dayMap.get(dayStr) ?? 0
     retention.push({
       day,
-      count: returned.length,
-      rate: Math.round((returned.length / cohortSize) * 10000) / 100
+      count,
+      rate: Math.round((count / cohortSize) * 10000) / 100
     })
   }
 

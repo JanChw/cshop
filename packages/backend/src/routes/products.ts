@@ -3,6 +3,7 @@ import { db } from '../db'
 import { products, productVariants, productVariantOptions, productBaseDesigns } from '../db/schema'
 import { eq, and, count, asc, isNull, type SQL, sql } from 'drizzle-orm'
 import { success, fail } from '../utils/response'
+import { parsePagination, escapeLikePattern } from '../utils/request'
 import { trackBusinessEvent } from '../utils/track'
 import { authOptional } from '../middleware/auth'
 import type { AppEnv } from '../types/hono'
@@ -11,11 +12,9 @@ const app = new Hono<AppEnv>()
 app.get('*', authOptional)
 
 app.get('/', async (c) => {
-  const page = Math.max(1, parseInt(c.req.query('page') ?? '1'))
-  const limit = Math.min(100, Math.max(1, parseInt(c.req.query('limit') ?? '20')))
+  const { page, limit, offset } = parsePagination(c)
   const categoryId = c.req.query('categoryId')
   const q = c.req.query('q')?.trim()
-  const offset = (page - 1) * limit
 
   const conditions: SQL[] = [eq(products.isActive, true), isNull(products.deletedAt)]
   if (categoryId) {
@@ -25,13 +24,22 @@ app.get('/', async (c) => {
     }
   }
   if (q) {
-    const escaped = q.replace(/[\\%_]/g, ch => '\\' + ch)
+    const escaped = escapeLikePattern(q)
     conditions.push(sql`${products.name} LIKE ${'%' + escaped + '%'} ESCAPE '\\'`)
   }
   const where = and(...conditions)!
 
   const [items, [{ n: total }]] = await Promise.all([
-    db.select().from(products).where(where).limit(limit).offset(offset),
+    db.select({
+      id: products.id,
+      name: products.name,
+      basePrice: products.basePrice,
+      originalPrice: products.originalPrice,
+      categoryId: products.categoryId,
+      images: products.images,
+      isActive: products.isActive,
+      createdAt: products.createdAt
+    }).from(products).where(where).limit(limit).offset(offset),
     db.select({ n: count() }).from(products).where(where)
   ])
 

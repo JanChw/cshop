@@ -10,7 +10,28 @@ export interface StaffContext {
   permissions: PermissionCode[]
 }
 
+// 30s in-memory cache so every admin request doesn't hit the DB twice for
+// staff/role/permission lookup. Cleared on role/staff mutation via
+// invalidateStaffCache(userId).
+const STAFF_CACHE_TTL_MS = 30_000
+interface StaffCacheEntry {
+  ctx: StaffContext
+  loadedAt: number
+}
+const staffCache = new Map<number, StaffCacheEntry>()
+
+export function invalidateStaffCache(userId?: number): void {
+  if (userId !== undefined) staffCache.delete(userId)
+  else staffCache.clear()
+}
+
 export async function loadStaffContext(userId: number): Promise<StaffContext> {
+  const now = Date.now()
+  const cached = staffCache.get(userId)
+  if (cached && now - cached.loadedAt < STAFF_CACHE_TTL_MS) {
+    return cached.ctx
+  }
+
   const [row] = db
     .select({
       staffId: staff.id,
@@ -25,7 +46,9 @@ export async function loadStaffContext(userId: number): Promise<StaffContext> {
     .all()
 
   if (!row) {
-    return { isStaff: false, roleId: null, roleName: null, permissions: [] }
+    const ctx: StaffContext = { isStaff: false, roleId: null, roleName: null, permissions: [] }
+    staffCache.set(userId, { ctx, loadedAt: now })
+    return ctx
   }
 
   const permRows = db
@@ -35,12 +58,14 @@ export async function loadStaffContext(userId: number): Promise<StaffContext> {
     .where(eq(rolePermissions.roleId, row.roleId))
     .all()
 
-  return {
+  const ctx: StaffContext = {
     isStaff: true,
     roleId: row.roleId,
     roleName: row.roleName,
     permissions: permRows.map(p => p.code as PermissionCode)
   }
+  staffCache.set(userId, { ctx, loadedAt: now })
+  return ctx
 }
 
 export async function getUserWithStaff(userId: number): Promise<{

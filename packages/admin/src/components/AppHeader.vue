@@ -19,6 +19,7 @@
       </div>
       <div
         v-if="dropdownOpen"
+        role="menu"
         class="absolute top-14 right-6 w-48 bg-card border border-border rounded-md shadow-lg py-1 z-50"
         @click.stop
       >
@@ -27,6 +28,7 @@
           <p class="text-xs text-text-muted">{{ userEmail }}</p>
         </div>
         <button
+          role="menuitem"
           class="w-full px-4 py-2 text-sm text-left text-text-primary hover:bg-gray-50 transition-colors flex items-center gap-2"
           @click="handleLogout"
         >
@@ -67,7 +69,14 @@ const titleMap: Record<string, string> = {
 }
 
 const currentPageTitle = computed(() => {
-  return titleMap[route.path] || '页面'
+  if (titleMap[route.path]) return titleMap[route.path]
+  if (route.path === '/products/new') return '新增商品'
+  if (route.path.match(/^\/products\/\d+\/edit$/)) return '编辑商品'
+  if (route.path.match(/^\/orders\/\d+$/)) return '订单详情'
+  const parentKey = Object.keys(titleMap)
+    .filter(p => p !== '/' && route.path.startsWith(p))
+    .sort((a, b) => b.length - a.length)[0]
+  return parentKey ? titleMap[parentKey] : '页面'
 })
 
 const userName = computed(() => user.value?.name || '管理员')

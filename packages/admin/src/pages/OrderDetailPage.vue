@@ -15,7 +15,7 @@
     </div>
 
     <template v-else-if="order">
-      <div class="grid grid-cols-2 gap-5">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <div class="bg-card border border-border rounded-md p-5 flex flex-col gap-3">
           <span class="text-sm font-semibold text-text-primary">订单信息</span>
           <div class="flex flex-col gap-2 text-sm">

@@ -14,13 +14,13 @@
     <div class="flex-1 bg-card border border-border rounded-md overflow-hidden flex flex-col">
       <div class="flex items-center px-4 bg-table-header h-11 shrink-0">
         <span class="w-[24px]"></span>
-        <span class="w-[60px] text-xs font-semibold text-text-muted">ID</span>
-        <span class="w-[90px] text-xs font-semibold text-text-muted">区块类型</span>
-        <span class="w-[120px] text-xs font-semibold text-text-muted">标题</span>
-        <span class="w-[140px] text-xs font-semibold text-text-muted">副标题</span>
-        <span class="flex-1 text-xs font-semibold text-text-muted">数据预览</span>
-        <span class="w-[70px] text-xs font-semibold text-text-muted">状态</span>
-        <span class="w-[110px] text-xs font-semibold text-text-muted">操作</span>
+        <span class="w-[60px] text-xs font-semibold text-text-primary">ID</span>
+        <span class="w-[90px] text-xs font-semibold text-text-primary">区块类型</span>
+        <span class="w-[120px] text-xs font-semibold text-text-primary">标题</span>
+        <span class="w-[140px] text-xs font-semibold text-text-primary">副标题</span>
+        <span class="flex-1 text-xs font-semibold text-text-primary">数据预览</span>
+        <span class="w-[70px] text-xs font-semibold text-text-primary">状态</span>
+        <span class="w-[110px] text-xs font-semibold text-text-primary">操作</span>
       </div>
 
       <div class="flex-1 overflow-auto">
@@ -53,11 +53,8 @@
           <span class="w-[120px] text-sm text-text-primary truncate">{{ sec.title || '-' }}</span>
           <span class="w-[140px] text-sm text-text-muted truncate">{{ sec.subTitle || '-' }}</span>
           <span class="flex-1 text-sm text-text-muted truncate font-mono text-xs">{{ dataPreview(sec.data) }}</span>
-          <span class="w-[70px] text-sm">
-            <span
-              class="inline-block rounded px-2 py-0.5 text-xs font-medium"
-              :class="sec.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'"
-            >{{ sec.isActive ? '启用' : '禁用' }}</span>
+          <span class="w-[70px]">
+            <StatusBadge :label="sec.isActive ? '启用' : '禁用'" :variant="sec.isActive ? 'success' : 'inactive'" />
           </span>
           <div class="w-[110px] flex items-center gap-1">
             <button
@@ -90,6 +87,17 @@
       @close="closeModal"
       @save="handleSave"
     />
+
+    <ConfirmModal
+      :visible="confirmVisible"
+      :title="confirmTitle"
+      variant="danger"
+      confirm-label="确认删除"
+      @confirm="doDelete"
+      @cancel="confirmVisible = false"
+    >
+      {{ confirmMessage }}
+    </ConfirmModal>
   </div>
 </template>
 
@@ -99,6 +107,8 @@ import { Plus, Pencil, Trash2, GripVertical, Eye, EyeOff } from 'lucide-vue-next
 import { api } from '@/utils/api'
 import { useToast } from '@/composables/useToast'
 import SectionModal from '@/components/SectionModal.vue'
+import StatusBadge from '@/components/ui/StatusBadge.vue'
+import ConfirmModal from '@/components/ui/ConfirmModal.vue'
 
 const toast = useToast()
 
@@ -119,6 +129,10 @@ const modalVisible = ref(false)
 const editingSection = ref<Section | undefined>(undefined)
 const dragIndex = ref<number | null>(null)
 const dragOverIndex = ref<number | null>(null)
+const confirmVisible = ref(false)
+const confirmTitle = ref('')
+const confirmMessage = ref('')
+let pendingDeleteSection: Section | null = null
 
 const TYPE_LABELS: Record<string, string> = {
   hero: '主横幅',
@@ -129,11 +143,11 @@ const TYPE_LABELS: Record<string, string> = {
 }
 
 const TYPE_BADGES: Record<string, string> = {
-  hero: 'bg-purple-100 text-purple-700',
-  videos: 'bg-blue-100 text-blue-700',
-  product_row: 'bg-amber-100 text-amber-700',
-  card_grid: 'bg-teal-100 text-teal-700',
-  designer_grid: 'bg-rose-100 text-rose-700'
+  hero: 'bg-badge-hero/10 text-badge-hero',
+  videos: 'bg-badge-videos/10 text-badge-videos',
+  product_row: 'bg-badge-product-row/10 text-badge-product-row',
+  card_grid: 'bg-badge-card-grid/10 text-badge-card-grid',
+  designer_grid: 'bg-badge-designer-grid/10 text-badge-designer-grid'
 }
 
 function typeLabel(type: string) {
@@ -202,12 +216,20 @@ async function handleSave(data: { type: string; title: string; subTitle: string;
 }
 
 function handleDelete(sec: Section) {
-  if (!confirm(`确定要删除"${sec.title || typeLabel(sec.type)}"吗？`)) return
-  api.delete(`/admin/home-sections/${sec.id}`).then(res => {
-    if (!res.success) { toast.error(res.error || '删除失败'); return }
-    toast.success('删除成功')
-    fetchSections()
-  })
+  pendingDeleteSection = sec
+  confirmTitle.value = '确认删除'
+  confirmMessage.value = `确定要删除"${sec.title || typeLabel(sec.type)}"吗？`
+  confirmVisible.value = true
+}
+
+async function doDelete() {
+  if (!pendingDeleteSection) return
+  const res = await api.delete(`/admin/home-sections/${pendingDeleteSection.id}`)
+  confirmVisible.value = false
+  pendingDeleteSection = null
+  if (!res.success) { toast.error(res.error || '删除失败'); return }
+  toast.success('删除成功')
+  fetchSections()
 }
 
 function onDragStart(index: number) { dragIndex.value = index }

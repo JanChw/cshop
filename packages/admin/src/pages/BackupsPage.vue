@@ -18,11 +18,11 @@
 
     <div class="flex-1 bg-card border border-border rounded-md flex flex-col">
       <div class="flex items-center px-4 bg-table-header h-11 shrink-0">
-        <span class="w-[60px] text-xs font-semibold text-text-muted">ID</span>
-        <span class="flex-1 text-xs font-semibold text-text-muted">文件名</span>
-        <span class="w-[120px] text-xs font-semibold text-text-muted">文件大小</span>
-        <span class="w-[160px] text-xs font-semibold text-text-muted">创建时间</span>
-        <span class="w-[160px] text-xs font-semibold text-text-muted">操作</span>
+        <span class="w-[60px] text-xs font-semibold text-text-primary">ID</span>
+        <span class="flex-1 text-xs font-semibold text-text-primary">文件名</span>
+        <span class="w-[120px] text-xs font-semibold text-text-primary">文件大小</span>
+        <span class="w-[160px] text-xs font-semibold text-text-primary">创建时间</span>
+        <span class="w-[160px] text-xs font-semibold text-text-primary">操作</span>
       </div>
 
       <div class="flex-1 overflow-auto">
@@ -88,7 +88,7 @@
     <Teleport to="body">
       <div
         v-if="tooltip.visible"
-        class="fixed px-2 py-1 text-xs text-white bg-gray-800 rounded whitespace-nowrap pointer-events-none z-[9999]"
+        class="fixed px-2 py-1 text-xs text-white bg-tooltip-bg rounded whitespace-nowrap pointer-events-none z-[9999]"
         :style="{ left: tooltip.x + 'px', top: tooltip.y + 'px', transform: 'translateX(-50%)' }"
       >
         {{ tooltip.text }}

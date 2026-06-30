@@ -84,8 +84,8 @@
       <div v-show="currentStep === 1" class="bg-card border border-border rounded-md px-6 py-5 flex flex-col gap-5">
         <h2 class="text-base font-semibold text-text-primary">基本信息</h2>
 
-        <div class="flex gap-6">
-          <div class="flex-1 flex flex-col gap-2">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="flex flex-col gap-2">
             <label class="text-sm font-medium text-text-primary">商品名称</label>
             <input
               v-model="form.name"
@@ -106,8 +106,8 @@
           </div>
         </div>
 
-        <div class="flex gap-6">
-          <div class="flex-1 flex flex-col gap-2">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          <div class="flex flex-col gap-2">
             <label class="text-sm font-medium text-text-primary">销售价格</label>
             <input
               v-model="form.price"
@@ -261,7 +261,7 @@
           <h2 class="text-base font-semibold text-text-primary">底款设计图</h2>
           <p class="text-xs text-text-muted mt-1">上传原始设计图，系统将自动去除背景并生成遮罩</p>
         </div>
-        <div class="flex gap-6">
+        <div class="flex flex-wrap gap-6">
           <div class="flex flex-col gap-2">
             <span class="text-xs font-medium text-text-muted">原始图片（可上传/删除）</span>
             <div
@@ -664,6 +664,17 @@
         </div>
       </Transition>
     </Teleport>
+
+    <ConfirmModal
+      :visible="clearConfirmVisible"
+      title="确认清空"
+      variant="danger"
+      :confirm-label="clearConfirmLabel"
+      @confirm="doClearOptions"
+      @cancel="clearConfirmVisible = false"
+    >
+      {{ clearConfirmMessage }}
+    </ConfirmModal>
   </div>
 </template>
 
@@ -672,6 +683,7 @@ import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { api } from '@/utils/api'
 import { useToast } from '@/composables/useToast'
+import ConfirmModal from '@/components/ui/ConfirmModal.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -691,6 +703,10 @@ const imageFiles = ref<(File | null)[]>([null, null, null])
 const baseDesign = ref<{ originalImage: string | null; frontImage: string | null; maskImage: string | null } | null>(null)
 const categories = ref<{ id: number; name: string }[]>([])
 const saving = ref(false)
+const clearConfirmVisible = ref(false)
+const clearConfirmLabel = ref('')
+const clearConfirmMessage = ref('')
+let pendingClearOptionType: OptionType | null = null
 const originalVariantIds = ref(new Set<number>())
 const pendingBaseDesignFile = ref<File | null>(null)
 const baseDesignProgress = ref(0)
@@ -1072,11 +1088,21 @@ function removeProductOption(type: OptionType, index: number) {
 }
 
 function clearProductOptions(type: OptionType) {
-  if (!confirm(`确定清空所有${optionTypeDefs.find(d => d.type === type)?.label}吗？`)) return
+  pendingClearOptionType = type
+  clearConfirmLabel.value = '确认清空'
+  clearConfirmMessage.value = `确定清空所有${optionTypeDefs.find(d => d.type === type)?.label}吗？`
+  clearConfirmVisible.value = true
+}
+
+function doClearOptions() {
+  if (!pendingClearOptionType) return
+  const type = pendingClearOptionType
   productOptions[type].forEach(o => {
     if (o.id != null) o.isDeleted = true
   })
   productOptions[type] = productOptions[type].filter(o => o.id == null)
+  clearConfirmVisible.value = false
+  pendingClearOptionType = null
 }
 
 async function loadProductOptions() {

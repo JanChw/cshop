@@ -16,7 +16,7 @@
         v-for="cat in categories"
         :key="cat.key"
         class="rounded h-9 px-4 text-sm font-medium transition-colors"
-        :class="activeCategory === cat.key ? 'bg-primary text-white' : 'bg-surface text-text-primary hover:bg-gray-100'"
+        :class="activeCategory === cat.key ? 'bg-primary text-white' : 'bg-card text-text-primary hover:bg-gray-100'"
         @click="activeCategory = cat.key"
       >
         {{ cat.label }}
@@ -34,9 +34,9 @@
         <div
           v-for="item in filteredItems"
           :key="item.id"
-          class="group relative bg-surface rounded-lg border border-border overflow-hidden hover:shadow-md transition-shadow"
+          class="group relative bg-card rounded-lg border border-border overflow-hidden hover:shadow-md transition-shadow"
         >
-          <div class="aspect-square bg-[#f8f8f8] flex items-center justify-center p-4">
+          <div class="aspect-square bg-background flex items-center justify-center p-4">
             <img
               :src="item.url"
               :alt="item.name"
@@ -74,6 +74,17 @@
       @close="closeModal"
       @save="handleSave"
     />
+
+    <ConfirmModal
+      :visible="confirmVisible"
+      :title="confirmTitle"
+      variant="danger"
+      confirm-label="确认删除"
+      @confirm="doDelete"
+      @cancel="confirmVisible = false"
+    >
+      {{ confirmMessage }}
+    </ConfirmModal>
   </div>
 </template>
 
@@ -83,6 +94,7 @@ import { Plus, Pencil, Trash2 } from 'lucide-vue-next'
 import { api } from '@/utils/api'
 import { useToast } from '@/composables/useToast'
 import StickerModal from '@/components/StickerModal.vue'
+import ConfirmModal from '@/components/ui/ConfirmModal.vue'
 
 const toast = useToast()
 
@@ -102,6 +114,10 @@ const loading = ref(true)
 const modalVisible = ref(false)
 const editingSticker = ref<Sticker | undefined>(undefined)
 const activeCategory = ref('all')
+const confirmVisible = ref(false)
+const confirmTitle = ref('')
+const confirmMessage = ref('')
+let pendingDeleteItem: Sticker | null = null
 
 const categories = computed(() => {
   const cats = new Map<string, number>()
@@ -180,12 +196,20 @@ async function handleSave(data: { name: string; category: string; file?: File })
 }
 
 function handleDelete(item: Sticker) {
-  if (!confirm(`确定要删除"${item.name}"吗？`)) return
-  api.delete(`/admin/stickers/${item.id}`).then(res => {
-    if (!res.success) { toast.error(res.error || '删除失败'); return }
-    toast.success('删除成功')
-    fetchItems()
-  })
+  pendingDeleteItem = item
+  confirmTitle.value = '确认删除'
+  confirmMessage.value = `确定要删除"${item.name}"吗？`
+  confirmVisible.value = true
+}
+
+async function doDelete() {
+  if (!pendingDeleteItem) return
+  const res = await api.delete(`/admin/stickers/${pendingDeleteItem.id}`)
+  confirmVisible.value = false
+  pendingDeleteItem = null
+  if (!res.success) { toast.error(res.error || '删除失败'); return }
+  toast.success('删除成功')
+  fetchItems()
 }
 
 onMounted(fetchItems)

@@ -29,12 +29,12 @@
 
     <div class="bg-card border border-border rounded-md overflow-hidden flex flex-col">
       <div class="flex items-center px-4 bg-table-header h-11 shrink-0">
-        <span class="w-[60px] text-xs font-semibold text-text-muted">ID</span>
-        <span class="w-[200px] text-xs font-semibold text-text-muted">名称</span>
-        <span class="w-[180px] text-xs font-semibold text-text-muted">值</span>
-        <span class="flex-1 text-xs font-semibold text-text-muted">附加属性</span>
-        <span class="w-[80px] text-xs font-semibold text-text-muted">状态</span>
-        <span class="w-[100px] text-xs font-semibold text-text-muted">操作</span>
+        <span class="w-[60px] text-xs font-semibold text-text-primary">ID</span>
+        <span class="w-[200px] text-xs font-semibold text-text-primary">名称</span>
+        <span class="w-[180px] text-xs font-semibold text-text-primary">值</span>
+        <span class="flex-1 text-xs font-semibold text-text-primary">附加属性</span>
+        <span class="w-[80px] text-xs font-semibold text-text-primary">状态</span>
+        <span class="w-[100px] text-xs font-semibold text-text-primary">操作</span>
       </div>
 
       <div class="flex-1 overflow-auto">
@@ -54,11 +54,8 @@
             {{ item.value }}
           </span>
           <span class="flex-1 text-sm text-text-muted font-mono text-xs">{{ item.extra ? JSON.stringify(item.extra) : '-' }}</span>
-          <span class="w-[80px] text-sm">
-            <span
-              class="inline-block rounded px-2 py-0.5 text-xs font-medium"
-              :class="item.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'"
-            >{{ item.isActive ? '启用' : '禁用' }}</span>
+          <span class="w-[80px]">
+            <StatusBadge :label="item.isActive ? '启用' : '禁用'" :variant="item.isActive ? 'success' : 'inactive'" />
           </span>
           <div class="w-[100px] flex items-center gap-2">
             <button
@@ -94,6 +91,17 @@
       @close="closeModal"
       @save="handleSave"
     />
+
+    <ConfirmModal
+      :visible="confirmVisible"
+      :title="confirmTitle"
+      variant="danger"
+      confirm-label="确认删除"
+      @confirm="doDelete"
+      @cancel="confirmVisible = false"
+    >
+      {{ confirmMessage }}
+    </ConfirmModal>
   </div>
 </template>
 
@@ -103,6 +111,8 @@ import { Plus, Pencil, Trash2, Eye, EyeOff } from 'lucide-vue-next'
 import { api } from '@/utils/api'
 import { useToast } from '@/composables/useToast'
 import DesignConfigModal from '@/components/DesignConfigModal.vue'
+import StatusBadge from '@/components/ui/StatusBadge.vue'
+import ConfirmModal from '@/components/ui/ConfirmModal.vue'
 
 const toast = useToast()
 
@@ -129,6 +139,10 @@ const activeGroup = ref('tshirt_color')
 const items = ref<DesignConfig[]>([])
 const modalVisible = ref(false)
 const editingConfig = ref<DesignConfig | undefined>(undefined)
+const confirmVisible = ref(false)
+const confirmTitle = ref('')
+const confirmMessage = ref('')
+let pendingDeleteItem: DesignConfig | null = null
 
 const currentTab = computed(() => groupTabs.find(t => t.key === activeGroup.value))
 const filteredItems = computed(() => items.value.filter(i => i.configGroup === activeGroup.value))
@@ -181,12 +195,20 @@ async function handleSave(data: { name: string; value: string; extra?: string | 
 }
 
 function handleDelete(item: DesignConfig) {
-  if (!confirm(`确定要删除"${item.name}"吗？`)) return
-  api.delete(`/admin/design-configs/${item.id}`).then(res => {
-    if (!res.success) { toast.error(res.error || '删除失败'); return }
-    toast.success('删除成功')
-    fetchItems()
-  })
+  pendingDeleteItem = item
+  confirmTitle.value = '确认删除'
+  confirmMessage.value = `确定要删除"${item.name}"吗？`
+  confirmVisible.value = true
+}
+
+async function doDelete() {
+  if (!pendingDeleteItem) return
+  const res = await api.delete(`/admin/design-configs/${pendingDeleteItem.id}`)
+  confirmVisible.value = false
+  pendingDeleteItem = null
+  if (!res.success) { toast.error(res.error || '删除失败'); return }
+  toast.success('删除成功')
+  fetchItems()
 }
 
 watch(activeGroup, () => { editingConfig.value = undefined })

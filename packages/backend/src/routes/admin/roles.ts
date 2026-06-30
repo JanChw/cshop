@@ -74,7 +74,7 @@ app.put('/:id/permissions', requirePermission('staff.create'), validateJson(upda
   if (!role) {
     return fail(c, '角色不存在', 404)
   }
-  if (role.isSystem) {
+  if (role.isSystem && c.get('roleName') !== 'super_admin') {
     return fail(c, '系统角色权限不可修改', 403)
   }
 

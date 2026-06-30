@@ -35,16 +35,13 @@
     </div>
 
     <div class="flex items-center gap-3">
-      <div class="flex items-center gap-2 w-[320px] h-10 rounded border border-border px-3 bg-white focus-within:border-primary transition-colors">
-        <Search :size="16" class="text-text-muted shrink-0" />
-        <input
-          v-model="searchQuery"
-          type="text"
-          aria-label="搜索商品名称"
-          placeholder="搜索商品名称"
-          class="flex-1 bg-transparent text-sm text-text-primary placeholder:text-text-muted outline-none"
-        />
-      </div>
+      <SearchInput
+        v-model="searchQuery"
+        size="sm"
+        placeholder="搜索商品名称"
+        aria-label="搜索商品名称"
+        wrapper-class="w-[320px]"
+      />
 
       <div class="relative">
         <select
@@ -70,7 +67,7 @@
       </div>
     </div>
 
-    <div v-if="selected.size > 0" class="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-md px-4 h-12">
+    <div v-if="selected.size > 0" class="flex items-center justify-between bg-info-light border border-info/30 rounded-md px-4 h-12">
       <span class="text-sm text-text-primary">已选 <strong>{{ selected.size }}</strong> 项</span>
       <div class="flex items-center gap-2">
         <button
@@ -134,7 +131,7 @@
           <span class="w-[70px]">
             <button
               class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium text-white transition-colors disabled:opacity-50"
-              :class="product.isActive ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-400 hover:bg-gray-500'"
+              :class="product.isActive ? 'bg-success hover:bg-success/90' : 'bg-status-inactive hover:bg-status-inactive/90'"
               :disabled="toggling.has(product.id)"
               @click="toggleStatus(product)"
             >
@@ -160,36 +157,13 @@
       </div>
     </div>
 
-    <div class="flex items-center justify-between">
-      <span class="text-sm text-text-muted">共 {{ filteredProducts.length }} 条，每页 8 条</span>
-      <div class="flex items-center gap-1">
-        <button
-          class="w-8 h-8 rounded border border-border bg-white text-sm flex items-center justify-center hover:bg-gray-50 disabled:opacity-50"
-          :disabled="currentPage === 1"
-          @click="currentPage--"
-        >
-          <ChevronLeft :size="14" />
-        </button>
-        <button
-          v-for="page in totalPages"
-          :key="page"
-          class="w-8 h-8 rounded text-sm flex items-center justify-center transition-colors"
-          :class="page === currentPage
-            ? 'bg-primary text-white'
-            : 'bg-white border border-border text-text-primary hover:bg-gray-50'"
-          @click="currentPage = page"
-        >
-          {{ page }}
-        </button>
-        <button
-          class="w-8 h-8 rounded border border-border bg-white text-sm flex items-center justify-center hover:bg-gray-50 disabled:opacity-50"
-          :disabled="currentPage === totalPages"
-          @click="currentPage++"
-        >
-          <ChevronRight :size="14" />
-        </button>
-      </div>
-    </div>
+    <Pagination
+      :current-page="currentPage"
+      :total-pages="totalPages"
+      :total="total"
+      :per-page="8"
+      @update:current-page="currentPage = $event"
+    />
 
     <Teleport to="body">
       <Transition name="modal">
@@ -238,7 +212,7 @@
       <Transition name="modal">
         <div v-if="showImport" class="fixed inset-0 z-50 flex items-center justify-center" @click.self="showImport = false">
           <div class="absolute inset-0 bg-black/50" />
-          <div class="relative bg-white rounded-lg w-[520px] shadow-lg flex flex-col">
+          <div class="relative glass rounded-md w-[520px] border border-border flex flex-col">
             <div class="flex items-center justify-between px-6 py-5 border-b border-border">
               <h2 class="text-base font-semibold text-text-primary">导入商品</h2>
               <button class="rounded p-1 text-text-muted hover:text-text-primary transition-colors" @click="showImport = false">
@@ -299,7 +273,9 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted } from 'vue'
 import { api } from '@/utils/api'
-import { Search, ChevronDown, ChevronLeft, ChevronRight, Trash2, Download, Upload, X } from 'lucide-vue-next'
+import { ChevronDown, Trash2, Download, Upload, X } from 'lucide-vue-next'
+import SearchInput from '@/components/ui/SearchInput.vue'
+import Pagination from '@/components/ui/Pagination.vue'
 import gsap from 'gsap'
 import { useToast } from '@/composables/useToast'
 

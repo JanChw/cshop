@@ -16,16 +16,13 @@
     </div>
 
     <div class="flex items-center gap-3">
-      <div class="flex items-center gap-2 w-[280px] h-9 rounded border border-border px-3 bg-white focus-within:border-primary transition-colors">
-        <Search :size="16" class="text-text-muted shrink-0" />
-        <input
-          v-model="searchQuery"
-          type="text"
-          aria-label="搜索邮箱或姓名"
-          placeholder="搜索邮箱或姓名..."
-          class="flex-1 bg-transparent text-sm text-text-primary placeholder:text-text-muted outline-none"
-        />
-      </div>
+      <SearchInput
+        v-model="searchQuery"
+        size="sm"
+        placeholder="搜索邮箱或姓名..."
+        aria-label="搜索邮箱或姓名"
+        wrapper-class="w-[280px]"
+      />
 
       <div class="relative">
         <select
@@ -61,15 +58,15 @@
     <div class="flex-1 bg-card border border-border rounded-md overflow-hidden flex flex-col">
       <div ref="tableBodyRef" class="flex-1 overflow-auto">
         <div class="flex items-center px-4 bg-table-header h-11 shrink-0 sticky top-0 z-10">
-          <span class="w-[50px] text-xs font-semibold text-text-muted text-center">ID</span>
-          <span class="w-[100px] text-xs font-semibold text-text-muted text-center">姓名</span>
-          <span class="w-[140px] text-xs font-semibold text-text-muted text-center">角色</span>
-          <span class="w-[100px] text-xs font-semibold text-text-muted text-center">部门</span>
-          <span class="w-[100px] text-xs font-semibold text-text-muted text-center">职位</span>
-          <span class="w-[200px] text-xs font-semibold text-text-muted text-center">邮箱</span>
-          <span class="w-[80px] text-xs font-semibold text-text-muted text-center">状态</span>
-          <span class="w-[160px] text-xs font-semibold text-text-muted text-center">入职时间</span>
-          <span class="w-[180px] text-xs font-semibold text-text-muted text-center">操作</span>
+          <span class="w-[50px] text-xs font-semibold text-text-primary text-center">ID</span>
+          <span class="w-[100px] text-xs font-semibold text-text-primary text-center">姓名</span>
+          <span class="w-[140px] text-xs font-semibold text-text-primary text-center">角色</span>
+          <span class="w-[100px] text-xs font-semibold text-text-primary text-center">部门</span>
+          <span class="w-[100px] text-xs font-semibold text-text-primary text-center">职位</span>
+          <span class="w-[200px] text-xs font-semibold text-text-primary text-center">邮箱</span>
+          <span class="w-[80px] text-xs font-semibold text-text-primary text-center">状态</span>
+          <span class="w-[160px] text-xs font-semibold text-text-primary text-center">入职时间</span>
+          <span class="w-[180px] text-xs font-semibold text-text-primary text-center">操作</span>
         </div>
         <div v-if="loading" class="flex items-center justify-center h-40">
           <div class="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -132,36 +129,13 @@
       </div>
     </div>
 
-    <div class="flex items-center justify-between">
-      <span class="text-sm text-text-muted">共 {{ total }} 条，每页 8 条</span>
-      <div class="flex items-center gap-1">
-        <button
-          class="w-8 h-8 rounded border border-border bg-white text-sm flex items-center justify-center hover:bg-gray-50 disabled:opacity-50"
-          :disabled="currentPage === 1"
-          @click="currentPage--"
-        >
-          <ChevronLeft :size="14" />
-        </button>
-        <button
-          v-for="page in totalPages"
-          :key="page"
-          class="w-8 h-8 rounded text-sm flex items-center justify-center transition-colors"
-          :class="page === currentPage
-            ? 'bg-primary text-white'
-            : 'bg-white border border-border text-text-primary hover:bg-gray-50'"
-          @click="currentPage = page"
-        >
-          {{ page }}
-        </button>
-        <button
-          class="w-8 h-8 rounded border border-border bg-white text-sm flex items-center justify-center hover:bg-gray-50 disabled:opacity-50"
-          :disabled="currentPage === totalPages"
-          @click="currentPage++"
-        >
-          <ChevronRight :size="14" />
-        </button>
-      </div>
-    </div>
+    <Pagination
+      :current-page="currentPage"
+      :total-pages="totalPages"
+      :total="total"
+      :per-page="8"
+      @update:current-page="currentPage = $event"
+    />
 
     <StaffModal
       :visible="modalVisible"
@@ -175,7 +149,7 @@
     <Teleport to="body">
       <div
         v-if="tip.visible"
-        class="fixed z-[9999] px-2 py-1 bg-[#1f2937] text-white text-[11px] leading-tight whitespace-nowrap rounded shadow-lg pointer-events-none"
+        class="fixed z-[9999] px-2 py-1 bg-tooltip-bg text-white text-[11px] leading-tight whitespace-nowrap rounded shadow-lg pointer-events-none"
         :style="{
           top: `${tip.y}px`,
           left: `${tip.x}px`,
@@ -270,7 +244,9 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, watch, nextTick, onMounted } from 'vue'
-import { Search, ChevronDown, ChevronLeft, ChevronRight, Plus, Pencil, Trash2, LogOut } from 'lucide-vue-next'
+import { ChevronDown, Plus, Pencil, Trash2, LogOut } from 'lucide-vue-next'
+import SearchInput from '@/components/ui/SearchInput.vue'
+import Pagination from '@/components/ui/Pagination.vue'
 import gsap from 'gsap'
 import StatusBadge from '@/components/ui/StatusBadge.vue'
 import StaffModal, { type StaffRow, type Role, type CreateStaffPayload, type UpdateStaffPayload } from '@/components/StaffModal.vue'

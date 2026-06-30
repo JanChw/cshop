@@ -14,11 +14,11 @@
     <div class="flex-1 bg-card border border-border rounded-md overflow-hidden flex flex-col">
       <div class="flex items-center px-4 bg-table-header h-11 shrink-0">
         <span class="w-[24px]"></span>
-        <span class="w-[60px] text-xs font-semibold text-text-muted">ID</span>
-        <span class="w-[200px] text-xs font-semibold text-text-muted">分类名称</span>
-        <span class="flex-1 text-xs font-semibold text-text-muted">别名 (Slug)</span>
-        <span class="w-[100px] text-xs font-semibold text-text-muted">商品数</span>
-        <span class="w-[120px] text-xs font-semibold text-text-muted">操作</span>
+        <span class="w-[60px] text-xs font-semibold text-text-primary">ID</span>
+        <span class="w-[200px] text-xs font-semibold text-text-primary">分类名称</span>
+        <span class="flex-1 text-xs font-semibold text-text-primary">别名 (Slug)</span>
+        <span class="w-[100px] text-xs font-semibold text-text-primary">商品数</span>
+        <span class="w-[120px] text-xs font-semibold text-text-primary">操作</span>
       </div>
 
       <div class="flex-1 overflow-auto">

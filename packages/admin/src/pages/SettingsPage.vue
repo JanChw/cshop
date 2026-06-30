@@ -406,7 +406,7 @@
     <Transition name="modal">
       <div v-if="showChangePassword" class="fixed inset-0 z-50 flex items-center justify-center" @click.self="showChangePassword = false">
         <div class="absolute inset-0 bg-black/50" />
-        <div class="relative bg-white rounded-lg w-[480px] shadow-lg flex flex-col">
+        <div class="relative glass rounded-md w-[480px] border border-border flex flex-col">
           <div class="flex items-center justify-between px-6 py-5 border-b border-border">
             <h2 class="text-base font-semibold text-text-primary">修改密码</h2>
             <button class="rounded p-1 text-text-muted hover:text-text-primary transition-colors" @click="showChangePassword = false">
@@ -414,7 +414,7 @@
             </button>
           </div>
           <div class="px-6 py-6 flex flex-col gap-5">
-            <div v-if="pwError" class="rounded-lg bg-red-500/10 border border-red-500/30 px-3 py-2 text-sm text-red-400">
+            <div v-if="pwError" class="rounded-lg bg-danger/10 border border-danger/30 px-3 py-2 text-sm text-danger">
               {{ pwError }}
             </div>
             <div class="flex flex-col gap-1.5">

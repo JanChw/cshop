@@ -28,6 +28,18 @@
   --color-status-on: #10B981;
   --color-info-light: #EFF6FF;
   --color-chart-track: #C8DBBC;
+  --color-tooltip-bg: #1F2937;
+  --color-auth-dark: #0F172A;
+  --color-auth-mid: #1E293B;
+  --color-badge-hero: #7C3AED;
+  --color-badge-videos: #3B82F6;
+  --color-badge-product-row: #D97706;
+  --color-badge-card-grid: #0D9488;
+  --color-badge-designer-grid: #E11D48;
+  --color-chart-1: #2D5E3A;
+  --color-chart-2: #4A8C5E;
+  --color-chart-3: #8FB89A;
+  --color-chart-4: #C8DBBC;
 }
 
 :root, [data-theme="forest"] {

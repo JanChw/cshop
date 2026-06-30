@@ -6,16 +6,13 @@
     </div>
 
     <div class="flex items-center gap-3">
-      <div class="flex items-center gap-2 w-[280px] h-9 rounded border border-border px-3 bg-white focus-within:border-primary transition-colors">
-        <Search :size="16" class="text-text-muted shrink-0" />
-        <input
-          v-model="searchQuery"
-          type="text"
-          aria-label="搜索订单号或客户"
-          placeholder="搜索订单号或客户..."
-          class="flex-1 bg-transparent text-sm text-text-primary placeholder:text-text-muted outline-none"
-        />
-      </div>
+      <SearchInput
+        v-model="searchQuery"
+        size="sm"
+        placeholder="搜索订单号或客户..."
+        aria-label="搜索订单号或客户"
+        wrapper-class="w-[280px]"
+      />
 
       <div class="flex items-center gap-1">
         <button
@@ -34,12 +31,12 @@
 
     <div class="flex-1 bg-card border border-border rounded-md overflow-hidden flex flex-col">
       <div class="flex items-center px-4 bg-table-header h-11 shrink-0">
-        <span class="w-[80px] text-xs font-semibold text-text-muted">订单号</span>
-        <span class="w-[120px] text-xs font-semibold text-text-muted">客户</span>
-        <span class="flex-1 text-xs font-semibold text-text-muted">商品</span>
-        <span class="w-[90px] text-xs font-semibold text-text-muted">金额</span>
-        <span class="w-[90px] text-xs font-semibold text-text-muted">状态</span>
-        <span class="w-[100px] text-xs font-semibold text-text-muted">日期</span>
+        <span class="w-[80px] text-xs font-semibold text-text-primary">订单号</span>
+        <span class="w-[120px] text-xs font-semibold text-text-primary">客户</span>
+        <span class="flex-1 text-xs font-semibold text-text-primary">商品</span>
+        <span class="w-[90px] text-xs font-semibold text-text-primary">金额</span>
+        <span class="w-[90px] text-xs font-semibold text-text-primary">状态</span>
+        <span class="w-[100px] text-xs font-semibold text-text-primary">日期</span>
         <span class="w-[60px]"></span>
       </div>
 
@@ -71,42 +68,21 @@
       </div>
     </div>
 
-    <div class="flex items-center justify-between">
-      <span class="text-sm text-text-muted">显示 {{ startItem }}-{{ endItem }} 条，共 {{ filteredOrders.length }} 条</span>
-      <div class="flex items-center gap-1">
-        <button
-          class="w-8 h-8 rounded border border-border bg-white text-sm flex items-center justify-center hover:bg-gray-50 disabled:opacity-50"
-          :disabled="currentPage === 1"
-          @click="currentPage--"
-        >
-          <ChevronLeft :size="14" />
-        </button>
-        <button
-          v-for="page in totalPages"
-          :key="page"
-          class="w-8 h-8 rounded text-sm flex items-center justify-center transition-colors"
-          :class="page === currentPage
-            ? 'bg-primary text-white'
-            : 'bg-white border border-border text-text-primary hover:bg-gray-50'"
-          @click="currentPage = page"
-        >
-          {{ page }}
-        </button>
-        <button
-          class="w-8 h-8 rounded border border-border bg-white text-sm flex items-center justify-center hover:bg-gray-50 disabled:opacity-50"
-          :disabled="currentPage === totalPages"
-          @click="currentPage++"
-        >
-          <ChevronRight :size="14" />
-        </button>
-      </div>
-    </div>
+    <Pagination
+      :current-page="currentPage"
+      :total-pages="totalPages"
+      :total="total"
+      :per-page="8"
+      @update:current-page="currentPage = $event"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
-import { Search, Eye, ChevronLeft, ChevronRight } from 'lucide-vue-next'
+import { Eye } from 'lucide-vue-next'
+import SearchInput from '@/components/ui/SearchInput.vue'
+import Pagination from '@/components/ui/Pagination.vue'
 import gsap from 'gsap'
 import { api } from '@/utils/api'
 import StatusBadge from '@/components/ui/StatusBadge.vue'

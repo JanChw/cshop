@@ -35,10 +35,10 @@
         <span class="text-base font-semibold text-text-primary">最近订单</span>
 
         <div class="flex items-center pb-2 border-b border-border shrink-0">
-          <span class="flex-1 text-xs font-semibold text-text-muted">订单号</span>
-          <span class="flex-1 text-xs font-semibold text-text-muted">客户</span>
-          <span class="flex-1 text-xs font-semibold text-text-muted">金额</span>
-          <span class="w-[70px] text-xs font-semibold text-text-muted">状态</span>
+          <span class="flex-1 text-xs font-semibold text-text-primary">订单号</span>
+          <span class="flex-1 text-xs font-semibold text-text-primary">客户</span>
+          <span class="flex-1 text-xs font-semibold text-text-primary">金额</span>
+          <span class="w-[70px] text-xs font-semibold text-text-primary">状态</span>
         </div>
 
         <div v-if="loading" class="flex items-center justify-center h-40">

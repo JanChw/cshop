@@ -57,6 +57,7 @@
           <span class="text-xs text-text-muted font-mono">{{ role.identifier }}</span>
           <span class="text-xs text-text-muted">{{ role.description }}</span>
           <span class="text-xs font-medium text-primary">{{ role.permCount }} 项权限</span>
+          </div>
         </template>
       </div>
     </div>

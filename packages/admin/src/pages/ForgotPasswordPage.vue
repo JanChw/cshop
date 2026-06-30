@@ -1,7 +1,7 @@
 <template>
   <div
     class="min-h-screen flex items-center justify-center p-6"
-    style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 30%, var(--t-primary) 65%, #1e293b 85%, #0f172a 100%);"
+    style="background: linear-gradient(135deg, var(--color-auth-dark) 0%, var(--color-auth-mid) 30%, var(--t-primary) 65%, var(--color-auth-mid) 85%, var(--color-auth-dark) 100%);"
   >
     <div class="glass rounded-xl w-[400px] p-8 flex flex-col gap-6 border border-white/10 shadow-2xl">
       <div class="flex items-center gap-3">
@@ -14,7 +14,7 @@
         </div>
       </div>
 
-      <div v-if="error" class="rounded-lg bg-red-500/10 border border-red-500/30 px-3 py-2 text-sm text-red-400">
+      <div v-if="error" class="rounded-lg bg-danger/10 border border-danger/30 px-3 py-2 text-sm text-danger">
         {{ error }}
       </div>
 

@@ -10,14 +10,14 @@
     </div>
 
     <template v-else>
-      <div class="grid grid-cols-4 gap-4">
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <MetricCard label="商品总数" :value="String(summary.productCount)" icon="Package" change="含变体" />
         <MetricCard label="库存总价值" :value="`¥${summary.totalValue.toLocaleString()}`" icon="DollarSign" change="含商品+变体" />
         <MetricCard label="低库存商品" :value="String(summary.lowStockCount)" icon="AlertTriangle" :change="`缺货: ${summary.outOfStockCount}`" />
         <MetricCard label="品类数" :value="String(summary.categoryCount)" icon="Layers" change="覆盖 {{ summary.categoryCount }} 个分类" />
       </div>
 
-      <div class="grid grid-cols-2 gap-5">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <div class="bg-card border border-border rounded-md p-5 flex flex-col gap-4">
           <div class="flex items-center justify-between">
             <span class="text-sm font-semibold text-text-primary">品类库存分布</span>
@@ -184,8 +184,10 @@ function barHeight(stock: number) {
 }
 
 const palette = [
-  '#2D5E3A', '#4A8C5E', '#6B9F7A', '#8FB89A',
-  '#A8C9B0', '#C8DBBC', '#1B3A28', '#3D6B4D',
+  'var(--color-chart-1)',
+  'var(--color-chart-2)',
+  'var(--color-chart-3)',
+  'var(--color-chart-4)',
 ]
 
 function barColor(i: number) {

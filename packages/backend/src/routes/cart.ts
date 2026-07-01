@@ -7,6 +7,7 @@ import { success, fail } from '../utils/response'
 import { validateJson } from '../utils/validate'
 import { cartSchema, cartUpdateSchema } from '../validators'
 import { trackBusinessEvent } from '../utils/track'
+import { imagesForProducts } from '../utils/productImages'
 import type { AppEnv } from '../types/hono'
 
 const app = new Hono<AppEnv>()
@@ -21,6 +22,8 @@ app.get('/', async (c) => {
     .leftJoin(productVariants, eq(cartItems.variantId, productVariants.id))
     .where(eq(cartItems.userId, userId))
 
+  const imageMap = imagesForProducts(rows.map(r => r.product?.id).filter((id): id is number => id != null))
+
   const items = rows.map((r) => ({
     id: r.cart.id,
     userId: r.cart.userId,
@@ -29,7 +32,7 @@ app.get('/', async (c) => {
     variantId: r.cart.variantId,
     quantity: r.cart.quantity,
     product: r.product
-      ? { id: r.product.id, name: r.product.name, basePrice: r.product.basePrice, images: r.product.images }
+      ? { id: r.product.id, name: r.product.name, basePrice: r.product.basePrice, images: imageMap.get(r.product.id) ?? [] }
       : null,
     variant: r.variant ? { id: r.variant.id, size: r.variant.size, color: r.variant.color } : null
   }))

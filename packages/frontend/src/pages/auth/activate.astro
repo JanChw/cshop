@@ -1,0 +1,10 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro'
+import ActivateEmail from '../../components/page/ActivateEmail.tsx'
+
+const token = Astro.url.searchParams.get('token') ?? ''
+---
+
+<MainLayout title="邮箱激活" hideNav hideScroll>
+  <ActivateEmail client:load token={token} />
+</MainLayout>

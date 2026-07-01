@@ -28,4 +28,5 @@ sqlite.exec('PRAGMA mmap_size=268435456')
 sqlite.exec('PRAGMA temp_store=MEMORY')
 
 export const db = drizzle(sqlite, { schema })
+export const sqliteDb = sqlite
 export type DbClient = typeof db

@@ -11,3 +11,14 @@ export function isSafeFilename(name: string): boolean {
   if (name === '.' || name === '..') return false
   return SAFE_FILENAME_RE.test(name)
 }
+
+// Bucket prefix (2 hex-ish chars). Must be exactly 2 chars, no separators.
+const SAFE_BUCKET_RE = /^[A-Za-z0-9]{2}$/
+
+export function isSafeBucket(name: string): boolean {
+  if (typeof name !== 'string') return false
+  if (name.length !== 2) return false
+  if (name.includes('/') || name.includes('\\') || name.includes('\0')) return false
+  if (name === '.' || name === '..') return false
+  return SAFE_BUCKET_RE.test(name)
+}

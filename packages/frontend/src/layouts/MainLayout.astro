@@ -7,9 +7,10 @@ import '../styles/global.css'
 interface Props {
   title: string
   hideNav?: boolean
+  hideScroll?: boolean
 }
 
-const { title, hideNav = false } = Astro.props
+const { title, hideNav = false, hideScroll = false } = Astro.props
 ---
 
 <!doctype html>
@@ -31,7 +32,7 @@ const { title, hideNav = false } = Astro.props
     <ClientRouter fallback="animate" />
     <title>{title} - ByChooow</title>
   </head>
-  <body class="bg-background text-on-surface antialiased overflow-x-hidden">
+  <body class={`bg-background text-on-surface antialiased overflow-x-hidden ${hideScroll ? 'overflow-hidden' : ''}`}>
     {!hideNav && (
       <>
         <TabletNavBar client:load transition:persist currentPath={Astro.url.pathname} />

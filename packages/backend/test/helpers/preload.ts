@@ -11,10 +11,11 @@ import { beforeEach } from 'bun:test'
 import { migrate } from 'drizzle-orm/bun-sqlite/migrator'
 import { db } from '../../src/db'
 import {
-  orderItems, cartItems, designs, uploads, sessions,
+  orderItems, cartItems, designs, designDrafts, uploads, sessions,
   orders, productVariants, products, categories,
-  stickers, backups, users, activityEvents, userOnline, settings,
-  staff
+  stickers, backups, users, activityEvents, activityEventRefs,
+  userOnline, settings, staff,
+  productImages, dailyStats, productDailyViews
 } from '../../src/db/schema'
 import { resetQueue } from '../../src/utils/eventQueue'
 import { invalidateStaffCache } from '../../src/utils/staff'
@@ -26,9 +27,11 @@ reseedRbac()
 
 const TABLES = [
   staff, sessions,
-  orderItems, cartItems, designs, uploads,
+  orderItems, cartItems, designs, designDrafts, uploads,
   orders, productVariants, products, categories,
-  stickers, backups, activityEvents, userOnline, settings, users
+  stickers, backups, activityEvents, activityEventRefs,
+  userOnline, settings, users,
+  productImages, dailyStats, productDailyViews
 ]
 
 beforeEach(() => {

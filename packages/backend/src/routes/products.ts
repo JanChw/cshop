@@ -6,6 +6,7 @@ import { success, fail } from '../utils/response'
 import { parsePagination, escapeLikePattern } from '../utils/request'
 import { trackBusinessEvent } from '../utils/track'
 import { authOptional } from '../middleware/auth'
+import { imagesForProducts, imagesForProduct } from '../utils/productImages'
 import type { AppEnv } from '../types/hono'
 
 const app = new Hono<AppEnv>()
@@ -36,14 +37,18 @@ app.get('/', async (c) => {
       basePrice: products.basePrice,
       originalPrice: products.originalPrice,
       categoryId: products.categoryId,
-      images: products.images,
+      description: products.description,
       isActive: products.isActive,
       createdAt: products.createdAt
     }).from(products).where(where).limit(limit).offset(offset),
     db.select({ n: count() }).from(products).where(where)
   ])
 
-  return success(c, { items: items.map(i => ({ ...i, images: i.images ? JSON.parse(i.images) : [] })), total, page, limit })
+  const imageMap = imagesForProducts(items.map(i => i.id))
+  return success(c, {
+    items: items.map(i => ({ ...i, images: imageMap.get(i.id) ?? [] })),
+    total, page, limit
+  })
 })
 
 app.get('/:id', async (c) => {
@@ -70,8 +75,7 @@ app.get('/:id', async (c) => {
     metadata: { productId: id, productName: product.name }
   })
 
-  product.images = product.images ? JSON.parse(product.images) : []
-  return success(c, { ...product, variants })
+  return success(c, { ...product, images: imagesForProduct(id), variants })
 })
 
 app.get('/:id/variant-options', async (c) => {

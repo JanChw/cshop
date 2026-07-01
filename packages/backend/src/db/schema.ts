@@ -91,7 +91,6 @@ export const products = sqliteTable('products', {
   designer: text('designer'),
   originalPrice: real('original_price'),
   tags: text('tags'),
-  images: text('images'),
   stock: integer('stock').notNull().default(0),
   isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
@@ -139,7 +138,7 @@ export const designs = sqliteTable('designs', {
   productId: integer('product_id').references(() => products.id).notNull(),
   variantId: integer('variant_id').references(() => productVariants.id),
   name: text('name').notNull(),
-  canvasData: text('canvas_data').notNull(),
+  canvasPath: text('canvas_path'),
   previewImage: text('preview_image'),
   isPublic: integer('is_public', { mode: 'boolean' }).notNull().default(false),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
@@ -157,7 +156,7 @@ export const designDrafts = sqliteTable('design_drafts', {
   productId: integer('product_id').references(() => products.id).notNull(),
   variantId: integer('variant_id').references(() => productVariants.id),
   name: text('name'),
-  canvasData: text('canvas_data').notNull(),
+  canvasPath: text('canvas_path'),
   previewImage: text('preview_image'),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
   updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`)
@@ -421,4 +420,54 @@ export const verificationCodes = sqliteTable('verification_codes', {
 }, (t) => ({
   userPurposeIdx: index('verification_user_purpose_idx').on(t.userId, t.purpose, t.createdAt),
   expiresIdx: index('verification_expires_idx').on(t.expiresAt)
+}))
+
+// Normalized product images (replaces the products.images JSON string).
+// One row per image, ordered by `sort`.
+export const productImages = sqliteTable('product_images', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  productId: integer('product_id').references(() => products.id, { onDelete: 'cascade' }).notNull(),
+  path: text('path').notNull(),
+  sort: integer('sort').notNull().default(0),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`)
+}, (t) => ({
+  productSortIdx: index('product_images_product_sort_idx').on(t.productId, t.sort)
+}))
+
+// Denormalized, indexed extract of activity_events.metadata for analytics
+// JOINs. The metadata column is heterogeneous, so we copy out just the
+// productId/productName used by the analytics groupBy; metadata is kept
+// for audit export and other fields.
+export const activityEventRefs = sqliteTable('activity_event_refs', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  eventId: integer('event_id').references(() => activityEvents.id, { onDelete: 'cascade' }).notNull(),
+  productId: integer('product_id'),
+  productName: text('product_name')
+}, (t) => ({
+  eventIdx: index('activity_event_refs_event_idx').on(t.eventId),
+  productIdx: index('activity_event_refs_product_idx').on(t.productId)
+}))
+
+// Daily pre-aggregate of activity_events. Refreshed lazily (every flush /
+// lazyClean) with up to a few minutes of lag. Lets /summary /trend read a
+// handful of rows instead of scanning the full events table.
+export const dailyStats = sqliteTable('daily_stats', {
+  date: text('date').primaryKey(),
+  pv: integer('pv').notNull().default(0),
+  dau: integer('dau').notNull().default(0),
+  productViews: integer('product_views').notNull().default(0),
+  cartAdds: integer('cart_adds').notNull().default(0),
+  orderCreates: integer('order_creates').notNull().default(0)
+})
+
+// Per-product daily view counts. Backs analytics /topProducts via an indexed
+// SUM GROUP BY productId over a date range.
+export const productDailyViews = sqliteTable('product_daily_views', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  productId: integer('product_id').notNull(),
+  date: text('date').notNull(),
+  views: integer('views').notNull().default(0)
+}, (t) => ({
+  productDateUq: index('product_daily_views_product_date_idx').on(t.productId, t.date),
+  dateIdx: index('product_daily_views_date_idx').on(t.date)
 }))

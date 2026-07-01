@@ -233,8 +233,12 @@ export const api = {
   auth: {
     login: (email: string, password: string, rememberMe?: boolean) =>
       request('/auth/login', { method: 'POST', body: JSON.stringify({ email, password, rememberMe }) }),
-    register: (name: string, email: string, password: string) =>
-      request('/auth/register', { method: 'POST', body: JSON.stringify({ name, email, password }) }),
+    register: (name: string, email: string, password: string, captchaToken: string) =>
+      request<{ success: boolean; data: { needsActivation: boolean; email: string } }>('/auth/register', { method: 'POST', body: JSON.stringify({ name, email, password, captchaToken }) }),
+    activateEmail: (token: string) =>
+      request<{ success: boolean; data: { activated: boolean; email: string } }>('/auth/email/activate', { method: 'POST', body: JSON.stringify({ token }) }),
+    resendActivation: (email: string, captchaToken: string) =>
+      request<{ success: boolean; data: { sent: boolean } }>('/auth/email/resend-activation', { method: 'POST', body: JSON.stringify({ email, captchaToken }) }),
     logout: (refreshToken: string) =>
       request<{ success: boolean }>('/auth/logout', { method: 'POST', body: JSON.stringify({ refreshToken }) }),
     logoutAll: () =>
@@ -272,9 +276,13 @@ export const api = {
       request(`/user/addresses/default/${id}`, { method: 'POST' })
   },
   designDrafts: {
-    list: (productId?: number) => {
-      const qs = productId ? `?productId=${productId}` : ''
-      return request<{ success: boolean; data: { items: DesignDraftItem[] } }>(`/design-drafts${qs}`)
+    list: (params?: { productId?: number; page?: number; limit?: number }) => {
+      const qs = new URLSearchParams()
+      if (params?.productId) qs.set('productId', String(params.productId))
+      if (params?.page) qs.set('page', String(params.page))
+      if (params?.limit) qs.set('limit', String(params.limit))
+      const s = qs.toString()
+      return request<{ success: boolean; data: { items: DesignDraftItem[]; total: number; page: number; limit: number } }>(`/design-drafts${s ? '?' + s : ''}`)
     },
     get: (id: number) =>
       request<{ success: boolean; data: DesignDraftItem }>(`/design-drafts/${id}`),
@@ -286,8 +294,13 @@ export const api = {
       request(`/design-drafts/${id}`, { method: 'DELETE' })
   },
   designs: {
-    list: () =>
-      request<{ success: boolean; data: { items: DesignItem[] } }>('/designs'),
+    list: (params?: { page?: number; limit?: number }) => {
+      const qs = new URLSearchParams()
+      if (params?.page) qs.set('page', String(params.page))
+      if (params?.limit) qs.set('limit', String(params.limit))
+      const s = qs.toString()
+      return request<{ success: boolean; data: { items: DesignItem[]; total: number; page: number; limit: number } }>(`/designs${s ? '?' + s : ''}`)
+    },
     get: (id: number) =>
       request<{ success: boolean; data: DesignItem }>(`/designs/${id}`),
     create: (data: { productId: number; variantId?: number | null; name: string; canvasData: string; previewImage?: string | null }) =>
@@ -296,8 +309,13 @@ export const api = {
       request<{ success: boolean; data: { previewImage: string | null } | null }>(`/designs/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     togglePublic: (id: number) =>
       request<{ success: boolean; data: { isPublic: boolean } }>(`/designs/${id}/public`, { method: 'PATCH' }),
-    listPublic: () =>
-      request<{ success: boolean; data: { items: DesignItem[] } }>('/designs'),
+    listPublic: (params?: { page?: number; limit?: number }) => {
+      const qs = new URLSearchParams()
+      if (params?.page) qs.set('page', String(params.page))
+      if (params?.limit) qs.set('limit', String(params.limit))
+      const s = qs.toString()
+      return request<{ success: boolean; data: { items: DesignItem[]; total: number; page: number; limit: number } }>(`/designs${s ? '?' + s : ''}`)
+    },
     remove: (id: number) =>
       request(`/designs/${id}`, { method: 'DELETE' }),
     saveBeacon: (data: { productId: number; name: string; canvasData: string; previewImage?: string | null }, id?: number) => {
@@ -321,9 +339,13 @@ export const api = {
     }
   },
   userStickers: {
-    list: (params?: { category?: string }) => {
-      const qs = params?.category ? `?category=${encodeURIComponent(params.category)}` : ''
-      return request<{ success: boolean; data: { items: UserStickerItem[] } }>(`/user/stickers${qs}`)
+    list: (params?: { category?: string; page?: number; limit?: number }) => {
+      const qs = new URLSearchParams()
+      if (params?.category) qs.set('category', params.category)
+      if (params?.page) qs.set('page', String(params.page))
+      if (params?.limit) qs.set('limit', String(params.limit))
+      const s = qs.toString()
+      return request<{ success: boolean; data: { items: UserStickerItem[]; total: number; page: number; limit: number } }>(`/user/stickers${s ? '?' + s : ''}`)
     },
     create: (file: File, name: string, category?: string) => {
       const formData = new FormData()
@@ -358,8 +380,13 @@ export const api = {
       request(`/uploads/${id}`, { method: 'DELETE' })
   },
   favorites: {
-    list: () =>
-      request<{ success: boolean; data: { items: any[]; total: number } }>('/user/favorites'),
+    list: (params?: { page?: number; limit?: number }) => {
+      const qs = new URLSearchParams()
+      if (params?.page) qs.set('page', String(params.page))
+      if (params?.limit) qs.set('limit', String(params.limit))
+      const s = qs.toString()
+      return request<{ success: boolean; data: { items: any[]; total: number; page: number; limit: number } }>(`/user/favorites${s ? '?' + s : ''}`)
+    },
     add: (productId: number) =>
       request<{ success: boolean; data: any }>('/user/favorites', { method: 'POST', body: JSON.stringify({ productId }) }),
     remove: (productId: number) =>

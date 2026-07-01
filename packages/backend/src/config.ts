@@ -38,7 +38,9 @@ export const config = {
   get smtpPass(): string | undefined { return process.env.EMAIL_AUTH_PASSWORD },
 
   get turnstileSiteKey(): string { return process.env.CLOUDFLARE_SITE_KEY ?? '' },
-  get turnstileSecretKey(): string { return process.env.CLOUDFLARE_SECRET_KEY ?? '' }
+  get turnstileSecretKey(): string { return process.env.CLOUDFLARE_SECRET_KEY ?? '' },
+
+  get appUrl(): string { return process.env.APP_URL ?? 'http://localhost:4321' }
 }
 
 export function isProd(): boolean {

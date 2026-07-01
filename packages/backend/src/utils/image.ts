@@ -25,6 +25,14 @@ export interface ImageVariants {
 
 const MASK_ALPHA_THRESHOLD = 30
 
+// Bucket files by the first two chars of baseName so a flat uploads/ dir
+// doesn't grow into hundreds of thousands of entries (readdir / lazyClean
+// stay cheap). Returned path is relative to uploadDir and includes the
+// bucket prefix, e.g. "ab/abcdef-thumb.webp".
+export function bucketForBaseName(baseName: string): string {
+  return baseName.slice(0, 2)
+}
+
 export async function removeBackground(inputPath: string): Promise<string | null> {
   const outPath = inputPath.replace(/\.\w+$/, '-nobg.png')
   const scriptPath = '/tmp/cshop-rembg-' + Date.now() + '.py'
@@ -79,6 +87,10 @@ export async function processImage(inputPath: string): Promise<ImageVariants> {
   mkdirSync(config.uploadDir, { recursive: true })
 
   const baseName = randomUUID()
+  const bucket = bucketForBaseName(baseName)
+  const bucketDir = `${config.uploadDir}/${bucket}`
+  mkdirSync(bucketDir, { recursive: true })
+
   const metadata = await sharp(inputPath).metadata()
   const originalWidth = metadata.width ?? 2000
   const originalHeight = metadata.height ?? 2000
@@ -87,7 +99,7 @@ export async function processImage(inputPath: string): Promise<ImageVariants> {
 
   for (const { suffix, width } of SIZES) {
     const filename = `${baseName}-${suffix}.webp`
-    const filepath = `${config.uploadDir}/${filename}`
+    const filepath = `${bucketDir}/${filename}`
     const ratio = Math.min(width / originalWidth, 1)
     const targetWidth = Math.round(originalWidth * ratio)
     const targetHeight = Math.round(originalHeight * ratio)
@@ -99,7 +111,7 @@ export async function processImage(inputPath: string): Promise<ImageVariants> {
 
     const file = Bun.file(filepath)
     result[suffix] = {
-      path: filename,
+      path: `${bucket}/${filename}`,
       size: file.size,
       width: targetWidth,
       height: targetHeight

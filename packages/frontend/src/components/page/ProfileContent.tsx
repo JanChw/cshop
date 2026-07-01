@@ -14,32 +14,32 @@ const SETTINGS = [
 export default function ProfileContent() {
   const [showLogoutConfirm, setShowLogoutConfirm] = createSignal(false)
   const [user, setUser] = createSignal<any>(null)
-  const [designs, setDesigns] = createSignal<any[]>([])
   const [orders, setOrders] = createSignal<any[]>([])
   const [favCount, setFavCount] = createSignal(0)
   const [stickerCount, setStickerCount] = createSignal(0)
+  const [designCount, setDesignCount] = createSignal(0)
 
   onMount(async () => {
     try {
       const [userRes, designsRes, ordersRes, favRes, stickerRes] = await Promise.all([
         api.user.get(),
-        api.designs.list(),
+        api.designs.list({ page: 1, limit: 1 }),
         api.orders.list(),
-        api.favorites.list().catch(() => null),
-        api.userStickers.list().catch(() => null)
+        api.favorites.list({ page: 1, limit: 1 }).catch(() => null),
+        api.userStickers.list({ page: 1, limit: 1 }).catch(() => null)
       ])
       if (userRes.success) setUser(userRes.data)
-      if (designsRes.success) setDesigns(designsRes.data.items || [])
+      if (designsRes.success) setDesignCount(designsRes.data.total ?? 0)
       if (ordersRes.success) setOrders(ordersRes.data.items || [])
-      if (favRes?.success) setFavCount(favRes.data.total ?? favRes.data.items?.length ?? 0)
-      if (stickerRes?.success) setStickerCount(stickerRes.data.items?.length ?? 0)
+      if (favRes?.success) setFavCount(favRes.data.total ?? 0)
+      if (stickerRes?.success) setStickerCount(stickerRes.data.total ?? 0)
     } catch (e) {
       console.error('Failed to load profile data', e)
     }
   })
 
   const stats = () => [
-    { label: '我的设计', value: String(designs().length), href: '/person/designs' },
+    { label: '我的设计', value: String(designCount()), href: '/person/designs' },
     { label: '素材库', value: String(stickerCount()), href: '/person/assets' },
     { label: '我的收藏', value: String(favCount()), href: '/person/collection' }
   ]

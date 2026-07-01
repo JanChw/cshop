@@ -15,7 +15,7 @@ function mapProduct(item: any): Product {
     id: String(item.id),
     name: item.name,
     price: item.basePrice,
-    image: Array.isArray(item.images) ? item.images[0] : (item.images ? JSON.parse(item.images)[0] : ''),
+    image: item.images?.[0] ?? '',
     category: CATEGORY_ID_MAP[item.categoryId] || '',
     description: item.description,
     tags: item.tags ? JSON.parse(item.tags) : undefined,

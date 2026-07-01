@@ -42,7 +42,7 @@ export default function ProductContent() {
       const res = await api.products.get(id)
       if (res.success) {
         const p = res.data
-        const images = p.images ? (typeof p.images === 'string' ? JSON.parse(p.images) : p.images) : []
+        const images = p.images || []
         const tags = p.tags ? (typeof p.tags === 'string' ? JSON.parse(p.tags) : p.tags) : []
         const sizes = p.variants ? [...new Set((p.variants as any[]).map((v: any) => v.size))] : []
         const colors = p.variants ? [...new Set((p.variants as any[]).map((v: any) => v.color).filter(Boolean))] : []

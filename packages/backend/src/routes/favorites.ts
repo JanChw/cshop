@@ -7,6 +7,7 @@ import { success, fail } from '../utils/response'
 import { parsePagination } from '../utils/request'
 import { z } from 'zod'
 import { validateJson } from '../utils/validate'
+import { imagesForProducts } from '../utils/productImages'
 import type { AppEnv } from '../types/hono'
 
 const app = new Hono<AppEnv>()
@@ -31,7 +32,6 @@ app.get('/', async (c) => {
         name: products.name,
         basePrice: products.basePrice,
         originalPrice: products.originalPrice,
-        images: products.images,
         designer: products.designer,
         tags: products.tags
       })
@@ -46,6 +46,7 @@ app.get('/', async (c) => {
       .where(where)
   ])
 
+  const imageMap = imagesForProducts(rows.map(r => r.productId))
   const items = rows.map((r) => ({
     id: r.id,
     productId: r.productId,
@@ -55,7 +56,7 @@ app.get('/', async (c) => {
       name: r.name,
       basePrice: r.basePrice,
       originalPrice: r.originalPrice,
-      images: r.images ? JSON.parse(r.images) : [],
+      images: imageMap.get(r.productId) ?? [],
       designer: r.designer,
       tags: r.tags ? JSON.parse(r.tags) : []
     }

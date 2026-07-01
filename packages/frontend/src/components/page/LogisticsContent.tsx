@@ -106,9 +106,7 @@ export default function LogisticsContent() {
           color: item.color || '',
           product: {
             ...item.product,
-            image: item.product?.images
-              ? (Array.isArray(item.product.images) ? item.product.images[0] : JSON.parse(item.product.images)[0])
-              : item.product?.image || '/placeholder.png'
+            image: item.product?.images?.[0] || item.product?.image || '/placeholder.png'
           }
         }))
       }

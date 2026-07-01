@@ -1,5 +1,5 @@
 import { db } from '../db'
-import { categories, products, productVariants, users, userAddresses, stickers, homeSections, designConfigs, orders, orderItems, cartItems } from '../db/schema'
+import { categories, products, productVariants, users, userAddresses, stickers, homeSections, designConfigs, orders, orderItems, cartItems, productImages } from '../db/schema'
 import { eq, sql } from 'drizzle-orm'
 
 async function seedAll() {
@@ -74,10 +74,14 @@ async function seedAll() {
       designer: p.designer ?? null,
       originalPrice: p.originalPrice ?? null,
       tags: p.tags ?? null,
-      images: JSON.stringify([imageUrl, ...thumbUrls]),
       stock: 100,
       isActive: true
     }).run()
+    const [seeded] = db.select({ id: products.id }).from(products).orderBy(sql`${products.id} DESC`).limit(1).all()
+    const imagePaths = [imageUrl, ...thumbUrls]
+    for (let i = 0; i < imagePaths.length; i++) {
+      db.insert(productImages).values({ productId: seeded.id, path: imagePaths[i], sort: i }).run()
+    }
   }
 
   // ── Variants: each product gets 3 sizes × 2 colors ──

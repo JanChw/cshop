@@ -27,7 +27,7 @@ function randInt(min: number, max: number): number {
 }
 
 const users = db
-  .query<{ id: number; name: string }, []>('SELECT id, name FROM users WHERE status = ? OR status IS NULL ORDER BY id')
+  .query<{ id: number; name: string }, [string]>('SELECT id, name FROM users WHERE status = ? OR status IS NULL ORDER BY id')
   .all('active')
 const userIds = users.map(u => u.id)
 const userNames = new Map(users.map(u => [u.id, u.name]))

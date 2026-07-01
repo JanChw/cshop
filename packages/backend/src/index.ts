@@ -3,6 +3,7 @@ import { scheduleAutoBackup } from './scheduler'
 import { config } from './config'
 import { initGeo } from './utils/geo'
 import { flush, startFlushTimer } from './utils/eventQueue'
+import { startRollupTimer } from './utils/analyticsRollup'
 
 const app = createApp()
 
@@ -10,6 +11,7 @@ if (import.meta.main) {
   scheduleAutoBackup()
   initGeo().catch(() => {})
   startFlushTimer()
+  startRollupTimer()
 
   // Graceful shutdown: drain the in-memory event queue so we don't drop
   // analytics events on a clean stop. Hard kill (-9) still loses them, which

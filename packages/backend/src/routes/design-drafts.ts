@@ -13,6 +13,7 @@ import { config } from '../config'
 import { isSafeFilename } from '../utils/safePath'
 import { mimeFromFilename } from '../utils/mime'
 import { parsePagination } from '../utils/request'
+import { writeCanvas, readCanvas, removeCanvas, draftCanvasKey } from '../utils/canvasStore'
 import type { AppEnv } from '../types/hono'
 
 const PREVIEW_WIDTH = 400
@@ -101,8 +102,16 @@ protectedApp.get('/', async (c) => {
 protectedApp.post('/', validateJson(designDraftSchema), async (c) => {
   const userId = c.get('userId')
   const data = c.req.valid('json')
-  const [record] = await db.insert(designDrafts).values({ ...data, userId }).returning()
+  const [record] = await db.insert(designDrafts).values({
+    userId,
+    productId: data.productId,
+    variantId: data.variantId ?? null,
+    name: data.name ?? null
+  }).returning()
   if (!record) return fail(c, '创建草稿失败', 500)
+
+  const cKey = await writeCanvas(draftCanvasKey(record.id), data.canvasData)
+  db.update(designDrafts).set({ canvasPath: cKey }).where(eq(designDrafts.id, record.id)).run()
 
   const previewUrl = await persistPreview(record.id, data.previewImage)
   if (previewUrl) {
@@ -110,7 +119,7 @@ protectedApp.post('/', validateJson(designDraftSchema), async (c) => {
     record.previewImage = previewUrl
   }
 
-  return success(c, record, 201)
+  return success(c, { ...record, canvasPath: cKey, canvasData: data.canvasData }, 201)
 })
 
 protectedApp.get('/:id', async (c) => {
@@ -125,7 +134,12 @@ protectedApp.get('/:id', async (c) => {
   if (!draft) {
     return fail(c, '草稿不存在', 404)
   }
-  return success(c, { ...draft, previewImage: versionPreviewUrl(draft.previewImage, draft.updatedAt) })
+  const canvasData = await readCanvas(draft.canvasPath)
+  return success(c, {
+    ...draft,
+    canvasData,
+    previewImage: versionPreviewUrl(draft.previewImage, draft.updatedAt)
+  })
 })
 
 protectedApp.put('/:id', validateJson(designDraftSchema), async (c) => {
@@ -142,8 +156,15 @@ protectedApp.put('/:id', validateJson(designDraftSchema), async (c) => {
     return fail(c, '草稿不存在', 404)
   }
 
+  const cKey = await writeCanvas(draftCanvasKey(id), data.canvasData)
   const previewUrl = await persistPreview(id, data.previewImage)
-  const updateData = { ...data, updatedAt: new Date().toISOString() }
+  const updateData: Record<string, unknown> = {
+    productId: data.productId,
+    variantId: data.variantId ?? null,
+    name: data.name ?? null,
+    canvasPath: cKey,
+    updatedAt: new Date().toISOString()
+  }
   if (previewUrl) updateData.previewImage = previewUrl
 
   await db
@@ -158,13 +179,14 @@ protectedApp.delete('/:id', async (c) => {
   const userId = c.get('userId')
   const id = parseInt(c.req.param('id'))
   const [existing] = await db
-    .select({ id: designDrafts.id })
+    .select({ id: designDrafts.id, canvasPath: designDrafts.canvasPath })
     .from(designDrafts)
     .where(and(eq(designDrafts.id, id), eq(designDrafts.userId, userId)))
     .limit(1)
   if (!existing) return fail(c, '草稿不存在', 404)
 
   await db.delete(designDrafts).where(eq(designDrafts.id, id))
+  await removeCanvas(existing.canvasPath)
   await unlink(join(config.designDir, `draft-${id}.webp`)).catch(() => {})
 
   return success(c, null)

@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { randomUUID } from 'node:crypto'
 import { db } from '../db'
 import { users, sessions, orders, verificationCodes } from '../db/schema'
 import { eq, and, lt, isNull, sql, desc } from 'drizzle-orm'
@@ -9,7 +10,8 @@ import { rateLimit } from '../middleware/rateLimit'
 import { validateJson } from '../utils/validate'
 import { mapDbError } from '../utils/dbError'
 import { getClientIP } from '../utils/request'
-import { registerSchema, loginSchema, refreshSchema, logoutSchema, changePasswordSchema, updateMeSchema, forgotPasswordSchema, deactivateAccountSchema, sendPhoneCodeSchema, bindPhoneSchema, sendEmailCodeSchema, emailCodeLoginSchema } from '../validators'
+import { config } from '../config'
+import { registerSchema, loginSchema, refreshSchema, logoutSchema, changePasswordSchema, updateMeSchema, forgotPasswordSchema, deactivateAccountSchema, sendPhoneCodeSchema, bindPhoneSchema, sendEmailCodeSchema, emailCodeLoginSchema, activateEmailSchema, resendActivationSchema } from '../validators'
 import { trackLogin, trackLogout, trackBusinessEvent } from '../utils/track'
 import { loadStaffContext } from '../utils/staff'
 import { checkLockout, recordFailure, recordSuccess, formatLockMessage, formatRemainingMessage, formatLockedWaitMessage } from '../utils/loginGuard'
@@ -55,7 +57,10 @@ async function issueTokensForUser(userId: number, rememberMe = true) {
 const app = new Hono<AppEnv>()
 
 app.post('/register', registerThrottle, validateJson(registerSchema), async (c) => {
-  const { email, password, name } = c.req.valid('json')
+  const { email, password, name, captchaToken } = c.req.valid('json')
+
+  const valid = await verifyCaptcha(captchaToken)
+  if (!valid) return fail(c, '人机验证失败，请刷新后重试', 423)
 
   const existing = await db.select().from(users).where(eq(users.email, email)).limit(1)
   if (existing.length > 0) {
@@ -81,16 +86,33 @@ app.post('/register', registerThrottle, validateJson(registerSchema), async (c) 
     `${name} (${email}) 刚注册了账号`
   )
 
-  const tokens = await issueTokensForUser(user.id)
-  return success(c, {
-    accessToken: tokens.accessToken,
-    refreshToken: tokens.refreshToken,
-    user: { id: user.id, email: user.email, name: user.name },
-    isStaff: tokens.isStaff,
-    roleId: tokens.roleId,
-    roleName: tokens.roleName,
-    permissions: tokens.permissions
-  }, 201)
+  const token = randomUUID()
+  const expiresAt = new Date(Date.now() + 30 * 60_000).toISOString()
+  await db.insert(verificationCodes).values({
+    userId: user.id,
+    purpose: 'email_activate',
+    target: email,
+    code: token,
+    expiresAt
+  })
+
+  const link = `${config.appUrl}/auth/activate?token=${token}`
+  const subject = '激活您的 CShop 账户'
+  const body = [
+    `您好，${name}：`,
+    '',
+    '感谢注册 CShop！请点击以下链接激活您的账户（30 分钟内有效）：',
+    '',
+    link,
+    '',
+    '如非本人操作，请忽略本邮件。'
+  ].join('\n')
+
+  void sendEmail({ to: email, subject, body, event: 'verification' }).catch((err) => {
+    console.error('[EMAIL ACTIVATION]', err)
+  })
+
+  return success(c, { needsActivation: true, email }, 201)
 })
 
 app.post('/login', loginThrottle, validateJson(loginSchema), async (c) => {
@@ -130,6 +152,10 @@ app.post('/login', loginThrottle, validateJson(loginSchema), async (c) => {
     }
 
     recordSuccess(email, ip, userAgent)
+
+    if (!user.emailVerifiedAt) {
+      return fail(c, '邮箱未激活，请查收激活邮件或重新发送', 403)
+    }
 
     await cleanupExpiredSessions(user.id)
 
@@ -567,6 +593,10 @@ app.post('/email/code-login', validateJson(emailCodeLoginSchema), async (c) => {
 
   await db.update(verificationCodes).set({ usedAt: new Date().toISOString() }).where(eq(verificationCodes.id, row.id))
 
+  if (!user.emailVerifiedAt) {
+    return fail(c, '邮箱未激活，请先激活邮箱后再登录', 403)
+  }
+
   await cleanupExpiredSessions(user.id)
   await db.update(users).set({ lastLoginAt: new Date().toISOString() }).where(eq(users.id, user.id))
 
@@ -583,6 +613,98 @@ app.post('/email/code-login', validateJson(emailCodeLoginSchema), async (c) => {
     roleName: tokens.roleName,
     permissions: tokens.permissions
   })
+})
+
+const activationThrottle = rateLimit({ limit: 5, windowMs: 60_000 })
+
+app.post('/email/resend-activation', activationThrottle, validateJson(resendActivationSchema), async (c) => {
+  const { email, captchaToken } = c.req.valid('json')
+
+  const valid = await verifyCaptcha(captchaToken)
+  if (!valid) return fail(c, '人机验证失败，请刷新后重试', 423)
+
+  const [user] = await db.select({ id: users.id, name: users.name, emailVerifiedAt: users.emailVerifiedAt }).from(users).where(eq(users.email, email)).limit(1)
+  if (!user) {
+    return success(c, { sent: true })
+  }
+
+  if (user.emailVerifiedAt) {
+    return fail(c, '邮箱已激活，无需重新发送', 400)
+  }
+
+  const cooldownAt = new Date(Date.now() - 60_000).toISOString().replace('T', ' ').replace(/\.\d+Z$/, '')
+  const nowIso = new Date().toISOString()
+  const [recent] = await db.select({ id: verificationCodes.id }).from(verificationCodes)
+    .where(and(
+      eq(verificationCodes.userId, user.id),
+      eq(verificationCodes.purpose, 'email_activate'),
+      isNull(verificationCodes.usedAt),
+      sql`${verificationCodes.expiresAt} > ${nowIso}`,
+      sql`${verificationCodes.createdAt} > ${cooldownAt}`
+    ))
+    .limit(1)
+  if (recent) return fail(c, '发送过于频繁，请 60 秒后重试', 429)
+
+  await db.update(verificationCodes).set({ usedAt: new Date().toISOString() }).where(
+    and(eq(verificationCodes.userId, user.id), eq(verificationCodes.purpose, 'email_activate'), isNull(verificationCodes.usedAt))
+  )
+
+  const token = randomUUID()
+  const expiresAt = new Date(Date.now() + 30 * 60_000).toISOString()
+  await db.insert(verificationCodes).values({
+    userId: user.id,
+    purpose: 'email_activate',
+    target: email,
+    code: token,
+    expiresAt
+  })
+
+  const link = `${config.appUrl}/auth/activate?token=${token}`
+  const subject = '重新激活您的 CShop 账户'
+  const body = [
+    `您好，${user.name || '用户'}：`,
+    '',
+    '请点击以下链接重新激活您的 CShop 账户（30 分钟内有效）：',
+    '',
+    link,
+    '',
+    '如非本人操作，请忽略本邮件。'
+  ].join('\n')
+
+  void sendEmail({ to: email, subject, body, event: 'verification' }).catch((err) => {
+    console.error('[EMAIL RESEND ACTIVATION]', err)
+  })
+
+  return success(c, { sent: true })
+})
+
+app.post('/email/activate', validateJson(activateEmailSchema), async (c) => {
+  const { token } = c.req.valid('json')
+
+  const [row] = await db.select({
+    id: verificationCodes.id,
+    userId: verificationCodes.userId,
+    expiresAt: verificationCodes.expiresAt
+  }).from(verificationCodes)
+    .where(and(
+      eq(verificationCodes.code, token),
+      eq(verificationCodes.purpose, 'email_activate'),
+      isNull(verificationCodes.usedAt)
+    ))
+    .limit(1)
+
+  if (!row) return fail(c, '激活链接无效或已过期，请重新发送', 400)
+  if (new Date(row.expiresAt).getTime() < Date.now()) {
+    await db.update(verificationCodes).set({ usedAt: new Date().toISOString() }).where(eq(verificationCodes.id, row.id))
+    return fail(c, '激活链接已过期，请重新发送', 400)
+  }
+
+  await db.update(verificationCodes).set({ usedAt: new Date().toISOString() }).where(eq(verificationCodes.id, row.id))
+  await db.update(users).set({ emailVerifiedAt: new Date().toISOString() }).where(eq(users.id, row.userId))
+
+  const [user] = await db.select({ email: users.email }).from(users).where(eq(users.id, row.userId)).limit(1)
+
+  return success(c, { activated: true, email: user.email })
 })
 
 export default app

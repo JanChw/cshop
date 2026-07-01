@@ -30,14 +30,7 @@ function mapStatus(backendStatus: string): 'pending' | 'shipping' | 'completed' 
 }
 
 function parseImage(images: any): string {
-  if (!images) return '/placeholder.png'
-  if (Array.isArray(images)) return images[0] || '/placeholder.png'
-  try {
-    const parsed = JSON.parse(images)
-    return Array.isArray(parsed) ? (parsed[0] || '/placeholder.png') : '/placeholder.png'
-  } catch {
-    return '/placeholder.png'
-  }
+  return images?.[0] || '/placeholder.png'
 }
 
 export default function OrderContent() {
@@ -65,9 +58,7 @@ export default function OrderContent() {
         items: (o.items || []).map((item: any) => ({
           product: {
             name: item.product?.name || '',
-            image: item.product?.images
-              ? (Array.isArray(item.product.images) ? item.product.images[0] : JSON.parse(item.product.images)[0])
-              : item.product?.image || '/placeholder.png'
+            image: item.product?.images?.[0] || item.product?.image || '/placeholder.png'
           },
           quantity: item.quantity || 0,
           size: item.size || '',

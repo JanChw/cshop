@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { db } from '../../db'
-import { activityEvents, userOnline, users } from '../../db/schema'
-import { eq, and, gte, lte, desc, count, sql, inArray } from 'drizzle-orm'
+import { activityEvents, userOnline, users, dailyStats, productDailyViews, activityEventRefs } from '../../db/schema'
+import { eq, and, gte, lte, desc, count, sql, inArray, sum } from 'drizzle-orm'
 import { success } from '../../utils/response'
 import { auth } from '../../middleware/auth'
 import { requireStaff, requirePermission } from '../../middleware/permission'
@@ -12,13 +12,17 @@ app.use('*', auth)
 app.use('*', requireStaff)
 
 function periodToFrom(period: string): string {
+  // Return 'YYYY-MM-DD HH:MM:SS' to match SQLite's datetime('now') storage
+  // shape — an ISO 'T' separator sorts after a space and would exclude
+  // every row of the window in a string comparison.
   const now = new Date()
   now.setHours(0, 0, 0, 0)
   switch (period) {
-    case '7d': return new Date(now.getTime() - 7 * 86400000).toISOString()
-    case '30d': return new Date(now.getTime() - 30 * 86400000).toISOString()
-    default: return now.toISOString()
+    case '7d': now.setTime(now.getTime() - 7 * 86400000); break
+    case '30d': now.setTime(now.getTime() - 30 * 86400000); break
+    default: break
   }
+  return now.toISOString().slice(0, 10) + ' 00:00:00'
 }
 
 app.get('/online', requirePermission('analytics.read'), async (c) => {
@@ -109,37 +113,47 @@ app.get('/events', requirePermission('analytics.read'), async (c) => {
 app.get('/summary', requirePermission('analytics.read'), async (c) => {
   const period = c.req.query('period') ?? 'today'
   const fromISO = periodToFrom(period)
+  const fromDate = fromISO.slice(0, 10)
+  const todayDate = new Date().toISOString().slice(0, 10)
 
-  // Single pass over the time-windowed partition for all scalar counts.
-  // Replaces 5 independent full-scan count queries with one.
-  const [stats] = db
-    .select({
-      dau: sql<number>`COUNT(DISTINCT CASE WHEN ${activityEvents.userId} IS NOT NULL THEN ${activityEvents.userId} END)`,
-      pv: sql<number>`COUNT(*)`,
-      productViews: sql<number>`SUM(CASE WHEN ${activityEvents.eventType}='product_view' THEN 1 ELSE 0 END)`,
-      cartAdds: sql<number>`SUM(CASE WHEN ${activityEvents.eventType}='cart_add' THEN 1 ELSE 0 END)`,
-      orderCreates: sql<number>`SUM(CASE WHEN ${activityEvents.eventType}='order_create' THEN 1 ELSE 0 END)`
-    })
+  // Scalars (pv + funnel) are additive, so summing daily_stats over the
+  // range is exact and reads only a handful of rows. dau is NOT additive
+  // across days (a user active 3 days counts once), so it stays a single
+  // distinct-count over the windowed partition.
+  const [agg] = db.select({
+    pv: sum(dailyStats.pv),
+    productViews: sum(dailyStats.productViews),
+    cartAdds: sum(dailyStats.cartAdds),
+    orderCreates: sum(dailyStats.orderCreates)
+  })
+    .from(dailyStats)
+    .where(and(gte(dailyStats.date, fromDate), lte(dailyStats.date, todayDate)))
+    .all()
+
+  const [dauRow] = db.select({
+    dau: sql<number>`COUNT(DISTINCT ${activityEvents.userId})`
+  })
     .from(activityEvents)
     .where(gte(activityEvents.createdAt, fromISO))
     .all()
 
-  const topProducts = db
-    .select({
-      productId: sql<number>`JSON_EXTRACT(${activityEvents.metadata}, '$.productId')`,
-      productName: sql<string>`JSON_EXTRACT(${activityEvents.metadata}, '$.productName')`,
-      views: count()
-    })
-    .from(activityEvents)
-    .where(and(
-      eq(activityEvents.eventType, 'product_view'),
-      gte(activityEvents.createdAt, fromISO)
-    ))
-    .groupBy(sql`JSON_EXTRACT(${activityEvents.metadata}, '$.productId')`)
-    .orderBy(desc(count()))
+  // topProducts: SUM views per product from product_daily_views (indexed
+  // range scan + group by), joined to refs for the product name.
+  const topProducts = db.select({
+    productId: productDailyViews.productId,
+    productName: sql<string | null>`MAX(${activityEventRefs.productName})`,
+    views: sql<number>`CAST(COALESCE(SUM(${productDailyViews.views}), 0) AS INTEGER)`
+  })
+    .from(productDailyViews)
+    .leftJoin(activityEventRefs, eq(activityEventRefs.productId, productDailyViews.productId))
+    .where(and(gte(productDailyViews.date, fromDate), lte(productDailyViews.date, todayDate)))
+    .groupBy(productDailyViews.productId)
+    .orderBy(desc(sql`SUM(${productDailyViews.views})`))
     .limit(10)
     .all()
 
+  // deviceDistribution isn't pre-aggregated (only ~4 groups, cheap); keep
+  // the grouped scan over the windowed partition.
   const deviceDistribution = db
     .select({
       deviceType: activityEvents.deviceType,
@@ -152,26 +166,26 @@ app.get('/summary', requirePermission('analytics.read'), async (c) => {
     .all()
 
   const trendDays = period === 'today' ? 7 : (period === '7d' ? 7 : 30)
+  const trendFromDate = new Date(Date.now() - (trendDays - 1) * 86400000).toISOString().slice(0, 10)
   const trend = db
     .select({
-      date: sql<string>`DATE(${activityEvents.createdAt})`,
-      pv: count(),
-      dau: sql<number>`COUNT(DISTINCT ${activityEvents.userId})`
+      date: dailyStats.date,
+      pv: dailyStats.pv,
+      dau: dailyStats.dau
     })
-    .from(activityEvents)
-    .where(gte(activityEvents.createdAt, new Date(Date.now() - trendDays * 86400000).toISOString()))
-    .groupBy(sql`DATE(${activityEvents.createdAt})`)
-    .orderBy(sql`DATE(${activityEvents.createdAt})`)
+    .from(dailyStats)
+    .where(gte(dailyStats.date, trendFromDate))
+    .orderBy(dailyStats.date)
     .all()
 
   return success(c, {
-    dau: stats?.dau ?? 0,
-    pv: stats?.pv ?? 0,
+    dau: dauRow?.dau ?? 0,
+    pv: Number(agg?.pv ?? 0),
     topProducts,
     funnel: {
-      productView: stats?.productViews ?? 0,
-      cartAdd: stats?.cartAdds ?? 0,
-      orderCreate: stats?.orderCreates ?? 0
+      productView: Number(agg?.productViews ?? 0),
+      cartAdd: Number(agg?.cartAdds ?? 0),
+      orderCreate: Number(agg?.orderCreates ?? 0)
     },
     deviceDistribution,
     trend

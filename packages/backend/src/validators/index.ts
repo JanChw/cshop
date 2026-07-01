@@ -24,7 +24,8 @@ function passwordField () {
 export const registerSchema = z.object({
   email: z.string().email('邮箱格式不正确'),
   password: passwordField(),
-  name: z.string().min(1, '名称不能为空')
+  name: z.string().min(1, '名称不能为空'),
+  captchaToken: z.string().min(1, '人机验证未通过')
 })
 
 export const loginSchema = z.object({
@@ -165,6 +166,15 @@ export const sendEmailCodeSchema = z.object({
 export const emailCodeLoginSchema = z.object({
   email: z.string().email('邮箱格式不正确'),
   code: z.string().regex(/^\d{6}$/, '验证码为 6 位数字')
+})
+
+export const activateEmailSchema = z.object({
+  token: z.string().min(1, '激活链接无效')
+})
+
+export const resendActivationSchema = z.object({
+  email: z.string().email('邮箱格式不正确'),
+  captchaToken: z.string().min(1, '人机验证未通过')
 })
 
 export const menuSchema = z.object({

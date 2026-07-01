@@ -75,7 +75,7 @@ function main() {
   }).returning().all()
   console.log(`[seed] Created test customer (ID: ${customer.id})`)
 
-  const statuses = ['pending', 'paid', 'processing', 'shipped', 'completed', 'cancelled']
+  const statuses: Array<'pending' | 'paid' | 'processing' | 'shipped' | 'completed' | 'cancelled'> = ['pending', 'paid', 'processing', 'shipped', 'completed', 'cancelled']
   let orderCount = 0
   for (const status of statuses) {
     for (let i = 0; i < 2; i++) {
@@ -88,8 +88,8 @@ function main() {
       }).returning().all()
 
       db.insert(orderItems).values({
-        orderId: order.id, productId: product.id, productName: product.name,
-        quantity: qty, unitPrice: product.basePrice, price: product.basePrice * qty,
+        orderId: order.id, productId: product.id,
+        quantity: qty, price: product.basePrice * qty,
       }).run()
       orderCount++
     }

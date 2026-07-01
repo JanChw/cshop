@@ -1,5 +1,5 @@
 import { db } from '../db'
-import { categories, products, productVariants } from '../db/schema'
+import { categories, products, productVariants, productImages } from '../db/schema'
 import { eq } from 'drizzle-orm'
 
 interface NewProduct {
@@ -141,10 +141,14 @@ function insertProducts() {
       designer: p.designer ?? null,
       originalPrice: p.originalPrice ?? null,
       tags: p.tags ?? null,
-      images: JSON.stringify([imageUrl, ...thumbUrls]),
       stock: 100,
       isActive: true
     }).returning().all()
+
+    const imagePaths = [imageUrl, ...thumbUrls]
+    for (let i = 0; i < imagePaths.length; i++) {
+      db.insert(productImages).values({ productId: prod.id, path: imagePaths[i], sort: i }).run()
+    }
 
     // Create variants
     const fit = accOverrides[p.name] ?? sizeColors[p.fit] ?? sizeColors['常规']

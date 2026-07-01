@@ -2,12 +2,17 @@ import { createSignal, For, onMount, Show } from 'solid-js'
 import ProductImage from '../ui/ProductImage'
 import SkeletonCard from '../ui/SkeletonCard'
 import ConfirmDialog from '../ui/ConfirmDialog'
+import LoadMore from '../ui/LoadMore'
 import { api, type UserStickerItem } from '../../lib/api'
 import { showToast } from '../../lib/toast'
+
+const PAGE_SIZE = 20
 
 export default function AssetGrid() {
   const [items, setItems] = createSignal<UserStickerItem[]>([])
   const [loading, setLoading] = createSignal(true)
+  const [loadingMore, setLoadingMore] = createSignal(false)
+  const [total, setTotal] = createSignal(0)
   const [search, setSearch] = createSignal('')
   const [activeCategory, setActiveCategory] = createSignal('all')
   const [error, setError] = createSignal<string | null>(null)
@@ -23,12 +28,28 @@ export default function AssetGrid() {
     setLoading(true)
     setError(null)
     try {
-      const res = await api.userStickers.list()
+      const res = await api.userStickers.list({ page: 1, limit: PAGE_SIZE })
       setItems(res.data.items)
+      setTotal(res.data.total)
     } catch (err: any) {
       setError(err.message || '加载失败')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const loadMore = async () => {
+    if (loadingMore() || items().length >= total()) return
+    setLoadingMore(true)
+    try {
+      const page = Math.floor(items().length / PAGE_SIZE) + 1
+      const res = await api.userStickers.list({ page, limit: PAGE_SIZE })
+      setItems((prev) => [...prev, ...res.data.items])
+      setTotal(res.data.total)
+    } catch (err: any) {
+      showToast(err.message || '加载更多失败')
+    } finally {
+      setLoadingMore(false)
     }
   }
 
@@ -266,6 +287,7 @@ export default function AssetGrid() {
                   )}
                 </For>
               </div>
+              <LoadMore hasMore={items().length < total()} loading={loadingMore()} onLoadMore={loadMore} />
             </Show>
           </Show>
         </Show>

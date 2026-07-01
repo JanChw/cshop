@@ -1,10 +1,11 @@
 import { Hono } from 'hono'
 import { db } from '../../db'
 import { products, productVariants, categories, orderItems, orders } from '../../db/schema'
-import { eq, count, sum, sql, isNull, isNotNull, and, gte } from 'drizzle-orm'
+import { eq, count, sum, sql, isNull, isNotNull, and, gte, asc } from 'drizzle-orm'
 import { requirePermission } from '../../middleware/permission'
 import { success } from '../../utils/response'
 import { cached } from '../../utils/cache'
+import { imagesForProducts } from '../../utils/productImages'
 import type { AppEnv } from '../../types/hono'
 
 const app = new Hono<AppEnv>()
@@ -71,8 +72,7 @@ app.get('/low-stock', requirePermission('analytics.read'), async (c) => {
       stock: products.stock,
       basePrice: products.basePrice,
       isActive: products.isActive,
-      categoryName: categories.name,
-      image: products.images,
+      categoryName: categories.name
     })
     .from(products)
     .leftJoin(categories, eq(products.categoryId, categories.id))
@@ -81,12 +81,10 @@ app.get('/low-stock', requirePermission('analytics.read'), async (c) => {
     .limit(50)
     .all()
 
+  const imageMap = imagesForProducts(items.map(i => i.id))
   const enriched = items.map((item) => {
-    const images = item.image ? JSON.parse(item.image) : []
-    return {
-      ...item,
-      image: Array.isArray(images) ? (images[0] ?? null) : (item.image ?? null),
-    }
+    const imgs = imageMap.get(item.id) ?? []
+    return { ...item, image: imgs[0] ?? null }
   })
 
   return success(c, { items: enriched, total: enriched.length, threshold })

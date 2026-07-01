@@ -52,7 +52,7 @@ export async function createUser(overrides: Partial<{ email: string; name: strin
   const password = overrides.password ?? 'password123'
 
   const passwordHash = await Bun.password.hash(password, { algorithm: 'bcrypt', cost: 4 })
-  const [user] = await db.insert(users).values({ email, passwordHash, name }).returning()
+  const [user] = await db.insert(users).values({ email, passwordHash, name, emailVerifiedAt: new Date().toISOString() }).returning()
 
   const tokens = await buildToken(user.id)
   await db.insert(sessions).values({

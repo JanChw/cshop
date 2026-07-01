@@ -48,7 +48,7 @@ app.get('/', requirePermission('user.read'), async (c) => {
   // LEFT JOIN to a pre-aggregated order-count subquery instead of a
   // correlated subquery per row.
   const orderCounts = db
-    .select({ userId: orders.userId, n: count() })
+    .select({ userId: orders.userId, n: count().as('n') })
     .from(orders)
     .groupBy(orders.userId)
     .as('oc')

@@ -1,8 +1,12 @@
 ---
 import MainLayout from '../layouts/MainLayout.astro'
 import RegisterForm from '../components/page/RegisterForm.tsx'
+
+const siteKey = import.meta.env.CLOUDFLARE_SITE_KEY || '1x00000000000000000000AA'
 ---
 
-<MainLayout title="注册" hideNav>
-  <RegisterForm client:load />
+<script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" />
+
+<MainLayout title="注册" hideNav hideScroll>
+  <RegisterForm client:load siteKey={siteKey} />
 </MainLayout>

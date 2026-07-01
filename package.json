@@ -5,8 +5,10 @@
   "scripts": {
     "dev": "bun --filter '@cshop/backend' dev",
     "dev:frontend": "bun --filter '@cshop/frontend' dev",
+    "dev:admin": "bun --filter '@cshop/admin' dev",
     "build": "bun --filter '@cshop/backend' build",
     "build:frontend": "bun --filter '@cshop/frontend' build",
+    "build:admin": "bun --filter '@cshop/admin' build",
     "lint": "bun --filter '@cshop/backend' typecheck",
     "typecheck": "bun --filter '@cshop/backend' typecheck",
     "typecheck:frontend": "bun --filter '@cshop/frontend' typecheck",

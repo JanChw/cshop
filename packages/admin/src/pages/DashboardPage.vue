@@ -79,9 +79,9 @@ interface DashboardData {
 }
 
 interface SummaryData {
-  topProducts: Array<{ name: string; sales: number }>
-  funnel: { views: number; addToCart: number; createOrder: number; paid: number }
-  trend: Array<{ date: string; pv: number; orders: number }>
+  topProducts: Array<{ productId: number; productName: string | null; views: number }>
+  funnel: { productView: number; cartAdd: number; orderCreate: number }
+  trend: Array<{ date: string; pv: number; dau: number }>
 }
 
 interface OrderItem {

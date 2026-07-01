@@ -1,5 +1,5 @@
 import { db } from '../db'
-import { activityEvents, userOnline, settings, uploads, products, cartItems, designs, orderItems } from '../db/schema'
+import { activityEvents, activityEventRefs, userOnline, settings, uploads, products, cartItems, designs, orderItems } from '../db/schema'
 import { eq, and, lt, gte, isNull, isNotNull, inArray, sql } from 'drizzle-orm'
 import { readdir, unlink, stat } from 'node:fs/promises'
 import { config } from '../config'
@@ -89,7 +89,22 @@ export async function flush(): Promise<void> {
           city: e.geo?.city ?? null,
           metadata: e.metadata ? JSON.stringify(e.metadata) : null
         }))
-        db.insert(activityEvents).values(values).run()
+        const inserted = db.insert(activityEvents).values(values).returning({ id: activityEvents.id }).all()
+
+        // Mirror productId/productName into the indexed activity_event_refs
+        // table so analytics groupBy hits an index instead of JSON_EXTRACT.
+        const refRows: Array<{ eventId: number; productId: number | null; productName: string | null }> = []
+        for (let i = 0; i < inserted.length; i++) {
+          const meta = events[i].metadata
+          if (!meta) continue
+          const productId = typeof meta.productId === 'number' ? meta.productId : null
+          const productName = typeof meta.productName === 'string' ? meta.productName : null
+          if (productId === null && productName === null) continue
+          refRows.push({ eventId: inserted[i].id, productId, productName })
+        }
+        if (refRows.length > 0) {
+          db.insert(activityEventRefs).values(refRows).run()
+        }
       }
 
       const now = new Date().toISOString()
@@ -204,12 +219,13 @@ export async function lazyClean(): Promise<void> {
 
 // Sweep upload directory for files not referenced by any upload row.
 // 1% probability per call. Deletes orphans only — never touches referenced files.
+// Walks the bucketed layout (uploads/ab/<file>) plus the legacy flat layout.
 export async function lazyCleanUploads(): Promise<void> {
   if (Math.random() > 0.01) return
 
   try {
-    const rows = await readdir(config.uploadDir).catch(() => [] as string[])
-    if (rows.length === 0) return
+    const top = await readdir(config.uploadDir).catch(() => [] as string[])
+    if (top.length === 0) return
 
     const referenced = new Set<string>()
     // Only scan recent upload rows — old orphans were already cleaned in
@@ -233,12 +249,26 @@ export async function lazyCleanUploads(): Promise<void> {
       if (r.large) referenced.add(r.large)
     }
 
-    for (const name of rows) {
-      if (referenced.has(name)) continue
-      const file = `${config.uploadDir}/${name}`
+    const tryDelete = async (relPath: string) => {
+      if (referenced.has(relPath)) return
+      const file = `${config.uploadDir}/${relPath}`
       const s = await stat(file).catch(() => null)
-      if (!s?.isFile()) continue
+      if (!s?.isFile()) return
       await unlink(file).catch(() => {})
+    }
+
+    for (const name of top) {
+      const abs = `${config.uploadDir}/${name}`
+      const s = await stat(abs).catch(() => null)
+      if (!s) continue
+      if (s.isDirectory()) {
+        // bucket directory — scan its children
+        const inner = await readdir(abs).catch(() => [] as string[])
+        for (const f of inner) await tryDelete(`${name}/${f}`)
+      } else {
+        // legacy flat file
+        await tryDelete(name)
+      }
     }
   } catch (err) {
     console.error('[eventQueue] lazyCleanUploads error:', err)

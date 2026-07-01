@@ -3,7 +3,7 @@ import { db } from '../db'
 import {
   products, productVariants, orders, orderItems,
   cartItems, designs, users, uploads, productVariantOptions, categories,
-  productBaseDesigns
+  productBaseDesigns, productImages
 } from '../db/schema'
 import { eq, desc, count, sum, and, sql, inArray, like, asc, isNull, isNotNull } from 'drizzle-orm'
 import { auth } from '../middleware/auth'
@@ -17,6 +17,7 @@ import { processImage, removeBackground, generateMask, flattenOnWhite } from '..
 import { acceptImageUpload, uploadErrorPayload } from '../utils/upload'
 import { cached } from '../utils/cache'
 import { config } from '../config'
+import { imagesForProducts, imagesForProduct, setProductImages } from '../utils/productImages'
 import backupRoutes from './admin/backup'
 import { adminStickerRoutes } from './stickers'
 import { adminCategoryRoutes } from './categories'
@@ -96,7 +97,6 @@ app.get('/products', requirePermission('product.read'), async (c) => {
     basePrice: products.basePrice,
     categoryId: products.categoryId,
     categoryName: categories.name,
-    images: products.images,
     stock: products.stock,
     isActive: products.isActive,
     createdAt: products.createdAt,
@@ -109,65 +109,97 @@ app.get('/products', requirePermission('product.read'), async (c) => {
     where ? countQuery.where(where) : countQuery
   ])
 
-  return success(c, { items: items.map(i => ({ ...i, images: i.images ? JSON.parse(i.images) : [] })), total, page, limit })
+  const imageMap = imagesForProducts(items.map(i => i.id))
+  return success(c, {
+    items: items.map(i => ({ ...i, images: imageMap.get(i.id) ?? [] })),
+    total, page, limit
+  })
 })
 
 app.get('/products/export', requirePermission('product.read'), async (c) => {
-  const items = db.select({
-    id: products.id,
-    name: products.name,
-    basePrice: products.basePrice,
-    stock: products.stock,
-    isActive: products.isActive,
-    categoryName: categories.name,
-    description: products.description,
-    tags: products.tags,
-    fabric: products.fabric,
-    fit: products.fit,
-    designer: products.designer,
-  })
-    .from(products)
-    .leftJoin(categories, eq(products.categoryId, categories.id))
-    .where(isNull(products.deletedAt))
-    .all()
-
-  const variantMap: Record<number, typeof productVariants.$inferSelect[]> = {}
-  const pIds = items.map(i => i.id)
-  if (pIds.length > 0) {
-    const variants = db.select().from(productVariants)
-      .where(inArray(productVariants.productId, pIds))
-      .all()
-    for (const v of variants) {
-      if (!variantMap[v.productId]) variantMap[v.productId] = []
-      variantMap[v.productId].push(v)
-    }
-  }
-
-  const header = 'ID,名称,价格,库存,状态,分类,描述,标签,面料,版型,设计师,规格'
-  const rows = items.map((p) => {
-    const vStr = (variantMap[p.id] ?? [])
-      .map(v => `${v.size}/${v.color ?? '-'}/${v.material ?? '-'}/${v.weight ?? '-'}`)
-      .join('; ')
-    return [
-      p.id,
-      escapeCsv(p.name),
-      p.basePrice,
-      p.stock,
-      p.isActive ? '上架' : '下架',
-      escapeCsv(p.categoryName ?? ''),
-      escapeCsv(p.description ?? ''),
-      escapeCsv(p.tags ?? ''),
-      escapeCsv(p.fabric ?? ''),
-      escapeCsv(p.fit ?? ''),
-      escapeCsv(p.designer ?? ''),
-      escapeCsv(vStr),
-    ].join(',')
-  }).join('\n')
-
-  const csv = `${header}\n${rows}`
   c.header('Content-Type', 'text/csv; charset=utf-8')
   c.header('Content-Disposition', `attachment; filename="products-${new Date().toISOString().slice(0, 10)}.csv"`)
-  return c.body(csv)
+  c.header('Cache-Control', 'no-store')
+
+  const PAGE = 500
+  const encoder = new TextEncoder()
+
+  const stream = new ReadableStream({
+    async start(controller) {
+      try {
+        controller.enqueue(encoder.encode('ID,名称,价格,库存,状态,分类,描述,标签,面料,版型,设计师,规格\n'))
+
+        let offset = 0
+        // Page through products in fixed-size batches; for each batch fetch its
+        // variants in one query and emit CSV rows. Memory stays O(PAGE) instead
+        // of O(total). LEFT JOIN with categories is folded into the page query.
+        while (true) {
+          const items = db.select({
+            id: products.id,
+            name: products.name,
+            basePrice: products.basePrice,
+            stock: products.stock,
+            isActive: products.isActive,
+            categoryName: categories.name,
+            description: products.description,
+            tags: products.tags,
+            fabric: products.fabric,
+            fit: products.fit,
+            designer: products.designer
+          })
+            .from(products)
+            .leftJoin(categories, eq(products.categoryId, categories.id))
+            .where(isNull(products.deletedAt))
+            .orderBy(asc(products.id))
+            .limit(PAGE)
+            .offset(offset)
+            .all()
+
+          if (items.length === 0) break
+
+          const pIds = items.map(i => i.id)
+          const variantMap: Record<number, string[]> = {}
+          if (pIds.length > 0) {
+            const variants = db.select().from(productVariants)
+              .where(inArray(productVariants.productId, pIds))
+              .orderBy(asc(productVariants.id))
+              .all()
+            for (const v of variants) {
+              ;(variantMap[v.productId] ??= []).push(
+                `${v.size}/${v.color ?? '-'}/${v.material ?? '-'}/${v.weight ?? '-'}`
+              )
+            }
+          }
+
+          const lines = items.map((p) => [
+            p.id,
+            escapeCsv(p.name),
+            p.basePrice,
+            p.stock,
+            p.isActive ? '上架' : '下架',
+            escapeCsv(p.categoryName ?? ''),
+            escapeCsv(p.description ?? ''),
+            escapeCsv(p.tags ?? ''),
+            escapeCsv(p.fabric ?? ''),
+            escapeCsv(p.fit ?? ''),
+            escapeCsv(p.designer ?? ''),
+            escapeCsv((variantMap[p.id] ?? []).join('; '))
+          ].join(','))
+          controller.enqueue(encoder.encode(lines.join('\n') + '\n'))
+
+          offset += items.length
+          if (items.length < PAGE) break
+        }
+      } catch (err) {
+        console.error('[products/export] stream error:', err)
+        controller.error(err)
+        return
+      }
+      controller.close()
+    }
+  })
+
+  return c.body(stream)
 })
 
 function escapeCsv(s: string): string {
@@ -282,15 +314,15 @@ app.get('/products/:id', requirePermission('product.read'), async (c) => {
     return fail(c, '商品不存在', 404)
   }
   const variants = await db.select().from(productVariants).where(eq(productVariants.productId, id))
-  product.images = product.images ? JSON.parse(product.images) : []
-  return success(c, { ...product, variants })
+  return success(c, { ...product, images: imagesForProduct(id), variants })
 })
 
 app.post('/products', requirePermission('product.create'), validateJson(productSchema), async (c) => {
   const data = c.req.valid('json')
-  const dbData = { ...data, images: data.images ? JSON.stringify(data.images) : null }
-  const [record] = await db.insert(products).values(dbData).returning()
-  return success(c, record, 201)
+  const { images, ...rest } = data
+  const [record] = await db.insert(products).values(rest).returning()
+  if (images && images.length > 0) setProductImages(record.id, images)
+  return success(c, { ...record, images: images ?? [] }, 201)
 })
 
 app.put('/products/:id', requirePermission('product.update'), validateJson(productSchema), async (c) => {
@@ -302,8 +334,9 @@ app.put('/products/:id', requirePermission('product.update'), validateJson(produ
     return fail(c, '商品不存在', 404)
   }
 
-  const dbData = { ...data, images: data.images ? JSON.stringify(data.images) : undefined, updatedAt: sql`datetime('now')` }
-  await db.update(products).set(dbData).where(eq(products.id, id))
+  const { images, ...rest } = data
+  await db.update(products).set({ ...rest, updatedAt: sql`datetime('now')` }).where(eq(products.id, id))
+  if (images) setProductImages(id, images)
   return success(c, null)
 })
 
@@ -346,7 +379,7 @@ app.post('/products/:id/image', requirePermission('product.update'), async (c) =
     const variants = accepted.variants
     const imageUrl = `/api/v1/uploads/${variants.large.path}`
 
-    // Atomic: insert upload record + append to product images.
+    // Atomic: insert upload record + append a product_images row.
     const currentImages = db.transaction((tx) => {
       tx.insert(uploads).values({
         userId: c.get('userId'),
@@ -365,11 +398,13 @@ app.post('/products/:id/image', requirePermission('product.update'), async (c) =
         height: variants.large.height
       }).run()
 
-      const [current] = tx.select({ images: products.images }).from(products).where(eq(products.id, id)).limit(1).all()
-      const images = current?.images ? JSON.parse(current.images) : []
-      images.push(imageUrl)
-      tx.update(products).set({ images: JSON.stringify(images), updatedAt: sql`datetime('now')` }).where(eq(products.id, id)).run()
-      return images
+      const nextSort = tx.select({ n: sql<number>`COALESCE(MAX(${productImages.sort}), -1) + 1` })
+        .from(productImages).where(eq(productImages.productId, id)).all()[0]?.n ?? 0
+      tx.insert(productImages).values({ productId: id, path: imageUrl, sort: nextSort }).run()
+
+      const rows = tx.select({ path: productImages.path }).from(productImages)
+        .where(eq(productImages.productId, id)).orderBy(asc(productImages.sort), asc(productImages.id)).all()
+      return rows.map(r => r.path)
     })
 
     return success(c, { images: currentImages })

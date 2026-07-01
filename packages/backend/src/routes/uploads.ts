@@ -6,7 +6,7 @@ import { auth } from '../middleware/auth'
 import { rateLimit } from '../middleware/rateLimit'
 import { success, fail } from '../utils/response'
 import { acceptImageUpload, uploadErrorPayload } from '../utils/upload'
-import { isSafeFilename } from '../utils/safePath'
+import { isSafeFilename, isSafeBucket } from '../utils/safePath'
 import { mimeFromFilename } from '../utils/mime'
 import { trackBusinessEvent } from '../utils/track'
 import { config } from '../config'
@@ -15,8 +15,30 @@ import type { AppEnv } from '../types/hono'
 
 const NO_SNIFF = { 'X-Content-Type-Options': 'nosniff' }
 
-// Public sub-app: serves uploaded files (GET /:filename) without auth.
+// Public sub-app: serves uploaded files without auth.
+// New bucketed layout: GET /:bucket/:filename
+// Legacy flat layout:  GET /:filename  (kept so files not yet migrated and
+// existing external URLs keep resolving).
 const publicApp = new Hono()
+
+publicApp.get('/:bucket/:filename', async (c) => {
+  const bucket = c.req.param('bucket')
+  const filename = c.req.param('filename')
+  if (!isSafeBucket(bucket) || !isSafeFilename(filename)) {
+    return fail(c, '非法文件名', 400)
+  }
+  const file = Bun.file(`${config.uploadDir}/${bucket}/${filename}`)
+  if (!await file.exists()) {
+    return fail(c, '文件不存在', 404)
+  }
+  return new Response(file, {
+    headers: {
+      'Content-Type': mimeFromFilename(filename),
+      'Cache-Control': 'public, max-age=31536000, immutable',
+      ...NO_SNIFF
+    }
+  })
+})
 
 publicApp.get('/:filename', async (c) => {
   const filename = c.req.param('filename')

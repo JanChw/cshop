@@ -33,9 +33,7 @@ export default function CartContent() {
       const mapped = (res.data || []).map((item: any) => ({
         id: String(item.id),
         name: item.product?.name || '',
-        image: item.product?.images
-          ? (Array.isArray(item.product.images) ? item.product.images[0] : JSON.parse(item.product.images)[0])
-          : '/placeholder.png',
+        image: item.product?.images?.[0] || '/placeholder.png',
         price: item.product?.basePrice || 0,
         size: item.variant?.size || '',
         color: item.variant?.color || '',

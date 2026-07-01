@@ -2,32 +2,32 @@ import { test, expect, describe } from 'bun:test'
 import './helpers/setup'
 import { api } from './helpers/request'
 import { db } from './helpers/setup'
-import { sessions } from '../src/db/schema'
+import { sessions, users } from '../src/db/schema'
 import { eq, isNull, isNotNull, and } from 'drizzle-orm'
 import { signAccessToken, signRefreshToken } from '../src/utils/jwt'
 import { createUser } from './helpers/factories'
 
 describe('register', () => {
-  test('creates a user, returns access + refresh + user', async () => {
+  test('creates a user, returns needsActivation + email', async () => {
     const { status, body } = await api('/api/v1/auth/register', {
       method: 'POST',
-      body: { email: 'a@b.com', password: 'password123', name: 'Alice' }
+      body: { email: 'a@b.com', password: 'password123', name: 'Alice', captchaToken: 'XXXX.DUMMY.TOKEN.XXXX' }
     })
     expect(status).toBe(201)
     expect(body.success).toBe(true)
-    expect(body.data.user.email).toBe('a@b.com')
-    expect(typeof body.data.accessToken).toBe('string')
-    expect(typeof body.data.refreshToken).toBe('string')
+    expect(body.data.needsActivation).toBe(true)
+    expect(body.data.email).toBe('a@b.com')
+    expect(body.data.accessToken).toBeUndefined()
   })
 
   test('rejects duplicate email', async () => {
     await api('/api/v1/auth/register', {
       method: 'POST',
-      body: { email: 'dup@b.com', password: 'password123', name: 'A' }
+      body: { email: 'dup@b.com', password: 'password123', name: 'A', captchaToken: 'XXXX.DUMMY.TOKEN.XXXX' }
     })
     const { status, body } = await api('/api/v1/auth/register', {
       method: 'POST',
-      body: { email: 'dup@b.com', password: 'password123', name: 'B' }
+      body: { email: 'dup@b.com', password: 'password123', name: 'B', captchaToken: 'XXXX.DUMMY.TOKEN.XXXX' }
     })
     expect(status).toBe(400)
     expect(body.error).toContain('已注册')
@@ -36,7 +36,7 @@ describe('register', () => {
   test('rejects short password', async () => {
     const { status } = await api('/api/v1/auth/register', {
       method: 'POST',
-      body: { email: 'x@b.com', password: '123', name: 'X' }
+      body: { email: 'x@b.com', password: '123', name: 'X', captchaToken: 'XXXX.DUMMY.TOKEN.XXXX' }
     })
     expect(status).toBe(400)
   })
@@ -44,10 +44,7 @@ describe('register', () => {
 
 describe('login', () => {
   test('valid credentials return tokens', async () => {
-    await api('/api/v1/auth/register', {
-      method: 'POST',
-      body: { email: 'l@b.com', password: 'password123', name: 'L' }
-    })
+    const user = await createUser({ email: 'l@b.com' })
     const { status, body } = await api('/api/v1/auth/login', {
       method: 'POST',
       body: { email: 'l@b.com', password: 'password123' }
@@ -56,10 +53,22 @@ describe('login', () => {
     expect(body.data.accessToken).toBeDefined()
   })
 
+  test('unverified email returns 403', async () => {
+    const user = await createUser({ email: 'unverified@b.com' })
+    // Clear emailVerifiedAt to simulate unverified user
+    await db.update(users).set({ emailVerifiedAt: null }).where(eq(users.email, 'unverified@b.com'))
+    const { status, body } = await api('/api/v1/auth/login', {
+      method: 'POST',
+      body: { email: 'unverified@b.com', password: 'password123' }
+    })
+    expect(status).toBe(403)
+    expect(body.error).toContain('未激活')
+  })
+
   test('wrong password 401', async () => {
     await api('/api/v1/auth/register', {
       method: 'POST',
-      body: { email: 'w@b.com', password: 'password123', name: 'W' }
+      body: { email: 'w@b.com', password: 'password123', name: 'W', captchaToken: 'XXXX.DUMMY.TOKEN.XXXX' }
     })
     const { status } = await api('/api/v1/auth/login', {
       method: 'POST',

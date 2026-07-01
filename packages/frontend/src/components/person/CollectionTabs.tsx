@@ -1,7 +1,10 @@
 import { createSignal, createMemo, onMount, Show } from 'solid-js'
 import ProductImage from '../ui/ProductImage'
+import LoadMore from '../ui/LoadMore'
 import { showToast } from '../../lib/toast'
 import { api, isLoggedIn } from '../../lib/api'
+
+const PAGE_SIZE = 20
 
 interface FavItem {
   id: number
@@ -20,26 +23,41 @@ interface Draft {
   label: string
 }
 
+const mapFav = (f: any): FavItem => ({
+  id: f.id,
+  productId: f.productId,
+  image: (f.product.images?.[0]) || `https://picsum.photos/seed/${f.productId}/400/500`,
+  name: f.product.name,
+  price: f.product.basePrice,
+  description: f.product.designer ? `${f.product.designer} 设计` : ''
+})
+
+const mapDraft = (d: any): Draft => ({
+  id: d.id,
+  name: d.name || '未命名设计',
+  image: d.previewImage || `https://picsum.photos/seed/${d.id}/400/500`,
+  lastEdited: d.updatedAt ? new Date(d.updatedAt).toLocaleDateString() : '未知',
+  label: `设计 #${d.id}`
+})
+
 export default function CollectionTabs() {
   const [activeTab, setActiveTab] = createSignal<'favorites' | 'drafts'>('favorites')
   const [favorites, setFavorites] = createSignal<FavItem[]>([])
   const [favLoading, setFavLoading] = createSignal(false)
+  const [favLoadingMore, setFavLoadingMore] = createSignal(false)
+  const [favTotal, setFavTotal] = createSignal(0)
   const [drafts, setDrafts] = createSignal<Draft[]>([])
+  const [draftLoadingMore, setDraftLoadingMore] = createSignal(false)
+  const [draftTotal, setDraftTotal] = createSignal(0)
 
   const loadFavorites = async () => {
     if (!isLoggedIn()) return
     setFavLoading(true)
     try {
-      const res: any = await api.favorites.list()
+      const res: any = await api.favorites.list({ page: 1, limit: PAGE_SIZE })
       if (res.success) {
-        setFavorites(res.data.items.map((f: any) => ({
-          id: f.id,
-          productId: f.productId,
-          image: (f.product.images?.[0]) || `https://picsum.photos/seed/${f.productId}/400/500`,
-          name: f.product.name,
-          price: f.product.basePrice,
-          description: f.product.designer ? `${f.product.designer} 设计` : ''
-        })))
+        setFavorites(res.data.items.map(mapFav))
+        setFavTotal(res.data.total)
       }
     } catch (e) {
       console.error('Failed to load favorites', e)
@@ -48,22 +66,55 @@ export default function CollectionTabs() {
     }
   }
 
-  onMount(async () => {
-    loadFavorites()
+  const loadMoreFavorites = async () => {
+    if (favLoadingMore() || favorites().length >= favTotal()) return
+    setFavLoadingMore(true)
     try {
-      const res = await api.designs.list()
+      const page = Math.floor(favorites().length / PAGE_SIZE) + 1
+      const res: any = await api.favorites.list({ page, limit: PAGE_SIZE })
       if (res.success) {
-        setDrafts(res.data.items.map((d: any) => ({
-          id: d.id,
-          name: d.name || '未命名设计',
-          image: d.previewImage || `https://picsum.photos/seed/${d.id}/400/500`,
-          lastEdited: d.updatedAt ? new Date(d.updatedAt).toLocaleDateString() : '未知',
-          label: `设计 #${d.id}`
-        })))
+        setFavorites((prev) => [...prev, ...res.data.items.map(mapFav)])
+        setFavTotal(res.data.total)
+      }
+    } catch (e) {
+      console.error('Failed to load more favorites', e)
+    } finally {
+      setFavLoadingMore(false)
+    }
+  }
+
+  const loadDrafts = async () => {
+    try {
+      const res = await api.designs.list({ page: 1, limit: PAGE_SIZE })
+      if (res.success) {
+        setDrafts(res.data.items.map(mapDraft))
+        setDraftTotal(res.data.total)
       }
     } catch (e) {
       console.error('Failed to load designs', e)
     }
+  }
+
+  const loadMoreDrafts = async () => {
+    if (draftLoadingMore() || drafts().length >= draftTotal()) return
+    setDraftLoadingMore(true)
+    try {
+      const page = Math.floor(drafts().length / PAGE_SIZE) + 1
+      const res = await api.designs.list({ page, limit: PAGE_SIZE })
+      if (res.success) {
+        setDrafts((prev) => [...prev, ...res.data.items.map(mapDraft)])
+        setDraftTotal(res.data.total)
+      }
+    } catch (e) {
+      console.error('Failed to load more designs', e)
+    } finally {
+      setDraftLoadingMore(false)
+    }
+  }
+
+  onMount(async () => {
+    loadFavorites()
+    loadDrafts()
   })
 
   const showFab = createMemo(() => activeTab() === 'drafts')
@@ -180,6 +231,7 @@ export default function CollectionTabs() {
                     </div>
                   ))}
                 </div>
+                <LoadMore hasMore={favorites().length < favTotal()} loading={favLoadingMore()} onLoadMore={loadMoreFavorites} />
               </Show>
             </Show>
           </Show>
@@ -223,6 +275,7 @@ export default function CollectionTabs() {
                 </div>
               </div>
             ))}
+            <LoadMore hasMore={drafts().length < draftTotal()} loading={draftLoadingMore()} onLoadMore={loadMoreDrafts} />
           </div>
         )}
       </main>

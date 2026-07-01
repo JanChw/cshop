@@ -15,6 +15,7 @@ import { config } from '../config'
 import { isSafeFilename } from '../utils/safePath'
 import { mimeFromFilename } from '../utils/mime'
 import { parsePagination } from '../utils/request'
+import { writeCanvas, readCanvas, removeCanvas, canvasKey } from '../utils/canvasStore'
 import type { AppEnv } from '../types/hono'
 
 const PREVIEW_WIDTH = 400
@@ -69,16 +70,22 @@ protectedApp.post('/', validateJson(designSchema), async (c) => {
   const userId = c.get('userId')
   const data = c.req.valid('json')
 
-  // Insert the design row first so persistPreview can name the file by id.
-  const [record] = await db.insert(designs).values({ ...data, userId }).returning()
+  // Insert first to get the id, then persist canvas + preview keyed by it.
+  const [record] = await db.insert(designs).values({
+    userId,
+    productId: data.productId,
+    variantId: data.variantId ?? null,
+    name: data.name,
+    isPublic: data.isPublic ?? false
+  }).returning()
   if (!record) return fail(c, '创建失败', 500)
+
+  const cKey = await writeCanvas(canvasKey(record.id), data.canvasData)
+  db.update(designs).set({ canvasPath: cKey }).where(eq(designs.id, record.id)).run()
 
   const previewUrl = await persistPreview(record.id, data.previewImage)
   if (previewUrl) {
-    // Atomic update of previewImage; if this fails we still keep the design row.
-    db.transaction((tx) => {
-      tx.update(designs).set({ previewImage: previewUrl }).where(eq(designs.id, record.id)).run()
-    })
+    db.update(designs).set({ previewImage: previewUrl }).where(eq(designs.id, record.id)).run()
     record.previewImage = previewUrl
   }
 
@@ -89,7 +96,7 @@ protectedApp.post('/', validateJson(designSchema), async (c) => {
     metadata: { designId: record.id, productId: data.productId }
   })
 
-  return success(c, record, 201)
+  return success(c, { ...record, canvasPath: cKey, canvasData: data.canvasData }, 201)
 })
 
 protectedApp.get('/:id', async (c) => {
@@ -104,7 +111,12 @@ protectedApp.get('/:id', async (c) => {
   if (!design) {
     return fail(c, '设计不存在', 404)
   }
-  return success(c, { ...design, previewImage: versionPreviewUrl(design.previewImage, design.updatedAt) })
+  const canvasData = await readCanvas(design.canvasPath)
+  return success(c, {
+    ...design,
+    canvasData,
+    previewImage: versionPreviewUrl(design.previewImage, design.updatedAt)
+  })
 })
 
 protectedApp.patch('/:id/public', async (c) => {
@@ -140,8 +152,16 @@ protectedApp.put('/:id', validateJson(designSchema), async (c) => {
     return fail(c, '设计不存在', 404)
   }
 
+  const cKey = await writeCanvas(canvasKey(id), data.canvasData)
   const previewUrl = await persistPreview(id, data.previewImage)
-  const updateData = { ...data, updatedAt: new Date().toISOString() }
+  const updateData: Record<string, unknown> = {
+    productId: data.productId,
+    variantId: data.variantId ?? null,
+    name: data.name,
+    isPublic: data.isPublic ?? false,
+    canvasPath: cKey,
+    updatedAt: new Date().toISOString()
+  }
   if (previewUrl) updateData.previewImage = previewUrl
 
   await db
@@ -163,13 +183,14 @@ protectedApp.delete('/:id', async (c) => {
   const userId = c.get('userId')
   const id = parseInt(c.req.param('id'))
   const [existing] = await db
-    .select({ id: designs.id })
+    .select({ id: designs.id, canvasPath: designs.canvasPath })
     .from(designs)
     .where(and(eq(designs.id, id), eq(designs.userId, userId)))
     .limit(1)
   if (!existing) return fail(c, '设计不存在', 404)
 
   await db.delete(designs).where(eq(designs.id, id))
+  await removeCanvas(existing.canvasPath)
   await unlink(join(config.designDir, `${id}.webp`)).catch(() => {})
 
   trackBusinessEvent({ c, userId, eventType: 'design_delete', metadata: { designId: id } })

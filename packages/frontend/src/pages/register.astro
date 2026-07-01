@@ -7,6 +7,6 @@ const siteKey = import.meta.env.CLOUDFLARE_SITE_KEY || '1x00000000000000000000AA
 
 <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" />
 
-<MainLayout title="注册" hideNav hideScroll>
+<MainLayout title="注册" hideNav>
   <RegisterForm client:load siteKey={siteKey} />
 </MainLayout>

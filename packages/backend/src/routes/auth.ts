@@ -107,8 +107,17 @@ app.post('/register', registerThrottle, validateJson(registerSchema), async (c) 
     '',
     '如非本人操作，请忽略本邮件。'
   ].join('\n')
+  const html = `<!DOCTYPE html><html><body style="font-family:sans-serif;padding:24px;color:#1f1f1f">
+<p>您好，${name}：</p>
+<p>感谢注册 <strong>ByChooow</strong>！请点击下方按钮激活您的账户（30 分钟内有效）：</p>
+<table cellpadding="0" cellspacing="0" style="margin:24px 0"><tr>
+<td style="background:#6c5ce7;border-radius:8px;padding:12px 32px">
+<a href="${link}" style="color:#fff;text-decoration:none;font-size:16px;font-weight:bold;display:inline-block">激活账户</a>
+</td></tr></table>
+<p style="color:#888;font-size:13px">如非本人操作，请忽略本邮件。</p>
+</body></html>`
 
-  void sendEmail({ to: email, subject, body, event: 'verification' }).catch((err) => {
+  void sendEmail({ to: email, subject, body, html, event: 'verification' }).catch((err) => {
     console.error('[EMAIL ACTIVATION]', err)
   })
 
@@ -670,8 +679,17 @@ app.post('/email/resend-activation', activationThrottle, validateJson(resendActi
     '',
     '如非本人操作，请忽略本邮件。'
   ].join('\n')
+  const html = `<!DOCTYPE html><html><body style="font-family:sans-serif;padding:24px;color:#1f1f1f">
+<p>您好，${user.name || '用户'}：</p>
+<p>请点击下方按钮重新激活您的 <strong>ByChooow</strong> 账户（30 分钟内有效）：</p>
+<table cellpadding="0" cellspacing="0" style="margin:24px 0"><tr>
+<td style="background:#6c5ce7;border-radius:8px;padding:12px 32px">
+<a href="${link}" style="color:#fff;text-decoration:none;font-size:16px;font-weight:bold;display:inline-block">重新激活账户</a>
+</td></tr></table>
+<p style="color:#888;font-size:13px">如非本人操作，请忽略本邮件。</p>
+</body></html>`
 
-  void sendEmail({ to: email, subject, body, event: 'verification' }).catch((err) => {
+  void sendEmail({ to: email, subject, body, html, event: 'verification' }).catch((err) => {
     console.error('[EMAIL RESEND ACTIVATION]', err)
   })
 

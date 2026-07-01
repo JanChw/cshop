@@ -201,12 +201,12 @@ export default function LoginForm(props: { siteKey: string }) {
       </div>
 
       {/* Form side */}
-      <div class="flex-1 flex flex-col items-center px-6 py-24 pb-32 md:pb-24 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden relative">
-        <div class="md:hidden fixed top-0 w-full flex justify-center items-center h-20 bg-transparent">
+      <div class="flex-1 flex flex-col items-center px-6 pt-36 pb-8 md:pt-24 md:pb-24 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden relative">
+        <div class="md:hidden fixed top-0 w-full flex justify-center items-center h-20 bg-transparent pointer-events-none">
           <h1 class="font-headline text-3xl font-bold text-primary tracking-tight">ByChooow</h1>
         </div>
 
-        <div class="w-full max-w-md my-auto">
+        <div class="w-full max-w-md md:my-auto">
           <div class="text-center mb-10 space-y-2">
             <h2 class="font-headline text-4xl text-on-surface font-semibold">欢迎回来</h2>
             <p class="text-on-surface-variant text-sm">登录以继续您的创意之旅</p>

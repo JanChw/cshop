@@ -157,7 +157,7 @@ export default function RegisterForm(props: { siteKey: string }) {
       </div>
 
       {/* Form side */}
-      <div class="flex-1 flex flex-col items-center px-4 pt-24 pb-12 md:pb-24 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden relative">
+      <div class="flex-1 flex flex-col items-center px-4 pt-36 pb-8 md:pt-24 md:pb-24 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden relative">
         <header class="md:hidden fixed top-0 w-full bg-surface flex justify-between items-center px-6 h-16 shadow-sm">
           <button
             type="button"
@@ -173,7 +173,7 @@ export default function RegisterForm(props: { siteKey: string }) {
           <div class="w-6"></div>
         </header>
 
-        <div class="w-full max-w-md my-auto">
+        <div class="w-full max-w-md md:my-auto">
           <Show when={submitted()} fallback={
             <>
               <div class="text-center mb-10">

@@ -59,9 +59,10 @@ export interface SendEmailOptions {
   subject: string
   body: string
   event: NotificationEvent
+  html?: string
 }
 
-export async function sendEmail({ to, subject, body, event }: SendEmailOptions): Promise<boolean> {
+export async function sendEmail({ to, subject, body, event, html }: SendEmailOptions): Promise<boolean> {
   const { smtpUser } = config
   const transporter = getTransporter()
 
@@ -71,12 +72,18 @@ export async function sendEmail({ to, subject, body, event }: SendEmailOptions):
   }
 
   try {
-    await transporter.sendMail({
+    const mail: nodemailer.SendMailOptions = {
       from: smtpUser,
       to,
       subject: encodeSubject(subject),
-      text: body,
-    })
+    }
+    if (html) {
+      mail.html = html
+      mail.text = body
+    } else {
+      mail.text = body
+    }
+    await transporter.sendMail(mail)
     console.log(`[NOTIFY EMAIL SENT] event=${event} to=${to} | ${subject}`)
     return true
   } catch (err: any) {
